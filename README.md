@@ -1,6 +1,7 @@
-# scrum-poker
-- This is an application that integrates with GitHub Projects for seamless import of product backlogs into a UI for easy sprint estimation.
-- Scrum-Poker will **watch** select repos after the app is installed to a user's GitHub (user acct, org acct, or repo)
+# GH Scrum Poker
+This is an application that integrates with GitHub Projects for seamless import of product backlogs into a UI for easy sprint estimation.
+Scrum-Poker will **watch** select repos after the app is installed to a user's GitHub (user acct, org acct, or repo)
+
 - To test this, Scrum Poker is currently installed on this [scrum-poker-test repository](https://github.com/colinwilliams91/scrum-poker-test)
   - Please clone down that repo and use it for [testing](https://github.com/colinwilliams91/scrum-poker?tab=readme-ov-file#to-test)
 
