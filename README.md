@@ -9,9 +9,23 @@
 ### First Time:
 - In your terminal:
 ```sh
-git clone https://github.com/colinwilliams91/scrum-poker.git
+git clone https://github.com/hotfix-studios/scrum-poker.git
 cd scrum-poker
 npm i
+```
+- _To gain access to application code you will need to be granted permission from @colinwilliams91 or @bryanpburnside. (contact them via email from respective GH profiles)_
+- Change the `local.env` file name to `.env`
+- Visit the #🔐-op-credentials channel inside `🦺-GH-SCRUM-POKER` region and plug in the following values:
+```env
+APP_ID="..."
+WEBHOOK_SECRET="..."
+CLIENT_ID="..."
+INSTALLATION_ID="..."
+PRIVATE_KEY="..."
+
+NODE_ENV="development"
+PORT="..."
+WEBHOOK_PATH="..."
 ```
 
 ### To Develop:
@@ -19,18 +33,16 @@ npm i
 - Make sure your branch is up to date:
   - This will fetch current remote main and merge into your feature-branch
 ```sh
+# fetch and merge remote main into your feature branch
 git pull origin main
-```
-- Install packages if needed:
-```sh
+# Install packages if needed
 npm i
 ```
-- Next, compile TypeScript files to JavaScript files in `./dist` so that Node can run
+- Build and run:
 ```sh
+# compile TypeScript files to JavaScript files in `./dist` so that Node can run
 npm run build
-```
-- Kick off the Node server:
-```sh
+# Kick off the Node server
 npm run server
 ```
 
