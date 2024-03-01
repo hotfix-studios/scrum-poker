@@ -7,67 +7,65 @@ using NativeWebSocket;
 
 public class WebSocketConnection : MonoBehaviour
 {
-    WebSocket websocket;
+    WebSocket ws;
 
-    // Start is called before the first frame update
     async void Start()
     {
-        websocket = new WebSocket("ws://localhost:3000");
+        ws = new WebSocket("ws://localhost:3001");
 
-        websocket.OnOpen += () =>
+        ws.OnOpen += () =>
         {
             Debug.Log("Connection open!");
         };
 
-        websocket.OnError += (e) =>
+        ws.OnError += (e) =>
         {
             Debug.Log("Error! " + e);
         };
 
-        websocket.OnClose += (e) =>
+        ws.OnClose += (e) =>
         {
             Debug.Log("Connection closed!");
         };
 
-        websocket.OnMessage += (bytes) =>
+        ws.OnMessage += (bytes) =>
         {
-            Debug.Log("OnMessage!");
-            Debug.Log(bytes);
+            Debug.Log($"Message received from server containing: {bytes}");
 
-            // getting the message as a string
-            // var message = System.Text.Encoding.UTF8.GetString(bytes);
-            // Debug.Log("OnMessage! " + message);
+            // Getting the message as a string
+            var message = System.Text.Encoding.UTF8.GetString(bytes);
+            Debug.Log($"Message reads: {message}");
         };
 
         // Keep sending messages at every 0.3s
         InvokeRepeating("SendWebSocketMessage", 0.0f, 0.3f);
 
         // waiting for messages
-        await websocket.Connect();
+        await ws.Connect();
     }
 
     void Update()
     {
 #if !UNITY_WEBGL || UNITY_EDITOR
-        websocket.DispatchMessageQueue();
+        ws.DispatchMessageQueue();
 #endif
     }
 
     async void SendWebSocketMessage()
     {
-        if (websocket.State == WebSocketState.Open)
+        if (ws.State == WebSocketState.Open)
         {
             // Sending bytes
-            await websocket.Send(new byte[] { 10, 20, 30 });
+            // await ws.Send(new byte[] { 10, 20, 30 });
 
             // Sending plain text
-            await websocket.SendText("plain text message");
+            await ws.SendText("plain text message");
         }
     }
 
     private async void OnApplicationQuit()
     {
-        await websocket.Close();
+        await ws.Close();
     }
 
 }
