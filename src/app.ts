@@ -85,9 +85,9 @@ app.webhooks.onError((error) => {
 // This determines where your server will listen.
 //
 // For local development, your server will listen to port 3000 on `localhost`. When you deploy your app, you will change these values. For more information, see "[Deploy your app](#deploy-your-app)."
-const port = 3000;
-const host = 'localhost';
-const path = "/api/webhook";
+const port = process.env.PORT;
+const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}${path}`;
 
 // This sets up a middleware function to handle incoming webhook events.
