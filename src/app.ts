@@ -13,14 +13,14 @@ const appId = process.env.APP_ID;
 const installationId = process.env.INSTALLATION_ID;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 
-const privateKeyPath = process.env.PRIVATE_KEY_PATH;
-const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
+// const privateKeyPath = process.env.PRIVATE_KEY_PATH;
+// const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
 
-// const privateKey = Buffer
-//   .from(process.env.PRIVATE_KEY, "base64")
-//   .toString("ascii");
+const privateKey = Buffer
+  .from(process.env.PRIVATE_KEY, "base64")
+  .toString("ascii");
 
-// This creates a new instance of the Octokit App class.
+/* Octokit App Class */
 const app = new App({
   appId: appId,
   privateKey: privateKey,
