@@ -1,7 +1,8 @@
+import dotenv from "dotenv";
 import http from "http";
 import WebSocket, { WebSocketServer } from 'ws';
 
-const port = 3001;
+const port = process.env.WSS_PORT;
 const server = http.createServer();
 
 // Creating a websocket to run on our server
