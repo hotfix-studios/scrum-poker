@@ -1,6 +1,7 @@
 // You installed the `dotenv` and `octokit` modules earlier. The `@octokit/webhooks` is a dependency of the `octokit` module, so you don't need to install it separately. The `fs` and `http` dependencies are built-in Node.js modules.
 import dotenv from "dotenv";
 import { App } from "octokit";
+import { App as AppType } from "octokit";
 import { createNodeMiddleware } from "@octokit/webhooks";
 import fs from "fs";
 import http from "http";
@@ -13,15 +14,15 @@ const appId = process.env.APP_ID;
 const installationId = process.env.INSTALLATION_ID;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 
-// const privateKeyPath = process.env.PRIVATE_KEY_PATH;
-// const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
+const privateKeyPath = process.env.PRIVATE_KEY_PATH;
+const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
 
-const privateKey = Buffer
-  .from(process.env.PRIVATE_KEY, "base64")
-  .toString("ascii");
+// const privateKey = Buffer
+//   .from(process.env.PRIVATE_KEY, "base64")
+//   .toString("ascii");
 
-// This creates a new instance of the Octokit App class.
-const app = new App({
+/* Octokit App Class */
+const app: AppType = new App({
   appId: appId,
   privateKey: privateKey,
   webhooks: {
@@ -33,9 +34,9 @@ const app = new App({
 const messageForNewPRs = "Thanks for opening a new PR! Please follow our contributing guidelines to make your PR easier to review.";
 
 // This adds an event handler that your code will call later. When this event handler is called, it will log the event to the console. Then, it will use GitHub's REST API to add a comment to the pull request that triggered the event.
-async function handlePullRequestOpened({octokit, payload}) {
+const handlePullRequestOpened = async ({octokit, payload}) => {
   console.log(`Received a pull request event for #${payload.pull_request.number}`);
-
+  // TODO: LOG PAYLOAD HERE
   try {
     await octokit.request("POST /repos/{owner}/{repo}/issues/{issue_number}/comments", {
       owner: payload.repository.owner.login,
@@ -43,7 +44,8 @@ async function handlePullRequestOpened({octokit, payload}) {
       issue_number: payload.pull_request.number,
       body: messageForNewPRs,
       headers: {
-        "x-github-api-version": "2022-11-28",
+        "x-github-api-version": "2022-11-28", // X-Accepted-GitHub-Permissions <-- add this header as well to get a response of all required permissions for the GH API request!
+        "x-accepted-github-permissions": true
       },
     });
   } catch (error) {
@@ -57,18 +59,20 @@ async function handlePullRequestOpened({octokit, payload}) {
 // This sets up a webhook event listener. When your app receives a webhook event from GitHub with a `X-GitHub-Event` header value of `pull_request` and an `action` payload value of `opened`, it calls the `handlePullRequestOpened` event handler that is defined above.
 app.webhooks.on("pull_request.opened", handlePullRequestOpened);
 
-app.webhooks.on("issues.opened", ({ octokit, payload }) => {
-  console.log("ISSUE OPENED:", payload);
-  const { owner, repo, issue } = payload;
-  const issueNumber = issue.number;
+// app.webhooks.verify
 
-  return octokit.rest.issues.createComment({
-    owner: payload.repository.owner.login,
-    repo: payload.repository.name,
-    issue_number: issueNumber,
-    body: "Hello, World!",
-  });
-});
+// app.webhooks.on("issues.opened", ({ octokit, payload }) => {
+//   console.log("ISSUE OPENED:", payload);
+//   const { owner, repo, issue } = payload;
+//   const issueNumber = issue.number;
+
+//   return octokit.rest.issues.createComment({
+//     owner: payload.repository.owner.login,
+//     repo: payload.repository.name,
+//     issue_number: issueNumber,
+//     body: "Hello, World!",
+//   });
+// });
 
 // This logs any errors that occur.
 app.webhooks.onError((error) => {
@@ -82,9 +86,9 @@ app.webhooks.onError((error) => {
 // This determines where your server will listen.
 //
 // For local development, your server will listen to port 3000 on `localhost`. When you deploy your app, you will change these values. For more information, see "[Deploy your app](#deploy-your-app)."
-const port = 3000;
-const host = 'localhost';
-const path = "/api/webhook";
+const port = process.env.PORT;
+const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
+const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}${path}`;
 
 // This sets up a middleware function to handle incoming webhook events.
