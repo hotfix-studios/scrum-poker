@@ -1,10 +1,14 @@
 // You installed the `dotenv` and `octokit` modules earlier. The `@octokit/webhooks` is a dependency of the `octokit` module, so you don't need to install it separately. The `fs` and `http` dependencies are built-in Node.js modules.
 import dotenv from "dotenv";
 import { App } from "octokit";
-import { App as AppType } from "octokit";
 import { createNodeMiddleware } from "@octokit/webhooks";
 import fs from "fs";
 import http from "http";
+
+/* Types */
+import { App as AppType } from "octokit";
+// import { Issue } from "./types/octokit.js";
+import * as OctokitTypes from './types/octokit.js';
 
 // This reads your `.env` file and adds the variables from that file to the `process.env` object in Node.js.
 dotenv.config();
@@ -45,6 +49,7 @@ const handlePullRequestOpened = async ({octokit, payload}) => {
       body: messageForNewPRs,
       headers: {
         "x-github-api-version": "2022-11-28", // X-Accepted-GitHub-Permissions <-- add this header as well to get a response of all required permissions for the GH API request!
+        // "content-type": "application/json", // might not need, possibly default
         "x-accepted-github-permissions": true
       },
     });
@@ -61,18 +66,23 @@ app.webhooks.on("pull_request.opened", handlePullRequestOpened);
 
 // app.webhooks.verify
 
-// app.webhooks.on("issues.opened", ({ octokit, payload }) => {
-//   console.log("ISSUE OPENED:", payload);
-//   const { owner, repo, issue } = payload;
-//   const issueNumber = issue.number;
+app.webhooks.on("issues.opened", ({ octokit, payload }) => {
+  console.log("ISSUE OPENED:", payload);
+  console.log("SENDER? login", payload.sender.login);
+  console.log("WHAT IS ISSUE?", typeof payload.issue, payload.issue);
 
-//   return octokit.rest.issues.createComment({
-//     owner: payload.repository.owner.login,
-//     repo: payload.repository.name,
-//     issue_number: issueNumber,
-//     body: "Hello, World!",
-//   });
-// });
+  const { repository, issue }: { repository: any, issue: OctokitTypes.Issue } = payload;
+  const owner = repository.owner.login;
+  const repo = repository.name;
+  const issueNumber = issue.number;
+
+  return octokit.rest.issues.createComment({
+    owner: owner,
+    repo: repo,
+    issue_number: issueNumber,
+    body: "Hello, World!",
+  });
+});
 
 // This logs any errors that occur.
 app.webhooks.onError((error) => {
