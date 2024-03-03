@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import http from "http";
 import WebSocket, { WebSocketServer } from 'ws';
 
+dotenv.config();
+
 const port = process.env.WSS_PORT;
 const server = http.createServer();
 
