@@ -26,6 +26,7 @@ PRIVATE_KEY="..."
 
 NODE_ENV="development"
 PORT="..."
+WSS_PORT="..."
 WEBHOOK_PATH="..."
 ```
 
