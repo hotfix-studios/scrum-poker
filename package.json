@@ -6,16 +6,19 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "server": "node --watch ./dist/app.js"
+    "server": "node --watch ./dist/app.js",
+    "wss": "node --watch ./dist/wss.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/dotenv": "^8.2.0",
     "@types/node": "^20.11.20",
     "dotenv": "^16.4.1",
     "jsonwebtoken": "^9.0.2",
-    "octokit": "^3.1.2"
+    "octokit": "^3.1.2",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "smee-client": "^2.0.1",
