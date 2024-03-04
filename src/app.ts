@@ -1,4 +1,3 @@
-// You installed the `dotenv` and `octokit` modules earlier. The `@octokit/webhooks` is a dependency of the `octokit` module, so you don't need to install it separately. The `fs` and `http` dependencies are built-in Node.js modules.
 import dotenv from "dotenv";
 import { App } from "octokit";
 import { createNodeMiddleware } from "@octokit/webhooks";
@@ -37,7 +36,11 @@ const app: AppType = new App({
 // This defines the message that your app will post to pull requests.
 const messageForNewPRs = "Thanks for opening a new PR! Please follow our contributing guidelines to make your PR easier to review.";
 
-// This adds an event handler that your code will call later. When this event handler is called, it will log the event to the console. Then, it will use GitHub's REST API to add a comment to the pull request that triggered the event.
+/**
+ * This adds an event handler that your code will call later.
+ * When this event handler is called, it will log the event to the console.
+ * Then, it will use GitHub's REST API to add a comment to the pull request that triggered the event.
+ */
 const handlePullRequestOpened = async ({octokit, payload}) => {
   console.log(`Received a pull request event for #${payload.pull_request.number}`);
   // TODO: LOG PAYLOAD HERE
@@ -48,9 +51,9 @@ const handlePullRequestOpened = async ({octokit, payload}) => {
       issue_number: payload.pull_request.number,
       body: messageForNewPRs,
       headers: {
-        "x-github-api-version": "2022-11-28", // X-Accepted-GitHub-Permissions <-- add this header as well to get a response of all required permissions for the GH API request!
+        "x-github-api-version": "2022-11-28",
         // "content-type": "application/json", // might not need, possibly default
-        "x-accepted-github-permissions": true
+        "x-accepted-github-permissions": true // this header as well to get a response of all required permissions for the GH API request!
       },
     });
   } catch (error) {
@@ -61,15 +64,18 @@ const handlePullRequestOpened = async ({octokit, payload}) => {
   }
 };
 
-// This sets up a webhook event listener. When your app receives a webhook event from GitHub with a `X-GitHub-Event` header value of `pull_request` and an `action` payload value of `opened`, it calls the `handlePullRequestOpened` event handler that is defined above.
+/**
+ * This sets up a webhook event listener. When your app receives a webhook event from GitHub with a `X-GitHub-Event`
+ * header value of `pull_request` and an `action` payload value of `opened`, it calls the `handlePullRequestOpened`
+ * event handler that is defined above.
+ */
 app.webhooks.on("pull_request.opened", handlePullRequestOpened);
 
+// TODO: check out if this is good:
 // app.webhooks.verify
 
 app.webhooks.on("issues.opened", ({ octokit, payload }) => {
   console.log("ISSUE OPENED:", payload);
-  console.log("SENDER? login", payload.sender.login);
-  console.log("WHAT IS ISSUE?", typeof payload.issue, payload.issue);
 
   const { repository, issue }: { repository: any, issue: OctokitTypes.Issue } = payload;
   const owner = repository.owner.login;
@@ -93,24 +99,33 @@ app.webhooks.onError((error) => {
   }
 });
 
-// This determines where your server will listen.
-//
-// For local development, your server will listen to port 3000 on `localhost`. When you deploy your app, you will change these values. For more information, see "[Deploy your app](#deploy-your-app)."
+/**
+ * For local development, your server will listen to port 3000 on `localhost`.
+ * When you deploy your app, you will change these values. For more information,
+ * see "[Deploy your app](https://docs.github.com/en/apps/creating-github-apps/writing-code-for-a-github-app/building-a-github-app-that-responds-to-webhook-events#deploy-your-app)."
+ */
 const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}${path}`;
 
-// This sets up a middleware function to handle incoming webhook events.
 //
-// Octokit's `createNodeMiddleware` function takes care of generating this middleware function for you. The resulting middleware function will:
-//
-//    - Check the signature of the incoming webhook event to make sure that it matches your webhook secret. This verifies that the incoming webhook event is a valid GitHub event.
-//    - Parse the webhook event payload and identify the type of event.
-//    - Trigger the corresponding webhook event handler.
+
+/**
+ * This sets up a middleware function to handle incoming webhook events.
+ * Octokit's `createNodeMiddleware` function takes care of generating this middleware function for you. The resulting middleware function will:
+ * - Check the signature of the incoming webhook event to make sure that it matches your webhook secret.
+ *   This verifies that the incoming webhook event is a valid GitHub event.
+ * - Parse the webhook event payload and identify the type of event.
+ * - Trigger the corresponding webhook event handler.
+ */
 const middleware = createNodeMiddleware(app.webhooks, {path});
 
-// This creates a Node.js server that listens for incoming HTTP requests (including webhook payloads from GitHub) on the specified port. When the server receives a request, it executes the `middleware` function that you defined earlier. Once the server is running, it logs messages to the console to indicate that it is listening.
+/**
+ * This creates a Node.js server that listens for incoming HTTP requests (including webhook payloads from GitHub) on the specified port.
+ * When the server receives a request, it executes the `middleware` function that you defined earlier.
+ * Once the server is running, it logs messages to the console to indicate that it is listening.
+ */
 http.createServer(middleware).listen(port, () => {
   console.log(`Server is listening for events at: ${localWebhookUrl}`);
   console.log('Press Ctrl + C to quit.')
