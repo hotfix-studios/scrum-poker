@@ -77,7 +77,7 @@ app.webhooks.on("pull_request.opened", handlePullRequestOpened);
 app.webhooks.on("issues.opened", ({ octokit, payload }) => {
   console.log("ISSUE OPENED:", payload);
 
-  const { repository, issue }: { repository: any, issue: OctokitTypes.Issue } = payload;
+  const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
   const owner = repository.owner.login;
   const repo = repository.name;
   const issueNumber = issue.number;
