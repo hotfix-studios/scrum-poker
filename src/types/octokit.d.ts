@@ -90,9 +90,9 @@ export interface Repository {
   labels_url: string;
   releases_url: string;
   deployments_url: string;
-  created_at: string;
+  created_at: string | number;
   updated_at: string;
-  pushed_at: string;
+  pushed_at: string | number;
   git_url: string;
   ssh_url: string;
   clone_url: string;
@@ -107,14 +107,14 @@ export interface Repository {
   has_downloads: boolean;
   has_wiki: boolean;
   has_pages: boolean;
-  has_discussions: boolean;
+  has_discussions?: boolean;
   forks_count: number;
   mirror_url: string | null;
   archived: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   open_issues_count: number;
   license: any | null; // You might want to define a type for the license object
-  allow_forking: boolean;
+  allow_forking?: boolean;
   is_template: boolean;
   web_commit_signoff_required: boolean;
   topics: string[];
@@ -123,7 +123,7 @@ export interface Repository {
   open_issues: number;
   watchers: number;
   default_branch: string;
-  custom_properties: Record<string, any>;
+  // custom_properties: Record<string, any>;
 }
 
 
