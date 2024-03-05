@@ -46,6 +46,8 @@ npm i
 npm run build
 # Kick off the Node server
 npm run server
+# Redirects event payloads from our proxy to our app
+npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api/webhook
 ```
 
 ### To Test:
