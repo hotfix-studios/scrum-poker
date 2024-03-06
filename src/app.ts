@@ -1,10 +1,12 @@
-// You installed the `dotenv` and `octokit` modules earlier. The `@octokit/webhooks` is a dependency of the `octokit` module, so you don't need to install it separately. The `fs` and `http` dependencies are built-in Node.js modules.
 import dotenv from "dotenv";
+import "./db/index.js";
+
+import fs from "fs";
+import http from "http";
+
 import { App } from "octokit";
 import { App as AppType } from "octokit";
 import { createNodeMiddleware } from "@octokit/webhooks";
-import fs from "fs";
-import http from "http";
 
 // This reads your `.env` file and adds the variables from that file to the `process.env` object in Node.js.
 dotenv.config();
@@ -102,6 +104,6 @@ const middleware = createNodeMiddleware(app.webhooks, {path});
 
 // This creates a Node.js server that listens for incoming HTTP requests (including webhook payloads from GitHub) on the specified port. When the server receives a request, it executes the `middleware` function that you defined earlier. Once the server is running, it logs messages to the console to indicate that it is listening.
 http.createServer(middleware).listen(port, () => {
-  console.log(`Server is listening for events at: ${localWebhookUrl}`);
+  console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
   console.log('Press Ctrl + C to quit.')
 });
