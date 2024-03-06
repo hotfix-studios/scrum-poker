@@ -5,8 +5,6 @@ dotenv.config();
 
 const mongoUri: string | undefined = process.env.DB_CONNECTION;
 
-console.log("CONNECTION STRING:", mongoUri);
-
 if (mongoUri != undefined) {
   mongoose
     .connect(mongoUri)
