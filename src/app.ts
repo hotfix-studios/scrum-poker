@@ -1,8 +1,11 @@
 import dotenv from "dotenv";
+import "./db/index.js";
+
+// import fs from "fs";
+import http from "http";
+
 import { App } from "octokit";
 import { createNodeMiddleware } from "@octokit/webhooks";
-import fs from "fs";
-import http from "http";
 
 /* Types */
 import { App as AppType } from "octokit";
@@ -17,12 +20,12 @@ const appId = process.env.APP_ID;
 const installationId = process.env.INSTALLATION_ID;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 
-const privateKeyPath = process.env.PRIVATE_KEY_PATH;
-const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
+// const privateKeyPath = process.env.PRIVATE_KEY_PATH;
+// const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
 
-// const privateKey = Buffer
-//   .from(process.env.PRIVATE_KEY, "base64")
-//   .toString("ascii");
+const privateKey = Buffer
+  .from(process.env.PRIVATE_KEY, "base64")
+  .toString("ascii");
 
 /* Octokit App Class */
 const app: AppType = new App({
@@ -127,6 +130,6 @@ const middleware = createNodeMiddleware(app.webhooks, {path});
  * Once the server is running, it logs messages to the console to indicate that it is listening.
  */
 http.createServer(middleware).listen(port, () => {
-  console.log(`Server is listening for events at: ${localWebhookUrl}`);
-  console.log('Press Ctrl + C to quit.')
+  console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
+  console.log("Press Ctrl + C to quit.");
 });
