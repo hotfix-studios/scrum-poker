@@ -58,18 +58,15 @@ wss.on('connection', (ws) => {
       users: [params.userId]
     };
   };
-  const join = params => {};
+  const join = params => {
+    if (rooms[params.roomId]) {
+      rooms[params.roomId].users.push(params.userId);
+      console.log(`User joined room ${params.roomId}: `, rooms[params.roomId])
+    } else {
+      console.error(`join: room with id ${params.roomId} does not exist`);
+    }
+  };
   const leave = params => {};
-  // ws.on('message', (data) => {
-  //   console.log('data received from client: ', data.toString());
-  //   ws.send('Message received!');
-  // });
-
-  // ws.on('message', (data) => {
-  //   console.log('data received from client: ', data.toString());
-  //   ws.send(JSON.stringify(rooms));
-  // });
-
 });
 
 server.listen(port, () => {

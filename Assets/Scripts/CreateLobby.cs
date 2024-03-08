@@ -21,8 +21,9 @@ public class CreateLobby : MonoBehaviour
 
     // private List<string> users; 
 
-    [SerializeField] private TMP_InputField _lobby;
+    [SerializeField] private TMP_InputField lobby;
     [SerializeField] private TextMeshProUGUI greeting;
+    [SerializeField] private TMP_InputField join;
     private string roomId = Guid.NewGuid().ToString().Substring(0, 5);
 
     private void Update()
@@ -36,10 +37,18 @@ public class CreateLobby : MonoBehaviour
         }
     }
 
-    public void OnButtonClick()
+    public void OnCreateClick()
     {
         CreateRoom();
-        _lobby.text = roomId;
+        lobby.text = roomId;
+    }
+
+    public void OnJoinClick()
+    {
+        if (join.text.Length == 5)
+        {
+            JoinRoom();
+        }
     }
 
     async void CreateRoom()
@@ -52,6 +61,25 @@ public class CreateLobby : MonoBehaviour
                 Params = new Params
                 {
                     roomId = roomId,
+                    userId = WebSocketConnection.userId
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            Debug.Log("create" + json);
+            await WebSocketConnection.ws.SendText(json);
+        }
+    }
+
+    async void JoinRoom()
+    {
+        if (WebSocketConnection.ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                type = "join",
+                Params = new Params
+                {
+                    roomId = join.text,
                     userId = WebSocketConnection.userId
                 }
             };
