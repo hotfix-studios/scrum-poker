@@ -1,24 +1,24 @@
-import { randomUUID } from "crypto";
+import express from "express";
 import dotenv from "dotenv";
-import http from "http";
-import WebSocket, { WebSocketServer } from 'ws';
+import { WebSocketServer } from 'ws';
+import http from 'http'
 
 dotenv.config();
 
 const port = process.env.WSS_PORT;
-const server = http.createServer();
+const server = http.createServer(express());
 
 const rooms = {};
 
 const userId = "Dummy Testy";
 
 // Creating a websocket to run on our server
-const wss = new WebSocketServer({ server }, () => {
-  console.log('WSS started');
-});
+const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
+
   ws.on('error', console.error);
+
   ws.on('message', data => {
     const rawData = data.toString();
     const obj = JSON.parse(rawData);
@@ -44,6 +44,7 @@ wss.on('connection', (ws) => {
         break;
     }
   });
+
   const init = params => {
     const obj = {
       type: 'init',
@@ -53,11 +54,13 @@ wss.on('connection', (ws) => {
     }
     ws.send(JSON.stringify(obj));
   };
+
   const create = params => {
     rooms[params.roomId] = {
       users: [params.userId]
     };
   };
+
   const join = params => {
     if (rooms[params.roomId]) {
       rooms[params.roomId].users.push(params.userId);
@@ -66,7 +69,9 @@ wss.on('connection', (ws) => {
       console.error(`join: room with id ${params.roomId} does not exist`);
     }
   };
+
   const leave = params => {};
+
 });
 
 server.listen(port, () => {

@@ -8,13 +8,18 @@ public class CreateLobby : MonoBehaviour
 {
     public class Data
     {
-        public string type {  get; set; }
+        [JsonProperty("type")]
+        public string Type {  get; set; }
 
         [JsonProperty("params")]
         public Params Params { get; set; }
     }
     public class Params
     {
+        public Params()
+        {
+            // TODO: Add conditional to either create roomId or set via join.text
+        }
         public string roomId;
         public string userId;
     }
@@ -45,6 +50,7 @@ public class CreateLobby : MonoBehaviour
 
     public void OnJoinClick()
     {
+        // TODO: Add better data validation
         if (join.text.Length == 5)
         {
             JoinRoom();
@@ -57,7 +63,7 @@ public class CreateLobby : MonoBehaviour
         {
             var data = new Data
             {
-                type = "create",
+                Type = "create",
                 Params = new Params
                 {
                     roomId = roomId,
@@ -76,7 +82,7 @@ public class CreateLobby : MonoBehaviour
         {
             var data = new Data
             {
-                type = "join",
+                Type = "join",
                 Params = new Params
                 {
                     roomId = join.text,

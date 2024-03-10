@@ -8,7 +8,9 @@ public class WebSocketConnection : MonoBehaviour
     public static string userId;
     public class Data
     {
-        public string type { get; set; }
+        // TODO: Ensure consistency across scripts
+        [JsonProperty("type")]
+        public string Type { get; set; }
 
         [JsonProperty("params")]
         public Params Params { get; set; }
@@ -28,7 +30,7 @@ public class WebSocketConnection : MonoBehaviour
             Debug.Log("Connection open!");
             var data = new Data
             {
-                type = "init"
+                Type = "init"
             };
             string json = JsonConvert.SerializeObject(data);
             ws.SendText(json);
@@ -48,7 +50,7 @@ public class WebSocketConnection : MonoBehaviour
         {
             string message = System.Text.Encoding.UTF8.GetString(bytes);
             Data json = JsonConvert.DeserializeObject<Data>(message);
-            string type = json.type;
+            string type = json.Type;
             Params Params = json.Params;
 
             switch (type)
