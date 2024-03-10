@@ -16,6 +16,7 @@ const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}${path}`;
 
+// TODO: prune this old http server creator
 // const server = http.createServer(middleware).listen(port, () => {
 //   console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
 //   console.log("Press Ctrl + C to quit.");
@@ -33,8 +34,8 @@ server.listen(port, () => {
 // app.webhooks.on("issues.opened", webhookApi.issueOpenedHandler);
 registerEventListeners(app);
 
+// TODO: wait for refactor to Express to wire this back  up...
 /* Creating a websocket to run on our server */
-// TODO: refactor wss for Express server...
 // const wss = new WebSocketServer({ server }, () => {
 //   console.log('WSS started');
 // });
