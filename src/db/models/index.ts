@@ -3,7 +3,6 @@ import User from "./user.model.js";
 console.log(User);
 
 // TODO: where should these models be used?
-// TODO: Router? pass createNodeMiddleware and/or octokit app to a file that can establish webhook sections? (routes?)
 
 /** ***************** **
  * ******************* *
