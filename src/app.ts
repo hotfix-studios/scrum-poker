@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+// TODO: db require has been moved to server kick off... test when CRUD setup
 import "./db/index.js";
 
 import { App } from "octokit";
@@ -36,5 +37,6 @@ const app: AppType = new App({
  * - Trigger the corresponding webhook event handler.
  */
 const middleware = createNodeMiddleware(app.webhooks, {path});
+// TODO: pass just app top above instead of app.webhooks?
 
 export { app, /* server,  wss, */ middleware };
