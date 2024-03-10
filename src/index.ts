@@ -1,4 +1,4 @@
-// import http from "http";
+import http from "http";
 import express from "express";
 import dotenv from "dotenv";
 import "./db/index.js";
@@ -22,9 +22,11 @@ const localWebhookUrl = `http://${host}:${port}${path}`;
 //   console.log("Press Ctrl + C to quit.");
 // });
 
-const server = express();
+const _express = express();
 
-server.use(middleware);
+_express.use(middleware);
+
+const server = http.createServer(_express);
 
 server.listen(port, () => {
   console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
@@ -36,6 +38,6 @@ registerEventListeners(app);
 
 // TODO: wait for refactor to Express to wire this back  up...
 /* Creating a websocket to run on our server */
-// const wss = new WebSocketServer({ server }, () => {
-//   console.log('WSS started');
-// });
+const wss = new WebSocketServer({ server }, () => {
+  console.log('WSS started');
+});
