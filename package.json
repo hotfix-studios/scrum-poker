@@ -5,11 +5,15 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "server": "node --watch ./dist/index.js",
-    "wss": "node --watch ./dist/wss.js"
+    "//": "production:",
+    "start": "npm run build && npm run server",
+    "build": "tsc -p .",
+    "server": "node ./dist/index.js",
+    "//": "development:",
+    "wss": "tsc-watch -p tsconfig.json --onSuccess \"node ./dist/wss.js\"",
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\""
   },
-  "keywords": [],
+  "keywords": ["agile", "devops", "scrum", "sprint", "estimation", "scrum-poker", "poker", "gamify", "pointing"],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -26,6 +30,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "smee-client": "^2.0.1",
+    "tsc-watch": "^6.0.4",
     "typescript": "^5.3.3"
   }
 }

@@ -42,12 +42,10 @@ npm i
 ```
 - Build and run:
 ```sh
-# compile TypeScript files to JavaScript files in `./dist` so that Node can run
-npm run build
-# Kick off the Node server
-npm run server
 # Redirects event payloads from our proxy to our app
 npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api/webhook
+# compile TypeScript files to JavaScript files in `./dist` so that Node can run and kick off Node server
+npm run dev
 ```
 
 ### To Test:
@@ -84,4 +82,11 @@ npm run server
 
 # If Bash/ZSH Terminal, from root
 ./scripts/bash-packages-clear.sh
+```
+
+### Production:
+- [Remove dev dependencies](https://discord.com/channels/1211019415097708564/1211028970141651025/1216526147576266782)
+```sh
+npm i
+npm run start
 ```
