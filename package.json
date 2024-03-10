@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "server": "node --watch ./dist/app.js",
+    "server": "node --watch ./dist/index.js",
     "wss": "node --watch ./dist/wss.js"
   },
   "keywords": [],
