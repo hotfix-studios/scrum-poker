@@ -5,15 +5,24 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "//": "production:",
+    "//": "development:",
     "start": "npm run build && npm run server",
     "build": "tsc -p .",
     "server": "node ./dist/index.js",
-    "//": "development:",
     "wss": "tsc-watch -p tsconfig.json --onSuccess \"node ./dist/wss.js\"",
     "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\""
   },
-  "keywords": ["agile", "devops", "scrum", "sprint", "estimation", "scrum-poker", "poker", "gamify", "pointing"],
+  "keywords": [
+    "agile",
+    "devops",
+    "scrum",
+    "sprint",
+    "estimation",
+    "scrum-poker",
+    "poker",
+    "gamify",
+    "pointing"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
