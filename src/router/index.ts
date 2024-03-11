@@ -1,11 +1,21 @@
-import express from "express";
+import { Application, Request, Response, Router, json } from "express";
+
 
 /* TYPES */
 import { App as AppType } from "octokit";
 
 import * as webhookApi from "./webhooks.router.js";
 
-const api = express.Router();
+const api = Router();
+
+export const configureServer = (server: Application) => {
+  server
+    .get("/", (req, res) => {
+      res.send("Placeholder")
+    })
+    .use(json());
+    // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
+};
 
 /**
  * This sets up the event listeners (like webhook).
