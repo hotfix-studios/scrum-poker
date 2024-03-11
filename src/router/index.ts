@@ -4,9 +4,9 @@ import { Application, Request, Response, Router, json } from "express";
 /* TYPES */
 import { App as AppType } from "octokit";
 
-import * as webhookApi from "./webhooks.router.js";
+import * as webhookApi from "./octokit.router.js";
 
-const api = Router();
+export const api = Router();
 
 export const configureServer = (server: Application) => {
   server

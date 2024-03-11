@@ -7,7 +7,7 @@ import { WebSocketServer } from "ws";
 import { app, middleware } from "./app.js";
 
 /* API */
-import { configureServer, registerEventListeners } from "./router/index.js";
+import { api, configureServer, registerEventListeners } from "./router/index.js";
 
 /* ENV VARS */
 dotenv.config();
@@ -21,10 +21,11 @@ const localWebhookUrl = `http://${host}:${port}${path}`;
 const _express = express();
 
 _express.use(middleware);
-
-configureServer(_express);
+_express.use("/api", api);
 
 // const server = http.createServer(_express);
+
+configureServer(_express);
 
 registerEventListeners(app);
 
@@ -34,7 +35,7 @@ const server = _express.listen(port, () => {
   console.log("Press Ctrl + C to quit.");
 });
 
-/* Creating a websocket to run on our server */
+/* creating a websocket to run on our server */
 const wss = new WebSocketServer({ server }, () => {
   console.log('WSS started');
 });
