@@ -4,7 +4,7 @@ import { Application, Request, Response, Router, json } from "express";
 /* TYPES */
 import { App as AppType } from "octokit";
 
-import * as webhookApi from "./octokit.router.js";
+import * as octokitApi from "./octokit.router.js";
 
 export const api = Router();
 
@@ -27,11 +27,11 @@ export const registerEventListeners = (octokitClient: AppType) => {
    * WEBHOOKS *
    ***********/
   // Issues
-  octokitClient.webhooks.on("issues.opened", webhookApi.issueOpenedHandler);
+  octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
   // PRs
-  octokitClient.webhooks.on("pull_request.opened", webhookApi.pullRequestOpenedHandler);
+  octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
   // Errors
-  octokitClient.webhooks.onError(webhookApi.wildCardErrorHandler);
+  octokitClient.webhooks.onError(octokitApi.wildCardErrorHandler);
 };
 
 // TODO: check out if this is good:
