@@ -23,8 +23,6 @@ const _express = express();
 _express.use(middleware);
 _express.use("/api", api);
 
-// const server = http.createServer(_express);
-
 configureServer(_express);
 
 registerEventListeners(app);
