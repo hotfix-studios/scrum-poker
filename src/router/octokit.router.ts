@@ -2,6 +2,19 @@
 // import { Issue } from "../types/octokit.js";
 import * as OctokitTypes from '../types/octokit.js';
 
+/**
+ * Octokit Responsibilities:
+ * - Get GH User info
+ * - Get Repos
+ * - - Get Backlogs
+ * - - Get associated users (repo)
+ * - Get Organization
+ * - - Get associated users (org)
+ * - Put Issues (move lanes)
+ * - Post/Put story points to issues (look for field with type number (on Project/Issues))
+ * - Post Sprint (completed)(pending completion?)
+ */
+
 export const issueOpenedHandler = ({ octokit, payload }) => {
   console.log("ISSUE OPENED:", payload);
 
