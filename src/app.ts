@@ -12,14 +12,13 @@ import { App as AppType } from "octokit";
 // import { Issue } from "./types/octokit.js";
 import * as OctokitTypes from './types/octokit.js';
 
-// This reads your `.env` file and adds the variables from that file to the `process.env` object in Node.js.
 dotenv.config();
 
-// This assigns the values of your environment variables to local variables.
 const appId = process.env.APP_ID;
 const installationId = process.env.INSTALLATION_ID;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 
+/* Less safe, local pvt key workflow option */
 // const privateKeyPath = process.env.PRIVATE_KEY_PATH;
 // const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
 
@@ -36,9 +35,6 @@ const app: AppType = new App({
   },
 });
 
-// This defines the message that your app will post to pull requests.
-const messageForNewPRs = "Thanks for opening a new PR! Please follow our contributing guidelines to make your PR easier to review.";
-
 /**
  * This adds an event handler that your code will call later.
  * When this event handler is called, it will log the event to the console.
@@ -52,7 +48,7 @@ const handlePullRequestOpened = async ({octokit, payload}) => {
       owner: payload.repository.owner.login,
       repo: payload.repository.name,
       issue_number: payload.pull_request.number,
-      body: messageForNewPRs,
+      body: "Thanks for opening a new PR!",
       headers: {
         "x-github-api-version": "2022-11-28",
         // "content-type": "application/json", // might not need, possibly default
@@ -111,8 +107,6 @@ const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}${path}`;
-
-//
 
 /**
  * This sets up a middleware function to handle incoming webhook events.
