@@ -92,7 +92,9 @@ wss.on('connection', (ws) => {
     }
   };
 
-  // ws.on('close', )
+  ws.on('close', function close() {
+    console.log('disconnected');
+  });
 });
 
 server.listen(port, () => {
