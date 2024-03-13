@@ -73,21 +73,21 @@ app.webhooks.on("pull_request.opened", handlePullRequestOpened);
 // TODO: check out if this is good:
 // app.webhooks.verify
 
-app.webhooks.on("issues.opened", ({ octokit, payload }) => {
-  console.log("ISSUE OPENED:", payload);
+// app.webhooks.on("issues.opened", ({ octokit, payload }) => {
+//   console.log("ISSUE OPENED:", payload);
 
-  const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
-  const owner = repository.owner.login;
-  const repo = repository.name;
-  const issueNumber = issue.number;
+//   const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
+//   const owner = repository.owner.login;
+//   const repo = repository.name;
+//   const issueNumber = issue.number;
 
-  return octokit.rest.issues.createComment({
-    owner: owner,
-    repo: repo,
-    issue_number: issueNumber,
-    body: "Hello, World!",
-  });
-});
+//   return octokit.rest.issues.createComment({
+//     owner: owner,
+//     repo: repo,
+//     issue_number: issueNumber,
+//     body: "Hello, World!",
+//   });
+// });
 
 // This logs any errors that occur.
 app.webhooks.onError((error) => {

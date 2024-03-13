@@ -1,13 +1,25 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
 using NativeWebSocket;
+using Newtonsoft.Json;
 
 public class WebSocketConnection : MonoBehaviour
 {
-    WebSocket ws;
+    public static WebSocket ws;
+    public static string userId;
+    public class Data
+    {
+        // TODO: Ensure consistency across scripts
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("params")]
+        public Params Params { get; set; }
+    }
+    public class Params
+    {
+        public string roomId;
+        public string userId;
+    }
 
     async void Start()
     {
@@ -16,6 +28,12 @@ public class WebSocketConnection : MonoBehaviour
         ws.OnOpen += () =>
         {
             Debug.Log("Connection open!");
+            var data = new Data
+            {
+                Type = "init"
+            };
+            string json = JsonConvert.SerializeObject(data);
+            ws.SendText(json);
         };
 
         ws.OnError += (e) =>
@@ -30,18 +48,38 @@ public class WebSocketConnection : MonoBehaviour
 
         ws.OnMessage += (bytes) =>
         {
-            Debug.Log($"Message received from server containing: {bytes}");
+            string message = System.Text.Encoding.UTF8.GetString(bytes);
+            Data json = JsonConvert.DeserializeObject<Data>(message);
+            string type = json.Type;
+            Params Params = json.Params;
 
-            // Getting the message as a string
-            var message = System.Text.Encoding.UTF8.GetString(bytes);
-            Debug.Log($"Message reads: {message}");
+            switch (type)
+            {
+                case "init":
+                    // init (params);
+                    userId = json.Params.userId;
+                    Debug.Log(userId);
+                    break;
+                case "create":
+                    // create (params);
+                    break;
+                case "join":
+                    //join (params);
+                    break;
+                case "leave":
+                    //leave (params);
+                    break;
+                default:
+                    Debug.Log($"Type: ${type} unknown");
+                    break;
+            }
+
+            Debug.Log($"Message received from server containing: {bytes}");
+            Debug.Log($"User: {userId}");
         };
 
-        // Keep sending messages at every 0.3s
-        InvokeRepeating("SendWebSocketMessage", 0.0f, 0.3f);
-
-        // waiting for messages
         await ws.Connect();
+
     }
 
     void Update()
@@ -58,8 +96,8 @@ public class WebSocketConnection : MonoBehaviour
             // Sending bytes
             // await ws.Send(new byte[] { 10, 20, 30 });
 
-            // Sending plain text
-            await ws.SendText("plain text message");
+            // Sending stringified JSON or plain text
+            await ws.SendText("Use this function to send stringified JSON");
         }
     }
 
