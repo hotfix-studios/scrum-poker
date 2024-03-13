@@ -31,7 +31,6 @@ public class CreateLobby : MonoBehaviour
     [SerializeField] private TMP_InputField join;
     [SerializeField] private TMP_InputField leave;
     private string roomId = Guid.NewGuid().ToString().Substring(0, 5);
-
     private void Update()
     {
         if (WebSocketConnection.userId != null)
@@ -77,7 +76,7 @@ public class CreateLobby : MonoBehaviour
                 Params = new Params
                 {
                     roomId = roomId,
-                    userId = WebSocketConnection.userId
+                    userId = WebSocketConnection.userId,
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -100,7 +99,7 @@ public class CreateLobby : MonoBehaviour
                 }
             };
             string json = JsonConvert.SerializeObject(data);
-            Debug.Log("create" + json);
+            Debug.Log("join" + json);
             await WebSocketConnection.ws.SendText(json);
         }
     }
@@ -119,7 +118,7 @@ public class CreateLobby : MonoBehaviour
                 }
             };
             string json = JsonConvert.SerializeObject(data);
-            Debug.Log("create" + json);
+            Debug.Log("leave" + json);
             await WebSocketConnection.ws.SendText(json);
         }
     }
