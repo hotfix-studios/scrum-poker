@@ -4,7 +4,8 @@ import { Application, Request, Response, Router, json } from "express";
 /* TYPES */
 import { App as AppType } from "octokit";
 
-import * as octokitApi from "./octokit.router.js";
+// import * as octokitApi from "./octokit.router.js";
+import { octokitApi } from "../api/octokit.js";
 
 export const api = Router();
 
