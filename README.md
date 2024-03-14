@@ -43,7 +43,7 @@ npm i
 - Build and run:
 ```sh
 # Redirects event payloads from our proxy to our app
-npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api/webhook
+npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api
 # compile TypeScript files to JavaScript files in `./dist` so that Node can run and kick off Node server
 npm run dev
 ```
@@ -52,7 +52,7 @@ npm run dev
 - Inside your IDE (scrum-poker project)
 - Spin up Proxy Webhook Watch Server
 ```sh
-npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api/webhook
+npx smee -u https://smee.io/hcbsiedRHAM0Aka3 -t http://localhost:3000/api
 ```
 - Spin up Scrum Poker server locally
 ```sh
