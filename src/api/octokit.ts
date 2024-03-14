@@ -15,17 +15,19 @@ import * as OctokitTypes from '../types/octokit.js';
  * - Post Sprint (completed)(pending completion?)
  */
 
-const issueOpenedHandler = ({ octokit, payload }) => {
+const issueOpenedHandler = async ({ octokit, payload }) => {
   console.log("ISSUE OPENED:", payload);
 
   const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
-  const owner = repository.owner.login;
-  const repo = repository.name;
+  const params = { owner: repository.owner.login, repo: repository.name };
   const issueNumber = issue.number;
 
+  const { data } = await octokit.rest.issues.listForRepo(params);
+  console.log("RETURN TYPE:", typeof data);
+  console.log(data);
+
   return octokit.rest.issues.createComment({
-    owner: owner,
-    repo: repo,
+    ...params,
     issue_number: issueNumber,
     body: "Hello, World!",
   });
