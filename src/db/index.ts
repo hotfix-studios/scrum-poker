@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+// TODO: Import controllers?
 
 dotenv.config();
 
@@ -17,3 +18,5 @@ if (mongoUri != undefined) {
 } else {
   console.error("\x1b[31m%s\x1b[0m", "Mongo Cloud DB Connection string is undefined");
 }
+
+// TODO: Export controllers (as repositories?)?
