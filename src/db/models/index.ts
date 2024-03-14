@@ -32,20 +32,20 @@ if (mongoUri != undefined) {
  * ******************* *
  ** ***************** **/
 
-const roomId = randomBytes(3).toString("base64").slice(0, 5);
+const roomId = randomBytes(4).toString("base64").slice(0, 5);
 console.log("ROOM ID FROM BYTES:", roomId);
 const userHost = "Dummy Testy";
 const userPlayer = "Dum Dum 2";
 
 try {
-  const doc = await Room.create({ room_id: roomId, users: userHost });
+  const doc = await Room.create({ _id: roomId, users: userHost });
   console.log(doc);
 } catch (error) {
   console.error("First Insert Failed", error);
 }
 
 try {
-  const docTwo = await Room.findOne( { room_id: roomId });
+  const docTwo = await Room.findOne( { _id: roomId });
   docTwo.users.push(userPlayer);
   console.log("SECOND INSERT SUCCESS:", docTwo);
   await docTwo.save();
@@ -54,8 +54,6 @@ try {
 }
 
 export { User };
-
-// { useNewUrlParser: true, useUnifiedTopology: true }
 
 /* Mongo Change Streams Implementation:
 async function run() {
