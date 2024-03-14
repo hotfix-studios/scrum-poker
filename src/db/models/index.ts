@@ -1,8 +1,6 @@
 import User from "./user.model.js";
+import Room from "./room.model.js";
 
-console.log(User);
-
-// TODO: where should these models be used?
 
 /** ***************** **
  * ******************* *
@@ -10,7 +8,7 @@ console.log(User);
  * ******************* *
  ** ***************** **/
 
-
+export { User, Room };
 
 /* Mongo Change Streams Implementation:
 async function run() {
