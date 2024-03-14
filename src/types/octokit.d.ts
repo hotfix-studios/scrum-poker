@@ -167,8 +167,8 @@ export interface Issue {
   labels: any[]; // may want to define a type for labels if needed
   state: string;
   locked: boolean;
-  assignee: any | null; // may want to define a type for assignee if needed
-  assignees: any[]; // may want to define a type for assignees if needed
+  assignee: User | null;
+  assignees: User[];
   milestone: any | null; // may want to define a type for milestone if needed
   comments: number;
   created_at: string;
