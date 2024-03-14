@@ -12,7 +12,7 @@ const roomSchema = new Schema({
 });
 
 // Pre-save middleware to ensure users is always an array
-roomSchema.pre('save', function(next) {
+roomSchema.pre("save", function(next) {
   if (!Array.isArray(this.users)) {
     this.users = [this.users]; // Convert to array if not already
   }
@@ -20,14 +20,13 @@ roomSchema.pre('save', function(next) {
 });
 
 // Pre-save middleware to set host based on _id
-roomSchema.pre('save', function(next) {
+roomSchema.pre("save", function(next) {
   if (!this.host) {
     this.host = this.users[0];
   }
   next();
 });
 
-// TODO: Might need middleware to delete record if this.users !contains this.host??
 
 /**
  * @summary const rooms = await Room.find().lean();
