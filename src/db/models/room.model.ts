@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 
 
 const roomSchema = new Schema({
-  room_id: { type: Schema.Types.String, required: true, unique: true },
+  _id: { type: Schema.Types.String, required: true },
   host: { type: Schema.Types.String, unique: true },
   users: [ { type: Schema.Types.String } ]
 },
@@ -26,6 +26,8 @@ roomSchema.pre('save', function(next) {
   }
   next();
 });
+
+// TODO: Might need middleware to delete record if this.users !contains this.host??
 
 /**
  * @summary const rooms = await Room.find().lean();
