@@ -1,5 +1,6 @@
 /* TYPES */
 // import { Issue } from "../types/octokit.js";
+import { app } from '../app.js';
 import * as OctokitTypes from '../types/octokit.js';
 
 /**
@@ -15,16 +16,34 @@ import * as OctokitTypes from '../types/octokit.js';
  * - Post Sprint (completed)(pending completion?)
  */
 
+const getInstallation = async ({ octokit, payload }) => {
+  const data = payload;
+  console.log(data);
+};
+
+import { installationId } from '../app.js';
+
 const issueOpenedHandler = async ({ octokit, payload }) => {
-  console.log("ISSUE OPENED:", payload);
+  // console.log("ISSUE OPENED:", payload);
+  // console.log("app.oauth:", app.oauth);
+  const installationLog = await app.getInstallationOctokit(installationId);
+
+  const listAppInstallations = await installationLog.rest.orgs.listAppInstallations()
+  const list = await installationLog.rest.orgs.list();
+  const listMembers = await installationLog.rest.orgs.listMembers();
+
+  console.log("app.listAppInstallations:", listAppInstallations);
+  console.log("app.list:", list);
+  console.log("app.listMembers:", listMembers);
 
   const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
   const params = { owner: repository.owner.login, repo: repository.name };
   const issueNumber = issue.number;
 
+  /* THIS WILL BE ITS OWN METHOD */
   const { data } = await octokit.rest.issues.listForRepo(params);
   console.log("RETURN TYPE:", typeof data);
-  console.log(data);
+  // console.log(data);
 
   return octokit.rest.issues.createComment({
     ...params,
@@ -67,5 +86,6 @@ const wildCardErrorHandler = (error) => {
 export const octokitApi = {
   issueOpenedHandler,
   pullRequestOpenedHandler,
-  wildCardErrorHandler
+  wildCardErrorHandler,
+  getInstallation
 };

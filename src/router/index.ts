@@ -27,6 +27,8 @@ export const registerEventListeners = (octokitClient: AppType) => {
   /************
    * WEBHOOKS *
    ***********/
+  // Installation
+  octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
   // Issues
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
   // PRs
