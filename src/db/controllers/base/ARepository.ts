@@ -3,16 +3,16 @@ import { Schema, Model, model } from "mongoose";
 // This is a hack. TS couldn't infer correct type when actual type passed in
 import type { User } from "../../models/index.js";
 
-
+// TODO: the typings for _model are all messed up and not inferring correctly...
 export abstract class ARepository {
 
-  public readonly _model: typeof User;
+  public readonly _model: Model<any>;
 
   /**
    * @summary This Abstract base class will have the core Read/Write operations for req/res
    * @param typeof User to infer mongoose model type
    */
-  constructor(model: typeof User) {
+  constructor(model: Model<any>) {
     this._model = model;
   }
 
