@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { Schema, Model, FilterQuery, Document } from "mongoose";
 import * as OctokitTypes from '../../types/octokit.js';
 
-
+// TODO: maybe implement base class for generic methods?
 // export class InstallationController extends ARepository {
   //   constructor() {
     //     super(Installation);
