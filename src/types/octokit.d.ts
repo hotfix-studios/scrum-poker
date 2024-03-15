@@ -34,14 +34,6 @@ export interface User {
 }
 
 /**
- * payload.installation
- */
-export interface Installation {
-  id: number;
-  node_id: string;
-}
-
-/**
  * payload.repository
  */
 export interface Repository {
@@ -224,7 +216,6 @@ export interface Organization {
  * installation.create (event)
  * payload.installation
  */
-
 export interface Installation {
   id: number;
   account?: User;
