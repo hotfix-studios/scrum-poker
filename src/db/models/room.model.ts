@@ -3,7 +3,7 @@ import { Schema, model } from "mongoose";
 
 const roomSchema = new Schema({
   _id: { type: Schema.Types.String, required: true },
-  host: { type: Schema.Types.String, unique: true },
+  host: { type: Schema.Types.String, ref: "User", unique: true },
   users: [ { type: Schema.Types.String, ref: "User" } ]
 },
 {
