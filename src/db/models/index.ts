@@ -1,5 +1,7 @@
 import User from "./user.model.js";
 import Room from "./room.model.js";
+import Installation from "./installation.model.js";
+import Repository from "./repository.model.js";
 
 
 /** ***************** **
@@ -8,7 +10,7 @@ import Room from "./room.model.js";
  * ******************* *
  ** ***************** **/
 
-export { User, Room };
+export { User, Room, Installation, Repository };
 
 /* Mongo Change Streams Implementation:
 async function run() {
