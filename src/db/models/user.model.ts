@@ -1,8 +1,8 @@
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
-  name: { type: Schema.Types.String, required: true },
   gh_id: { type: Schema.Types.Number, unique: true },
+  name: { type: Schema.Types.String, required: true },
   avatar_url: { type: Schema.Types.String, required: true },
   game_host: { type: Schema.Types.Boolean, default: false }
 }, { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } });
