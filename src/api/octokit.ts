@@ -1,6 +1,7 @@
 /* TYPES */
 // import { Issue } from "../types/octokit.js";
 import { app } from '../app.js';
+import installationController from '../db/controllers/installation.controller.js';
 import * as OctokitTypes from '../types/octokit.js';
 
 /**
@@ -18,8 +19,10 @@ import * as OctokitTypes from '../types/octokit.js';
 
 // TODO: INIT INSTALL DETAILS
 const getInstallation = async ({ octokit, payload }) => {
+  console.log(typeof octokit, typeof payload);
   const data = payload;
   console.log(data);
+  installationController.findOrCreateInstallation(payload);
 };
 
 import { installationId } from '../app.js';
