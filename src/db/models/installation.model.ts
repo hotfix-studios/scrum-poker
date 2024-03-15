@@ -5,7 +5,7 @@ const installationSchema = new Schema({
   type: { type: Schema.Types.String },
   orgs_url: { type: Schema.Types.String },
   repos_url: { type: Schema.Types.String },
-  repos: [ { type: Schema.Types.Number, ref: "Repository" } ] // not on Installation Type but IS on REST payload
+  repos: [ { type: Schema.Types.Number, ref: "Repository" } ] // use repo._id (not on Installation Type but IS on REST payload)
 });
 
 export default model("Installation", installationSchema);

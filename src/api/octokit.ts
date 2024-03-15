@@ -16,6 +16,7 @@ import * as OctokitTypes from '../types/octokit.js';
  * - Post Sprint (completed)(pending completion?)
  */
 
+// TODO: INIT INSTALL DETAILS
 const getInstallation = async ({ octokit, payload }) => {
   const data = payload;
   console.log(data);
