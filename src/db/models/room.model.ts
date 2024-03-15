@@ -4,7 +4,7 @@ import { Schema, model } from "mongoose";
 const roomSchema = new Schema({
   _id: { type: Schema.Types.String, required: true },
   host: { type: Schema.Types.String, unique: true },
-  users: [ { type: Schema.Types.String } ]
+  users: [ { type: Schema.Types.String, ref: "User" } ]
 },
 {
   timestamps: { createdAt: "created_at", updatedAt: "updated_at" },
