@@ -211,3 +211,53 @@ export interface Organization {
 
 // Export the Issue type
 // export { Issue };
+
+
+/** ********************** **
+ * ************************ *
+ * * INSTALL EVENT PAYLOAD **
+ * ************************ *
+ ** ********************** **/
+
+/**
+ * installation.create (event)
+ * payload.installation
+ */
+
+export interface Installation {
+  id: number;
+  account: User;
+  repository_selection: string;
+  access_tokens_url: string;
+  repositories_url: string;
+  html_url: string;
+  app_id: number;
+  app_slug: string;
+  target_id: number;
+  target_type: string;
+  permissions: Permissions;
+  events: string[];
+  created_at: Date;
+  updated_at: Date;
+  single_file_name: string | null;
+  has_multiple_single_files: boolean;
+  single_file_paths: any[];
+  suspended_by: any | null;
+  suspended_at: any | null;
+}
+
+export interface Permissions {
+  members: string;
+  organization_projects: string;
+  issues: string;
+  metadata: string;
+  repository_projects: string;
+}
+
+export interface Repository {
+  id: number;
+  node_id: string;
+  name: string;
+  full_name: string;
+  private: boolean;
+}
