@@ -10,6 +10,7 @@
  * payload.issue.user
  * payload.repository.owner
  * payload.sender
+ * payload.installation.account
  */
 export interface User {
   login: string;
@@ -252,12 +253,4 @@ export interface Permissions {
   issues: string;
   metadata: string;
   repository_projects: string;
-}
-
-export interface Repository {
-  id: number;
-  node_id: string;
-  name: string;
-  full_name: string;
-  private: boolean;
 }
