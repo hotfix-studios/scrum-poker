@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const repositorySchema = new Schema({
-  _id: { type: Schema.Types.Number, required: true }, // uses .id from GH payloads
+  _id: { type: Schema.Types.Number, required: true },                // uses .id from GH payloads
   name: { type: Schema.Types.String, required: true },
   full_name: { type: Schema.Types.String, required: true },
   private: { type: Schema.Types.Boolean, required: true },

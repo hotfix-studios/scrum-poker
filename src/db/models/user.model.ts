@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
-  _id: { type: Schema.Types.Number, required: true }, // uses .id from GH payloads
+  _id: { type: Schema.Types.Number, required: true }, // use .id from GH payloads
   type: { type: Schema.Types.String, required: true },
   name: { type: Schema.Types.String, required: true },
   avatar_url: { type: Schema.Types.String, required: true },
