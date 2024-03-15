@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 
 
 const roomSchema = new Schema({
-  _id: { type: Schema.Types.String, required: true },
+  _id: { type: Schema.Types.String, required: true }, // crypto randomBytes(4).toString("base64").slice(0, 5);
   host: { type: Schema.Types.String, ref: "User", unique: true },
   users: [ { type: Schema.Types.String, ref: "User" } ]
 },
