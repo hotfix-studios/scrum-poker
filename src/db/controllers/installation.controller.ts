@@ -22,6 +22,8 @@ class InstallationController {
     this._model = model;
   }
 
+  // TODO: Look into how .populate("model") will be used for aggregates
+
   /**
    * @summary should only ever be one installation per client?
    * @returns installation id
@@ -63,6 +65,7 @@ class InstallationController {
           }
         }
 
+        /* TODO: make Partial or VM for DTO type */
         const insertInstallation = {
           _id: id,
           owner_name: login,
