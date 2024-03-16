@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/scrum-poker/Stylesheet.uss?fileID=7433441132597879392&amp;guid=cae4dc0e0ebdcad41971c1ae9db7609f&amp;type=3#Stylesheet" />
+    <ui:VisualElement style="flex-grow: 1; justify-content: flex-start; align-self: auto; align-items: auto; flex-direction: column;">
+        <ui:VisualElement name="Container" style="flex-grow: 1; height: 40%; width: 100%; align-self: auto; align-items: center; justify-content: center; background-color: rgb(34, 39, 46); flex-direction: row; border-left-color: rgb(34, 39, 46); border-right-color: rgb(34, 39, 46); border-top-color: rgb(34, 39, 46); border-bottom-color: rgb(34, 39, 46);">
+            <ui:Label tabindex="-1" text="Scrum Poker" parse-escape-sequences="true" display-tooltip-when-elided="true" class="header" style="font-size: 75px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Container" style="flex-grow: 1; height: 60%; width: 100%; align-self: auto; align-items: auto; justify-content: flex-start; background-color: rgb(34, 39, 46); flex-direction: row;">
+            <ui:VisualElement name="Container" class="container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: flex-start; justify-content: center; flex-direction: column; background-color: rgb(34, 39, 46);" />
+            <ui:VisualElement name="Container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: center; justify-content: center; background-color: rgb(34, 39, 46); border-left-color: rgb(34, 39, 46); border-right-color: rgb(34, 39, 46); border-top-color: rgb(34, 39, 46); border-bottom-color: rgb(34, 39, 46);">
+                <ui:Label tabindex="-1" text="Choose your project backlog!" parse-escape-sequences="true" display-tooltip-when-elided="true" class="header" style="font-size: 20px;" />
+                <ui:DropdownField index="-1" name="Dropdown" choices="repo-a, repo-b, repo-c" class="dropdown" style="-unity-text-outline-width: 0; -unity-text-outline-color: rgba(255, 255, 255, 0); border-left-color: rgb(152, 164, 177); border-right-color: rgb(152, 164, 177); border-top-color: rgb(152, 164, 177); border-bottom-color: rgb(152, 164, 177); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; -unity-paragraph-spacing: 0; margin-right: 4px; width: 100%; height: auto; -unity-text-align: middle-left; margin-bottom: 2px; font-size: 14px; color: rgb(34, 39, 46);" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Container" class="container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: center; justify-content: center; flex-direction: column; background-color: rgb(34, 39, 46);">
+                <ui:Button text="Create Lobby" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ButtonCreate" class="button" style="margin-left: 4px; min-width: auto; font-size: 35px; width: 300px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Container" class="container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: flex-start; justify-content: center; flex-direction: column; background-color: rgb(34, 39, 46);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
