@@ -218,7 +218,7 @@ export interface Organization {
  */
 export interface Installation {
   id: number;
-  account?: User;
+  account: User;
   repository_selection?: string;
   access_tokens_url?: string;
   repositories_url?: string;
