@@ -12,14 +12,15 @@ import * as OctokitTypes from '../../types/octokit.js';
     // };
 
 /**
- * This will be the Repository for User Model (CRUD)
+ * This will be the Repository for App Installation Model (CRUD)
  */
-class InstallationController {
+class InstallationController extends ARepository{
 
   public readonly _model: Model<any>;
 
   constructor(model: Model<any>) {
-    this._model = model;
+    super(model);
+    // this._model = model;
   }
 
   // TODO: Look into how .populate("model") will be used for aggregates
@@ -32,7 +33,7 @@ class InstallationController {
     return await this._model.find({}, "_id");
   };
 
-  // TODO: need to validate which APP is being installed? process.env.APP_ID;
+  // TODO: need to validate which App is being installed? process.env.APP_ID;
   findOrCreateInstallation = async (payload) => {
     try {
 
@@ -77,7 +78,7 @@ class InstallationController {
         }
 
         try {
-          _installation = await Installation.create(insertInstallation);
+          _installation = await this._model.create(insertInstallation);
         } catch (error) {
           console.error("BONK:", error);
         }
@@ -99,7 +100,7 @@ class InstallationController {
   };
 
   findInstallationById = async (id: number) => {
-    return await Installation.findById(id);
+    return await this._model.findById(id);
   };
 }
 
