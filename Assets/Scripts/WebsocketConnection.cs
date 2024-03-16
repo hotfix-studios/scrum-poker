@@ -1,11 +1,15 @@
 using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
+using Unity.VisualScripting;
+using UnityEditor.PackageManager;
 
 public class WebSocketConnection : MonoBehaviour
 {
+    private static WebSocketConnection instance;
     public static WebSocket ws;
     public static string userId;
+
     public class Data
     {
         // TODO: Ensure consistency across scripts
@@ -21,8 +25,17 @@ public class WebSocketConnection : MonoBehaviour
         public string userId;
     }
 
-    async void Start()
+    async void Awake()
     {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
         ws = new WebSocket("ws://localhost:3001");
 
         ws.OnOpen += () =>

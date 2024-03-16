@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/scrum-poker/Stylesheet.uss?fileID=7433441132597879392&amp;guid=cae4dc0e0ebdcad41971c1ae9db7609f&amp;type=3#Stylesheet" />
+    <MenuManager name="MenuManager" />
+</ui:UXML>

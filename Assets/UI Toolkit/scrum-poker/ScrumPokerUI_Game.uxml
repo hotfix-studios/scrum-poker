@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/scrum-poker/Stylesheet.uss?fileID=7433441132597879392&amp;guid=cae4dc0e0ebdcad41971c1ae9db7609f&amp;type=3#Stylesheet" />
+    <ui:VisualElement style="flex-grow: 1; justify-content: flex-start; align-self: auto; align-items: auto; flex-direction: column;">
+        <ui:VisualElement name="Title" style="flex-grow: 1; height: 15%; width: 100%; align-self: auto; align-items: center; justify-content: center; background-color: rgb(34, 39, 46); flex-direction: row; border-left-color: rgb(34, 39, 46); border-right-color: rgb(34, 39, 46); border-top-color: rgb(34, 39, 46); border-bottom-color: rgb(34, 39, 46);">
+            <ui:Label tabindex="-1" text="Scrum Poker" parse-escape-sequences="true" display-tooltip-when-elided="true" class="header" style="font-size: 75px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Container" style="flex-grow: 1; height: 60%; width: 100%; align-self: auto; align-items: auto; justify-content: flex-start; background-color: rgb(34, 39, 46); flex-direction: row;">
+            <ui:VisualElement name="Container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: center; justify-content: center; background-color: rgb(34, 39, 46); border-left-color: rgb(34, 39, 46); border-right-color: rgb(34, 39, 46); border-top-color: rgb(34, 39, 46); border-bottom-color: rgb(34, 39, 46);" />
+            <ui:VisualElement name="Container" class="container" style="flex-grow: 1; height: 100%; width: 50%; align-self: flex-start; align-items: center; justify-content: center; flex-direction: column; background-color: rgb(34, 39, 46);">
+                <ui:Button text="Deal" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ButtonDeal" class="button" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

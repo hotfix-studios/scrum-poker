@@ -66,6 +66,9 @@ wss.on('connection', (ws) => {
   const create = params => {
     if (!rooms.has(params.roomId)) {
       rooms.set(params.roomId, {users: [params.userId]});
+      console.log(`User created room ${params.roomId}: `, rooms.get(params.roomId));
+    } else {
+      console.error(`create: room with id ${params.roomId} already exists`);
     }
   };
 
