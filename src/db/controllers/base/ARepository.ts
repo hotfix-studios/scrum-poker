@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Schema, Model, model } from "mongoose";
+import { Schema, Model, model, Document, FlattenMaps } from "mongoose";
 // This is a hack. TS couldn't infer correct type when actual type passed in
 import type { User } from "../../models/index.js";
 
@@ -26,6 +26,7 @@ export abstract class ARepository {
   // }
 
   async delete(id: string): Promise<boolean> {
+
     throw new Error("Method not implemented.");
   }
 
@@ -41,25 +42,41 @@ export abstract class ARepository {
     }
   }
 
-  async findOne (req: Request, res: Response, id: string = "") {
+  async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
     try {
 
-      if (req) {
-        id = req.params.id;
-      }
+      const { id } = req.params;
 
-      const user = await this._model.findById(id);
+      const document = await this._model.findById(id);
 
-      if (!user) {
+      if (!document) {
         return res.status(404).json({ message: `Document from ${this._model} not found` });
       }
 
-      return res.status(200).json(user);
+      return res.status(200).json(document);
 
     } catch (error) {
 
       console.error(`Internal server error when getting ${this._model}:`, error);
       res.sendStatus(500).json({ message: "Internal Server Error Get" });
+    }
+  }
+
+  async socketFindOneById (id: number): Promise<FlattenMaps<any>> { // TODO: change Type to Document<any> if no .lean()
+    try {
+
+      const document = await this._model.findById(id).lean(); // TODO: check if .lean() js obj is better than mongoose doc
+
+      if (!document) {
+        console.error(`Could not find ${this._model} document by id: ${id}, returning:`, document);
+      }
+
+      return document;
+
+    } catch (error) {
+
+      console.error(`Internal server error when getting ${this._model}: document by id`, error);
+      throw error; // Rethrow the error or handle it as needed
     }
   }
 
