@@ -16,8 +16,6 @@ import * as OctokitTypes from '../../types/octokit.js';
  */
 class InstallationController extends ARepository{
 
-  public readonly _model: Model<any>;
-
   constructor(model: Model<any>) {
     super(model);
     // this._model = model;
@@ -37,7 +35,7 @@ class InstallationController extends ARepository{
   findOrCreateInstallation = async (payload) => {
     try {
 
-      let _installation = await this.findInstallationById(payload.installation.id);
+      let _installation = await this.socketFindOneById(payload.installation.id);
       let _repositories: any[];
 
       if (_installation === null) {
@@ -50,10 +48,13 @@ class InstallationController extends ARepository{
 
           _repositories = repositories.map(repo => {
             console.log("inside map:", repo);
+
+            const { name, full_name }: { name: string, full_name: string } = repo;
+
             return {
               _id: repo.id,
-              name: repo.name,
-              full_name: repo.full_name,
+              name,
+              full_name,
               private: repo.private
             }
           });
@@ -99,9 +100,6 @@ class InstallationController extends ARepository{
     }
   };
 
-  findInstallationById = async (id: number) => {
-    return await this._model.findById(id);
-  };
 }
 
 
