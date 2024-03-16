@@ -39,8 +39,8 @@ if (mongoUri != undefined) {
 
 const roomId = randomBytes(4).toString("base64").slice(0, 5);
 console.log("ROOM ID FROM BYTES:", roomId);
-const userHost = "Dummy Testy";
-const userPlayer = "Dum Dum 2";
+const userHost = 1234;
+const userPlayer = 5678;
 
 try {
   const doc = await Room.create({ _id: roomId, users: userHost });
