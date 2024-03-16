@@ -41,9 +41,13 @@ export abstract class ARepository {
     }
   }
 
-  async findOne (req: Request, res: Response, id: string) {
+  async findOne (req: Request, res: Response, id: string = "") {
     try {
-      const { id } = req.params;
+
+      if (req) {
+        id = req.params.id;
+      }
+
       const user = await this._model.findById(id);
 
       if (!user) {
