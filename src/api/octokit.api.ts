@@ -1,8 +1,10 @@
 /* TYPES */
 // import { Issue } from "../types/octokit.js";
 import { app } from '../app.js';
-import installationController from '../db/controllers/installation.controller.js';
 import * as OctokitTypes from '../types/octokit.js';
+
+/* DB Context Repositories (CRUD) */
+import { installationController, userController } from "../db/controllers/index.js";
 
 /**
  * Octokit Responsibilities:
@@ -18,16 +20,24 @@ import * as OctokitTypes from '../types/octokit.js';
  */
 
 // TODO: INIT INSTALL DETAILS
-const getInstallation = async ({ octokit, payload }) => {
+const getInstallation = async ({ octokit, payload }): Promise<void> => {
   console.log(typeof octokit, typeof payload);
   const data = payload;
   console.log(data);
-  installationController.findOrCreateInstallation(payload);
+  /* TODO: try/catch error handle this? */
+  await installationController.findOrCreateInstallation(payload);
+};
+
+const setOwnerUser = async ({ payload }): Promise<void> => {
+  const { installation }: { installation: OctokitTypes.Installation, } = payload;
+  const { account }: { account: OctokitTypes.User } = installation;
+
+  await userController.createUser(account);
 };
 
 import { installationId } from '../app.js';
 
-const issueOpenedHandler = async ({ octokit, payload }) => {
+const issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
   // console.log("ISSUE OPENED:", payload);
   // console.log("app.oauth:", app.oauth);
   const installationLog = await app.getInstallationOctokit(installationId);
@@ -56,7 +66,7 @@ const issueOpenedHandler = async ({ octokit, payload }) => {
   });
 };
 
-const pullRequestOpenedHandler = async ({octokit, payload}) => {
+const pullRequestOpenedHandler = async ({octokit, payload}): Promise<void> => {
   console.log(`Received a pull request event for #${payload.pull_request.number}`);
   // TODO: LOG PAYLOAD HERE
   try {
@@ -79,7 +89,7 @@ const pullRequestOpenedHandler = async ({octokit, payload}) => {
   }
 };
 
-const wildCardErrorHandler = (error) => {
+const wildCardErrorHandler = (error): void => {
   if (error.name === "AggregateError") {
     console.error(`Error processing request: ${error.event}`);
   } else {
@@ -88,8 +98,9 @@ const wildCardErrorHandler = (error) => {
 };
 
 export const octokitApi = {
+  getInstallation,
+  setOwnerUser,
   issueOpenedHandler,
   pullRequestOpenedHandler,
-  wildCardErrorHandler,
-  getInstallation
+  wildCardErrorHandler
 };
