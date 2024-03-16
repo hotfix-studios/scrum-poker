@@ -9,6 +9,9 @@ import { octokitApi } from "../api/octokit.js";
 
 export const api = Router();
 
+// TODO: add session middleware for user id/key lookup (to get Installation ID?)
+/* installation.owner_id, installation.owner_name, installation._id */
+
 export const configureServer = (server: Application) => {
   server
     .get("/", (req, res) => {
