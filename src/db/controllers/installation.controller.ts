@@ -4,12 +4,6 @@ import { Request, Response } from "express";
 import { Schema, Model, FilterQuery, Document } from "mongoose";
 import * as OctokitTypes from '../../types/octokit.js';
 
-// TODO: maybe implement base class for generic methods?
-// export class InstallationController extends ARepository {
-  //   constructor() {
-    //     super(Installation);
-    //   }
-    // };
 
 /**
  * This will be the Repository for App Installation Model (CRUD)
@@ -25,13 +19,13 @@ class InstallationController extends ARepository{
 
   /**
    * @summary should only ever be one installation per client?
+   * @param number owner id, not the primary key _id
    * @returns installation id
    */
-  getInstallationId = async (octokit, payload) => {
-    return await this._model.find({}, "_id");
-  };
+  findInstallationIdByOwnerId = async (id: number) => {
+    return await this._model.findOne({ owner_id: id }, "_id");
+  }
 
-  // TODO: need to validate which App is being installed? process.env.APP_ID;
   findOrCreateInstallation = async (payload) => {
     try {
 
@@ -49,6 +43,7 @@ class InstallationController extends ARepository{
           _repositories = repositories.map(repo => {
             console.log("inside map:", repo);
 
+            // TODO: inserting repo without owner (default = 0 ??) is not great...
             const { name, full_name }: { name: string, full_name: string } = repo;
 
             return {
@@ -60,15 +55,17 @@ class InstallationController extends ARepository{
           });
 
           try {
+
             const repos = await Repository.create(_repositories);
             console.log("repos inserted from payload:", repos);
           } catch (error) {
+
             console.error("Error inserting repos from payload:", error);
           }
         }
 
         /* TODO: make Partial or VM for DTO type */
-        const insertInstallation = {
+        const _insertInstallation = {
           _id: id,
           owner_name: login,
           owner_id: target_id,
@@ -79,8 +76,10 @@ class InstallationController extends ARepository{
         }
 
         try {
-          _installation = await this._model.create(insertInstallation);
+
+          _installation = await this._model.create(_insertInstallation);
         } catch (error) {
+
           console.error("BONK:", error);
         }
 
