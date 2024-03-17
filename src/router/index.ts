@@ -1,10 +1,8 @@
 import { Application, Request, Response, Router, json } from "express";
 
-
 /* TYPES */
 import { App as AppType } from "octokit";
 
-// import * as octokitApi from "./octokit.router.js";
 import { octokitApi } from "../api/octokit.api.js";
 
 export const api = Router();
@@ -32,6 +30,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
    ***********/
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
+  octokitClient.webhooks.on("installation.created", octokitApi.setOwnerUser);
   // Issues
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
   // PRs

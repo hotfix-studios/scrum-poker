@@ -3,6 +3,8 @@ import { ARepository } from "./base/ARepository.js";
 import { Request, Response } from "express";
 import { Schema, Model, FilterQuery } from "mongoose";
 
+import * as OctokitTypes from "../../types/octokit.js";
+
 /**
  * This will be the Repository for User Model (CRUD)
  */
@@ -13,7 +15,12 @@ class UserController extends ARepository {
     // this._model = model;
   }
 
-  createUser = async ({ id, type, login, avatar_url }, isHost: boolean = false, isOwner: boolean = false): Promise<boolean> => {
+  createUser = async (
+    { id, type, login, avatar_url }: OctokitTypes.User,
+    isHost: boolean = false,
+    isOwner: boolean = false
+    ): Promise<boolean> => {
+
     try {
       const user = await this._model.create({
         _id: id,

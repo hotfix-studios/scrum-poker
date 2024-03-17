@@ -32,7 +32,19 @@ const setOwnerUser = async ({ payload }): Promise<void> => {
   const { installation }: { installation: OctokitTypes.Installation, } = payload;
   const { account }: { account: OctokitTypes.User } = installation;
 
-  await userController.createUser(account);
+  try {
+
+    await userController.createUser(account, false, true);
+  } catch (error) {
+
+    if (!installation || !account) {
+      console.error(`Null value on payload for setOwnerUser`, error);
+      throw error;
+    }
+
+    console.error(`Internal server error from setOwnerUser octokit.api:`, error);
+    throw error;
+  }
 };
 
 import { installationId } from '../app.js';
