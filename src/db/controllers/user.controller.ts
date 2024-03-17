@@ -33,11 +33,13 @@ class UserController extends ARepository {
 
       return user ? true : false;
     } catch (error) {
-      console.error("Failure to create owner user on User Mode: method: createUser", error);
 
+      console.error("Failure to create owner user on User Mode: method: createUser", error);
       return false;
     }
   };
+
+  userIsOwner = async (id: number): Promise<boolean> => await this._model.findById(id, "app_owner");
 
 };
 
