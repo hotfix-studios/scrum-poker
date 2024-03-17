@@ -62,10 +62,10 @@ export abstract class ARepository {
     }
   }
 
-  async socketFindOneById (id: number): Promise<FlattenMaps<any>> { // TODO: change Type to Document<any> if no .lean()
+  async socketFindOneById (id: number): Promise<Document<any>> { // TODO: change Type to FlattenMaps<any> if .lean()
     try {
 
-      const document = await this._model.findById(id).lean(); // TODO: check if .lean() js obj is better than mongoose doc
+      const document = await this._model.findById(id); // TODO: check if .lean() js obj is better than mongoose doc
 
       if (!document) {
         console.error(`Could not find ${this._model} document by id: ${id}, returning:`, document);
