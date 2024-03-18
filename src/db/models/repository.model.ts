@@ -5,7 +5,7 @@ const repositorySchema = new Schema({
   name: { type: Schema.Types.String, required: true },
   full_name: { type: Schema.Types.String, required: true },
   private: { type: Schema.Types.Boolean, required: true },
-  owner: { type: Schema.Types.Number, required: true, ref: "User", default: 0 }, // use user._id (not available on installation payload)
+  owner_id: { type: Schema.Types.Number, required: true, ref: "User", default: 0 }, // use user._id (not available on installation payload)
   description: { type: Schema.Types.String, default: "" },
   url: { type: Schema.Types.String, default: "" },
   collaborators_url: { type: Schema.Types.String, default: "" },
