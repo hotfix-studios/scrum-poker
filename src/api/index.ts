@@ -1,3 +1,3 @@
-import { octokitApi } from "./octokit.api.js";
+import octokitApi from "./octokit.api.js";
 
 export { octokitApi };

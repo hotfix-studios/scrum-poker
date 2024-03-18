@@ -30,12 +30,14 @@ export const registerEventListeners = (octokitClient: AppType) => {
    ***********/
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
-  octokitClient.webhooks.on("installation.created", octokitApi.createReposForInstallation);
+  octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
   octokitClient.webhooks.on("installation.created", octokitApi.setOwnerUser);
   // Repos
   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
   // Issues
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
+  // TODO: assign points to Issue
+  // TODO: grab and move Issue from Backlog to In Progress lane
   // PRs
   octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
   // Errors
