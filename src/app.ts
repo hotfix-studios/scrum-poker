@@ -11,7 +11,7 @@ import { App as AppType } from "octokit";
 dotenv.config();
 
 const appId = process.env.APP_ID;
-const installationId = process.env.INSTALLATION_ID;
+export const installationId = Number(process.env.INSTALLATION_ID);
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const path = process.env.WEBHOOK_PATH;
 

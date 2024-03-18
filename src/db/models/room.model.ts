@@ -1,10 +1,9 @@
 import { Schema, model } from "mongoose";
 
-
 const roomSchema = new Schema({
-  _id: { type: Schema.Types.String, required: true },
-  host: { type: Schema.Types.String, unique: true },
-  users: [ { type: Schema.Types.String } ]
+  _id: { type: Schema.Types.String, required: true },             // crypto randomBytes(4).toString("base64").slice(0, 5);
+  host: { type: Schema.Types.Number, ref: "User", unique: true }, // uses users[0] (user._id)
+  users: [ { type: Schema.Types.Number, ref: "User" } ]           // use user._id (lookup User by _id for name)
 },
 {
   timestamps: { createdAt: "created_at", updatedAt: "updated_at" },

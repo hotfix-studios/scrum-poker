@@ -1,31 +1,32 @@
 import { Request, Response } from "express";
-import { Schema, Model, model } from "mongoose";
+import { Schema, Model, model, Document, FlattenMaps } from "mongoose";
 // This is a hack. TS couldn't infer correct type when actual type passed in
 import type { User } from "../../models/index.js";
 
-
+// TODO: the typings for _model are all messed up and not inferring correctly...
 export abstract class ARepository {
 
-  public readonly _model: typeof User;
+  public readonly _model: Model<any>;
 
   /**
    * @summary This Abstract base class will have the core Read/Write operations for req/res
    * @param typeof User to infer mongoose model type
    */
-  constructor(model: typeof User) {
+  constructor(model: Model<any>) {
     this._model = model;
   }
 
-  // TODO: Generic Repository need param types defined...
-  // async create(item: T): Promise<boolean> {
-  //   throw new Error("Method not implemented.");
-  // }
+  // TODO: weak Types and unsure return is truthy/falsy
+  async create(item: Array<any> | Object): Promise<boolean> {
+    return await this._model.create(item) ? true : false;
+  }
 
   // async update(id: string, item: T): Promise<boolean> {
   //   throw new Error("Method not implemented.");
   // }
 
   async delete(id: string): Promise<boolean> {
+
     throw new Error("Method not implemented.");
   }
 
@@ -41,21 +42,41 @@ export abstract class ARepository {
     }
   }
 
-  async findOne (req: Request, res: Response, id: string) {
+  async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
     try {
-      const { id } = req.params;
-      const user = await this._model.findById(id);
 
-      if (!user) {
+      const { id } = req.params;
+
+      const document = await this._model.findById(id);
+
+      if (!document) {
         return res.status(404).json({ message: `Document from ${this._model} not found` });
       }
 
-      return res.status(200).json(user);
+      return res.status(200).json(document);
 
     } catch (error) {
 
       console.error(`Internal server error when getting ${this._model}:`, error);
       res.sendStatus(500).json({ message: "Internal Server Error Get" });
+    }
+  }
+
+  async socketFindOneById (id: number): Promise<Document<any>> { // TODO: change Type to FlattenMaps<any> if .lean()
+    try {
+
+      const document = await this._model.findById(id); // TODO: check if .lean() js obj is better than mongoose doc
+
+      if (!document) {
+        console.error(`Could not find ${this._model} document by id: ${id}, returning:`, document);
+      }
+
+      return document;
+
+    } catch (error) {
+
+      console.error(`Internal server error when getting ${this._model}: document by id`, error);
+      throw error; // Rethrow the error or handle it as needed
     }
   }
 

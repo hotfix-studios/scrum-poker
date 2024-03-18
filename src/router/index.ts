@@ -1,13 +1,14 @@
 import { Application, Request, Response, Router, json } from "express";
 
-
 /* TYPES */
 import { App as AppType } from "octokit";
 
-// import * as octokitApi from "./octokit.router.js";
-import { octokitApi } from "../api/octokit.js";
+import { octokitApi } from "../api/index.js";
 
 export const api = Router();
+
+// TODO: add session middleware for user id/key lookup (to get Installation ID?)
+/* installation.owner_id, installation.owner_name, installation._id */
 
 export const configureServer = (server: Application) => {
   server
@@ -27,8 +28,16 @@ export const registerEventListeners = (octokitClient: AppType) => {
   /************
    * WEBHOOKS *
    ***********/
+  // Installation
+  octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
+  octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
+  octokitClient.webhooks.on("installation.created", octokitApi.setOwnerUser);
+  // Repos
+  octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
   // Issues
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
+  // TODO: assign points to Issue
+  // TODO: grab and move Issue from Backlog to In Progress lane
   // PRs
   octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
   // Errors
