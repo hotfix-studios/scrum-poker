@@ -116,7 +116,12 @@ export interface Repository {
   open_issues?: number;
   watchers?: number;
   default_branch?: string;
-  // custom_properties: Record<string, any>;
+  permissions?: Permissions;
+  temp_clone_token?: string;
+  custom_properties?: any; // Record<string, any>
+  organization?: User;
+  network_count?: number;
+  subscribers_count?: number;
 }
 
 
@@ -239,9 +244,14 @@ export interface Installation {
 }
 
 export interface Permissions {
-  members: string;
-  organization_projects: string;
-  issues: string;
-  metadata: string;
-  repository_projects: string;
+  members?: string;
+  organization_projects?: string;
+  issues?: string;
+  metadata?: string;
+  repository_projects?: string;
+  admin?: boolean;
+  maintain?: boolean;
+  push?: boolean;
+  triage?: boolean;
+  pull?: boolean;
 }
