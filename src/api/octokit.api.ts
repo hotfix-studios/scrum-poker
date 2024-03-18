@@ -136,7 +136,6 @@ class OctokitApi {
   };
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
-
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);
 
     const installationLog = await this._appContext.getInstallationOctokit(payload.installation.id);
@@ -191,6 +190,7 @@ class OctokitApi {
     });
   };
 
+  /* TODO: ISSUES could maybe just live in the GH Rest and the app can GET repository.issues_url to the octokit.request GET issues_url */
   pullRequestOpenedHandler = async ({octokit, payload}): Promise<void> => {
     console.log(`Received a pull request event for #${payload.pull_request.number}`);
     // TODO: LOG PAYLOAD HERE
