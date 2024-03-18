@@ -1,5 +1,6 @@
 import installationController from "./installation.controller.js";
 import userController from "./user.controller.js";
+import repositoryController from "./repository.controller.js";
 
 /** ***************** **
  * ******************* *
@@ -7,4 +8,4 @@ import userController from "./user.controller.js";
  * ******************* *
  ** ***************** **/
 
-export { installationController, userController };
+export { installationController, userController, repositoryController };
