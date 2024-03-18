@@ -8,7 +8,7 @@ import * as OctokitTypes from "../../types/octokit.js";
 /**
  * This will be the Repository for User Model (CRUD)
  */
-class UserController extends ARepository {
+export class UserController extends ARepository {
 
   constructor(model: Model<any>) {
     super(model);
