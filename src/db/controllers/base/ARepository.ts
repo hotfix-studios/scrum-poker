@@ -16,10 +16,10 @@ export abstract class ARepository {
     this._model = model;
   }
 
-  // TODO: Generic Repository need param types defined...
-  // async create(item: T): Promise<boolean> {
-  //   throw new Error("Method not implemented.");
-  // }
+  // TODO: weak Types and unsure return is truthy/falsy
+  async create(item: Array<any> | Object): Promise<boolean> {
+    return await this._model.create(item) ? true : false;
+  }
 
   // async update(id: string, item: T): Promise<boolean> {
   //   throw new Error("Method not implemented.");
