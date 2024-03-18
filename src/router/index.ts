@@ -3,7 +3,7 @@ import { Application, Request, Response, Router, json } from "express";
 /* TYPES */
 import { App as AppType } from "octokit";
 
-import { octokitApi } from "../api/octokit.api.js";
+import { octokitApi } from "../api/index.js";
 
 export const api = Router();
 
@@ -30,7 +30,10 @@ export const registerEventListeners = (octokitClient: AppType) => {
    ***********/
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
+  octokitClient.webhooks.on("installation.created", octokitApi.createReposForInstallation);
   octokitClient.webhooks.on("installation.created", octokitApi.setOwnerUser);
+  // Repos
+  octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
   // Issues
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
   // PRs
