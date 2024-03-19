@@ -30,6 +30,7 @@ export abstract class ARepository {
     throw new Error("Method not implemented.");
   }
 
+  /* HANDLES REQ RES, NEEDS ON SUCCESS RES.SEND or something */
   async find(req: Request, res: Response, filter: { [key: string]: any } = {}): Promise<any[]> {
     //TODO: filter param should come from req?
     try {
@@ -41,6 +42,10 @@ export abstract class ARepository {
       res.sendStatus(500).json({ message: "Internal Server Error Get All" });
     }
   }
+
+  async findOne(filter: { [key: string]: any } = {}): Promise<any[] | any> {
+    return await this._model.findOne(filter);
+  };
 
   async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
     try {

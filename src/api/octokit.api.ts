@@ -135,6 +135,26 @@ class OctokitApi {
     }
   };
 
+  /** ************ **
+   **  ** Issues * **
+   ** ************ **/
+
+   // TODO: get issues
+  getIssues = async () => {
+    try {
+      // TODO: getOwnerId ??
+      const repoId: number = await this._repositoryContext.getRepoId(138710780);
+      const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
+
+      // this._appContext.octokit.request("GET /issues") // pass owner and repo vars in options obj?
+
+    } catch (error) {
+
+    }
+
+    // this._appContext.octokit.request...
+  };
+
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);
 
