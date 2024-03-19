@@ -6,6 +6,8 @@ import { InstallationController } from "../db/controllers/installation.controlle
 import { UserController } from "../db/controllers/user.controller.js";
 import { RepositoryController } from "../db/controllers/repository.controller.js";
 
+import { Context } from "./base/AHandler.js";
+
 /* TYPES */
 import { App as AppType } from "octokit";
 /* TODO: destructure types for import optimization */
@@ -14,12 +16,13 @@ import * as OctokitTypes from '../types/octokit.js';
 /* Utility Helpers */
 import { findOwner } from "../utility/index.js";
 
-interface Context {
-  app: AppType;
-  installationController: InstallationController;
-  userController: UserController;
-  repositoryController: RepositoryController;
-};
+/* TODO: rm for import above */
+// interface Context {
+//   app: AppType;
+//   installationController: InstallationController;
+//   userController: UserController;
+//   repositoryController: RepositoryController;
+// };
 
 const _context: Context = { app, installationController, userController, repositoryController };
 
@@ -68,10 +71,11 @@ class OctokitApi {
   // TODO: INIT INSTALL DETAILS
   // TODO: this function does more than just get, decouple get and write ops
   getInstallation = async ({ octokit, payload }): Promise<void> => {
+    // nodeRedirect(req, res, payload);
     // TODO: un-destructure and log entire input obj
     console.log(`Entering octokit.api getInstallation() - `);
     const data = payload;
-    console.log(data);
+    // console.log(data);
     /* TODO: try/catch error handle this? */
     try {
 
