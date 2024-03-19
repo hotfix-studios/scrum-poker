@@ -12,9 +12,6 @@ import { userController } from "../db/controllers/index.js";
 
 export const api = Router();
 
-// TODO: add session middleware for user id/key lookup (to get Installation ID?)
-/* installation.owner_id, installation.owner_name, installation._id */
-
 export const configureServer = (server: Application) => {
   server
     .use(middleware)
@@ -23,7 +20,17 @@ export const configureServer = (server: Application) => {
     .use(urlencoded({ extended: true }))
     .use("/api", api) // TODO: figure out why /api/ url was working... this might need to go up near use middleware
     .get("/", (req, res) => {
-      res.sendFile("/webgl/index.html", { root: "dist" })
+      /**
+       * req.query = { code: string, installation_id: string, setup_action: string }
+       */
+
+      /* TODO: Parse req.query.setup_action for conditional user flows */
+
+      const { installation_id } = req.query;
+      res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
+      console.log(req);
+      /* Generate UUID for "Session" to stay on client */
+      res.sendFile("/webgl/index.html", { root: "dist" });
     })
     .post("/session", async (req, res) => {
       const name = req.body;
@@ -32,10 +39,9 @@ export const configureServer = (server: Application) => {
       const document = await userController.findOne(name);
       console.log(document);
       res.status(201).send(document);
-      // res.sendStatus(200);
-      // res.send("<h1>SESSION CREATED</h1>");
     });
 };
+
 
     // TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
     // TODO: Node Endpoint to handle "Auth" from GH App installation Redirect (middleware)
@@ -52,6 +58,7 @@ export const configureServer = (server: Application) => {
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
  */
 export const registerEventListeners = (octokitClient: AppType) => {
+  // WSS ON CONNECTION???
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
   octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
