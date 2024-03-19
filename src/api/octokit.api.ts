@@ -68,6 +68,7 @@ class OctokitApi {
   // TODO: INIT INSTALL DETAILS
   // TODO: this function does more than just get, decouple get and write ops
   getInstallation = async ({ octokit, payload }): Promise<void> => {
+    // TODO: un-destructure and log entire input obj
     console.log(`Entering octokit.api getInstallation() - `);
     const data = payload;
     console.log(data);

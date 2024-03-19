@@ -23,8 +23,6 @@ const _express = express();
 
 configureServer(_express);
 
-registerEventListeners(app);
-
 /* returns http server to setup sockets on */
 const server = _express.listen(port, () => {
   console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
@@ -35,3 +33,5 @@ const server = _express.listen(port, () => {
 const wss = new WebSocketServer({ server }, () => {
   console.log('WSS started');
 });
+
+registerEventListeners(app);

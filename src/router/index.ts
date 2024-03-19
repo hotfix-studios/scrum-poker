@@ -17,11 +17,11 @@ export const api = Router();
 
 export const configureServer = (server: Application) => {
   server
+    .use(middleware)
     .use(cors())
     .use(json())
     .use(urlencoded({ extended: true }))
-    .use(middleware)
-    .use("/api", api) // TODO: figure out why /api/ url was working...
+    .use("/api", api) // TODO: figure out why /api/ url was working... this might need to go up near use middleware
     .get("/", (req, res) => {
       res.sendFile("/webgl/index.html", { root: "dist" })
     })
