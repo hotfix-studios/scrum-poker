@@ -41,6 +41,16 @@ export class RepositoryController extends ARepository {
     super(model);
   }
 
+  getRepoId = async (ownerId: number): Promise<number> => {
+    return await this._model.findOne({ owner_id: ownerId }, "_id");
+  };
+
+  // TODO: needs a simple GET to get repo document (problem with types...)
+
+  getRepoIssuesUrl = async (id: number): Promise<string> => {
+    return await this._model.findById(id, "issues_url");
+  };
+
   createRepo = async (repo: Partial<OctokitTypes.Repository>): Promise<boolean> => {
     const writeRepo = { _id: repo.id, owner_id: repo.owner.id, ...repo };
     return await this._model.create(writeRepo) ? true : false;

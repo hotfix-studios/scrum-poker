@@ -1,10 +1,11 @@
 import http from "http";
 import express from "express";
+// TODO: install @types/cors
 import dotenv from "dotenv";
 import "./db/index.js";
 
 import { WebSocketServer } from "ws";
-import { app, middleware } from "./app.js";
+import { app } from "./app.js";
 
 /* API */
 import { api, configureServer, registerEventListeners } from "./router/index.js";
@@ -15,17 +16,12 @@ dotenv.config();
 const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 const path = process.env.WEBHOOK_PATH;
-const localWebhookUrl = `http://${host}:${port}${path}`;
+const localWebhookUrl = `http://${host}:${port}`;
 
 /* SERVER SETUP */
 const _express = express();
 
-_express.use(middleware);
-_express.use("/api", api);
-
 configureServer(_express);
-
-registerEventListeners(app);
 
 /* returns http server to setup sockets on */
 const server = _express.listen(port, () => {
@@ -37,3 +33,5 @@ const server = _express.listen(port, () => {
 const wss = new WebSocketServer({ server }, () => {
   console.log('WSS started');
 });
+
+registerEventListeners(app);

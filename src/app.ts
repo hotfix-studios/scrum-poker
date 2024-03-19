@@ -11,6 +11,7 @@ import { App as AppType } from "octokit";
 dotenv.config();
 
 const appId = process.env.APP_ID;
+// TODO: is installationId still being used (hardcoded??)
 export const installationId = Number(process.env.INSTALLATION_ID);
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const path = process.env.WEBHOOK_PATH;

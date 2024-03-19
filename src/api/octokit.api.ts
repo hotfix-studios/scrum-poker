@@ -68,6 +68,7 @@ class OctokitApi {
   // TODO: INIT INSTALL DETAILS
   // TODO: this function does more than just get, decouple get and write ops
   getInstallation = async ({ octokit, payload }): Promise<void> => {
+    // TODO: un-destructure and log entire input obj
     console.log(`Entering octokit.api getInstallation() - `);
     const data = payload;
     console.log(data);
@@ -135,8 +136,27 @@ class OctokitApi {
     }
   };
 
-  issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
+  /** ************ **
+   **  ** Issues * **
+   ** ************ **/
 
+   // TODO: get issues
+  getIssues = async () => {
+    try {
+      // TODO: getOwnerId ??
+      const repoId: number = await this._repositoryContext.getRepoId(138710780);
+      const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
+
+      // this._appContext.octokit.request("GET /issues") // pass owner and repo vars in options obj?
+
+    } catch (error) {
+
+    }
+
+    // this._appContext.octokit.request...
+  };
+
+  issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);
 
     const installationLog = await this._appContext.getInstallationOctokit(payload.installation.id);
@@ -191,6 +211,7 @@ class OctokitApi {
     });
   };
 
+  /* TODO: ISSUES could maybe just live in the GH Rest and the app can GET repository.issues_url to the octokit.request GET issues_url */
   pullRequestOpenedHandler = async ({octokit, payload}): Promise<void> => {
     console.log(`Received a pull request event for #${payload.pull_request.number}`);
     // TODO: LOG PAYLOAD HERE
