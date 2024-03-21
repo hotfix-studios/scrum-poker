@@ -12,49 +12,11 @@ import { octokitApi } from "../api/index.js";
 import { userController } from "../db/controllers/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-console.log(path.join(__dirname, "..", "webgl"));
-console.log(path.resolve(__dirname, "..", "webgl"))
+
 export const api = Router();
 
 export const configureServer = (server: Application) => {
     server
-        //.use(Static(path.resolve(__dirname, "dist/webgl")))
-        //.use(Static(path.resolve(__dirname, "dist/webgl/Build")))
-        //.use(Static(path.resolve(__dirname, "dist/webgl/TemplateData")))
-        //.use((req: Request, res: Response, next) => {
-        //    const filePath = path.join(__dirname, 'dist/webgl', req.path);
-        //    const ext = path.extname(filePath);
-
-        //    let contentType = 'text/html'; // Default content type
-
-        //    switch (ext) {
-        //        case '.js':
-        //            contentType = 'application/javascript';
-        //            break;
-        //        case '.css':
-        //            contentType = 'text/css';
-        //            break;
-        //        case '.png':
-        //            contentType = 'image/png';
-        //            break;
-        //        case '.jpg':
-        //        case '.jpeg':
-        //            contentType = 'image/jpeg';
-        //            break;
-        //        // Add more cases for other file types as needed
-
-        //        default:
-        //            break;
-        //    }
-
-        //    console.log('Requested Path:', req.path);
-        //    console.log('File Path:', filePath);
-        //    console.log('Content Type:', contentType);
-
-        //    res.set('Content-Type', contentType);
-        //    res.sendStatus(200);
-        //    next();
-        //})
         .use(middleware)
         .use(cors())
         .use(json())
@@ -92,31 +54,6 @@ export const configureServer = (server: Application) => {
         res.status(404).send('Not Found');
     });
 
-    //server.use("/build", Static(path.resolve(__dirname, "dist/webgl/Build")));
-    //server.use("/template_data", Static(path.resolve(__dirname, "dist/webgl/TemplateData")));
-
-    // Define a custom middleware to set appropriate MIME types for specific files
-
-    //server.use(Static(path.resolve(__dirname, 'dist/webgl'), {
-    //    setHeaders: (res, filePath) => {
-    //        const ext = path.extname(filePath);
-    //        let contentType = 'text/html'; // Default content type
-    //        switch (ext) {
-    //            case '.js':
-    //                contentType = 'application/javascript';
-    //                break;
-    //            case '.css':
-    //                contentType = 'text/css';
-    //                break;
-    //            // Add more cases for other file types as needed
-    //        }
-    //        res.setHeader('Content-Type', contentType);
-    //    },
-    //}));
-
-    // Handle requests for specific files
-    //server.get('/Build/webgl.loader.js', Static(path.resolve(__dirname, 'dist/webgl/Build')));
-    //server.get('/TemplateData/style.css', Static(path.resolve(__dirname, 'dist/webgl/TemplateData')));
 };
 
 
