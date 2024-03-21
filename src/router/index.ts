@@ -1,6 +1,7 @@
-import path from "path";
-import { Application, Request, Response, Router, json, urlencoded } from "express";
+import { Application, Request, Response, Router, json, urlencoded, static as Static } from "express";
 import { middleware } from "../app.js";
+import { fileURLToPath } from 'url';
+import path from "path";
 import cors from "cors";
 
 /* TYPES */
@@ -10,46 +11,59 @@ import { octokitApi } from "../api/index.js";
 // TODO: Move to user.router.ts (create user router) (move express router there and import here...)
 import { userController } from "../db/controllers/index.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 export const api = Router();
 
 export const configureServer = (server: Application) => {
-  server
-    .use(middleware)
-    .use(cors())
-    .use(json())
-    .use(urlencoded({ extended: true }))
-    .use("/api", api) // TODO: figure out why /api/ url was working... this might need to go up near use middleware
-    .get("/", (req, res) => {
-      /**
-       * req.query = { code: string, installation_id: string, setup_action: string }
-       */
+    /* Global Middleware */
+    server
+        .use(middleware)
+        .use(cors())
+        .use(json())
+        .use(urlencoded({ extended: true }));
 
-      /* TODO: Parse req.query.setup_action for conditional user flows */
+    /* Serve all static js, css, html, gz files from unity dist/webgl and sub-folders */
+    server.use(Static(path.resolve(__dirname, "..", "webgl")));
 
-      const { installation_id } = req.query;
-      res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
-      console.log(req);
-      /* Generate UUID for "Session" to stay on client */
-      res.sendFile("/webgl/index.html", { root: "dist" });
-    })
-    .post("/session", async (req, res) => {
+    /* All api routes */
+    server.use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
+
+    server.get("/", (req, res) => {
+        /**
+         * How the req.query comes in:
+         * req.query = { code: string, installation_id: string, setup_action: string }
+         */
+
+        /* TODO: Parse req.query.setup_action for conditional user flows */
+
+        /* Generate UUID for "Session" to stay on client */
+        const { installation_id } = req.query;
+
+        res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
+
+        res.sendFile("/webgl/index.html", { root: "dist" });
+    });
+
+    // TODO: rm this route if we don't need any user information from user input
+    server.post("/session", async (req, res) => {
       const name = req.body;
-      console.log("REQ:", name);
 
       const document = await userController.findOne(name);
       console.log(document);
+
       res.status(201).send(document);
     });
+
+    /* Fallback 404 not found error handling */
+    server.use((req, res) => {
+        res.status(404).send('Not Found');
+    });
+
 };
 
-
     // TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
-    // TODO: Node Endpoint to handle "Auth" from GH App installation Redirect (middleware)
-    // // --> endpoint in app/server --> token/session on res (write middleware to get req.GITHUB_ID (create session?))
-    // // // --> IF app authenticates on behalf of users this will be users gh_id, ELSE it will be installation (user?) owner_id
-    // TODO: redirect to GAME: http://127.0.0.1:5500/dist/webgl/index.html (GH Callback URL) (maybe GH Setup URL?)
     // // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
-
     // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
 
 /**
@@ -58,7 +72,8 @@ export const configureServer = (server: Application) => {
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
  */
 export const registerEventListeners = (octokitClient: AppType) => {
-  // WSS ON CONNECTION???
+  console.log("\x1b[36m%s\x1b[0m", "Event Liseteners registering...");
+  // TODO: Wss On Connection?
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
   octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
