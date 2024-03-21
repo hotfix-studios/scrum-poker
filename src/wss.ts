@@ -18,7 +18,8 @@ rooms: {
   }
 }
 */
-const userId = "Dummy Testy";
+//const userId = "Dummy Testy";
+let userId;
 
 // Creating a websocket to run on our server
 const wss = new WebSocketServer({ server });
@@ -54,6 +55,7 @@ wss.on('connection', (ws) => {
   });
 
   const init = params => {
+    userId = params.userId;
     const obj = {
       type: 'init',
       params: {

@@ -6,7 +6,7 @@ public class WebSocketConnection : MonoBehaviour
 {
     private static WebSocketConnection instance;
     public static WebSocket ws;
-    public static string userId;
+    public static string userId = SceneController.userId;
 
     public class Data
     {
@@ -41,7 +41,11 @@ public class WebSocketConnection : MonoBehaviour
             Debug.Log("Connection open!");
             var data = new Data
             {
-                Type = "init"
+                Type = "init",
+                Params = new Params
+                {
+                    userId = userId
+                }
             };
             string json = JsonConvert.SerializeObject(data);
             ws.SendText(json);
