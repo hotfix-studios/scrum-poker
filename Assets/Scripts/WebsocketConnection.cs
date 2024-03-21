@@ -1,8 +1,6 @@
 using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
-using Unity.VisualScripting;
-using UnityEditor.PackageManager;
 
 public class WebSocketConnection : MonoBehaviour
 {
