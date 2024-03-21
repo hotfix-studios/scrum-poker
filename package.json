@@ -8,7 +8,7 @@
     "//": "development:",
     "start": "npm run build && npm run server",
     "build": "tsc -p .",
-    "preserver": "xcopy \".\\src\\webgl\" \".\\dist\\webgl\" /s /e /i /y",
+    "predisabled": "xcopy \".\\src\\webgl\" \".\\dist\\webgl\" /s /e /i /y",
     "server": "node ./dist/index.js",
     "wss": "tsc-watch -p tsconfig.json --onSuccess \"node ./dist/wss.js\"",
     "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\"",
