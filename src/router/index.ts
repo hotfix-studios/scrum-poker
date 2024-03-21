@@ -16,46 +16,51 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const api = Router();
 
 export const configureServer = (server: Application) => {
+    /* Global Middleware */
     server
         .use(middleware)
         .use(cors())
         .use(json())
         .use(urlencoded({ extended: true }));
 
+    /* Serve all static js, css, html, gz files from unity dist/webgl and sub-folders */
     server.use(Static(path.resolve(__dirname, "..", "webgl")));
 
+    /* All api routes */
     server.use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
 
     server.get("/", (req, res) => {
         /**
+         * How the req.query comes in:
          * req.query = { code: string, installation_id: string, setup_action: string }
          */
 
         /* TODO: Parse req.query.setup_action for conditional user flows */
 
-        const { installation_id } = req.query;
-        res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
-        //console.log(req);
         /* Generate UUID for "Session" to stay on client */
+        const { installation_id } = req.query;
+
+        res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
 
         res.sendFile("/webgl/index.html", { root: "dist" });
     });
 
+    // TODO: rm this route if we don't need any user information from user input
     server.post("/session", async (req, res) => {
       const name = req.body;
-      //console.log("REQ:", name);
 
       const document = await userController.findOne(name);
       console.log(document);
+
       res.status(201).send(document);
     });
 
+    /* Fallback 404 not found error handling */
     server.use((req, res) => {
         res.status(404).send('Not Found');
     });
 
 };
-
 
     // TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
     // // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
@@ -68,7 +73,7 @@ export const configureServer = (server: Application) => {
  */
 export const registerEventListeners = (octokitClient: AppType) => {
   console.log("\x1b[36m%s\x1b[0m", "Event Liseteners registering...");
-  // WSS ON CONNECTION???
+  // TODO: Wss On Connection?
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
   octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
