@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using NativeWebSocket;
+using System.Collections;
+using UnityEngine.Networking;
 
 public class SceneController : MonoBehaviour
 {
@@ -15,7 +17,30 @@ public class SceneController : MonoBehaviour
 
     private List<string> projects;
     private string roomId = GUIDGenerator.guid;
-    private string userId = WebSocketConnection.userId;
+    public static string userId;
+
+    void Start()
+    {
+        string fullURL = Application.absoluteURL;
+
+        string queryString = fullURL.Substring(fullURL.IndexOf('?') + 1);
+
+        string[] queryParams = queryString.Split('&');
+
+        foreach (string param in queryParams)
+        {
+            string[] keyValue = param.Split('=');
+            string paramName = keyValue[0];
+            string paramValue = keyValue[1];
+
+            if (paramName == "installation_id")
+            {
+                Debug.Log("Installation ID: " + paramValue);
+                userId = paramValue;
+                break;
+            }
+        }
+    }
 
     private void Awake()
     {
@@ -48,6 +73,7 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Host")
         {
+            Debug.Log(userId);
             isHost = true;
             // Do API call to GET REPOS here!
             projects = new List<string> { "repo-one", "repo-two", "repo-three" }; // Replace with REPO data!
@@ -117,7 +143,7 @@ public class SceneController : MonoBehaviour
                 Params = new Params
                 {
                     roomId = roomId,
-                    userId = WebSocketConnection.userId,
+                    userId = userId,
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -136,7 +162,7 @@ public class SceneController : MonoBehaviour
                 Params = new Params
                 {
                     roomId = code,
-                    userId = WebSocketConnection.userId
+                    userId = userId
                 }
             };
             string json = JsonConvert.SerializeObject(data);
