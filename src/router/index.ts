@@ -30,29 +30,7 @@ export const configureServer = (server: Application) => {
     server.use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
 
     server.get("/", (req, res) => {
-        /**
-         * How the req.query comes in:
-         * req.query = { code: string, installation_id: string, setup_action: string }
-         */
-
-        /* TODO: Parse req.query.setup_action for conditional user flows */
-
-        /* Generate UUID for "Session" to stay on client */
-        const { installation_id } = req.query;
-
-        res.cookie("installation_id", installation_id, { expires: new Date(Date.now() + 900000) });
-
         res.sendFile("/webgl/index.html", { root: "dist" });
-    });
-
-    // TODO: rm this route if we don't need any user information from user input
-    server.post("/session", async (req, res) => {
-      const name = req.body;
-
-      const document = await userController.findOne(name);
-      console.log(document);
-
-      res.status(201).send(document);
     });
 
     /* Fallback 404 not found error handling */
