@@ -21,10 +21,10 @@ public class SceneController : MonoBehaviour
     public static string selectedRepoName;
     public static int selectedRepoId;
     public List<int> installationReposIds = WebSocketConnection.installationReposIds;
-    public List<string> installationRepoNames = WebSocketConnection.installationRepoNames; // TODO: make private
+    public List<string> installationRepoNames = WebSocketConnection.installationRepoNames;
     public List<string> installationReposIssuesUrls = WebSocketConnection.installationReposIssuesUrls;
     // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
-    public List<string> backlog; // TODO: List<string>
+    public List<string> backlog;
 
     void Start()
     {
@@ -45,7 +45,7 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Installation ID: " + paramValue);
 
                 if (int.TryParse(paramValue, out int result)) {
-                    installationId = result; // TODO: use TryParse instead
+                    installationId = result;
                 } else {
                     Debug.Log("FUCK UYOU");
                 }
@@ -96,17 +96,16 @@ public class SceneController : MonoBehaviour
             buttonCreate.clicked += () =>
             {
                 // This value will be the chosen repo
-                //var repo = dropdown.text;
                 selectedRepoName = dropdown.text;
                 var selectedIndex = installationRepoNames.FindIndex(repo => repo == selectedRepoName);
                 // TODO: this using installationReposData is close, but that prop will need a class since it is an array of Objs (json?)
                 // selectedRepoId = installationReposData.Find(repo => repo.name = selectedRepoName);
                 selectedRepoId = installationReposIds[selectedIndex];
-                //selectedRepoId = dropdown
+
                 Debug.Log($"REPO: {selectedRepoName}");
 
                 CreateRoom();
-                // Do API call to GET backlog for chosen repo here!
+
                 SceneManager.LoadScene(3);
             };
         }
@@ -124,6 +123,9 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Lobby")
         {
+            // TODO: assign class backlog to message sent from sockets (after node)
+            // TODO: format backlog here (obj parsing)
+            // TODO: log participants
             if(isHost)
             {
                 textFieldInvite.value = roomId;

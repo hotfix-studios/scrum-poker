@@ -112,9 +112,11 @@ public class WebSocketConnection : MonoBehaviour
                 case "create":
                     // create (params);
                     // assign backlog to class member
+                    // receive backlog here
                     break;
                 case "join":
                     //join (params);
+                    // TODO: send user who joins (name || id to look up name)
                     break;
                 case "leave":
                     //leave (params);
