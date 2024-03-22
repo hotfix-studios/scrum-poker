@@ -20,11 +20,11 @@ public class SceneController : MonoBehaviour
     public static int installationId;
     public static string selectedRepoName;
     public static int selectedRepoId;
-    public static List<int> installationReposIds; // = WebSocketConnection.installationReposIds;
-    public static List<string> installationRepoNames; // = WebSocketConnection.installationRepoNames;
-    public static List<string> installationReposIssuesUrls; // = WebSocketConnection.installationReposIssuesUrls;
-    public static List<string> installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
-    public static List<string> backlog; // TODO: List<string>
+    public List<int> installationReposIds = WebSocketConnection.installationReposIds;
+    public List<string> installationRepoNames = WebSocketConnection.installationRepoNames; // TODO: make private
+    public List<string> installationReposIssuesUrls = WebSocketConnection.installationReposIssuesUrls;
+    // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
+    public List<string> backlog; // TODO: List<string>
 
     void Start()
     {
@@ -156,7 +156,7 @@ public class SceneController : MonoBehaviour
         public List<int> installationReposIds;
         public List<string> installationRepoNames;
         public List<string> installationReposIssuesUrls;
-        public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
+        // public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
         public List<string> backlog;
     }
 

@@ -7,13 +7,15 @@ public class WebSocketConnection : MonoBehaviour
 {
     private static WebSocketConnection instance;
     public static WebSocket ws;
-    public static int installationId = SceneController.installationId;
-    public static string selectedRepoName = SceneController.selectedRepoName;
-    public static int selectedRepoId = SceneController.selectedRepoId;
-    public static List<int> installationReposIds = SceneController.installationReposIds;
-    public static List<string> installationRepoNames = SceneController.installationRepoNames;
-    public static List<string> installationReposIssuesUrls = SceneController.installationReposIssuesUrls;
-    public static List<string> installationReposData = SceneController.installationReposData; // TODO: needs List<class>
+    /* incoming from SceneController/Browser */
+    private int installationId = SceneController.installationId;
+    public string selectedRepoName = SceneController.selectedRepoName;
+    public int selectedRepoId = SceneController.selectedRepoId;
+    /* outgoing to SceneController from Node Server send */
+    public static List<int> installationReposIds; // = SceneController.installationReposIds;
+    public static List<string> installationRepoNames; // = SceneController.installationRepoNames;
+    public static List<string> installationReposIssuesUrls; // = SceneController.installationReposIssuesUrls;
+    // public static List<string> installationReposData; // = SceneController.installationReposData; // TODO: needs List<class>
     public static List<string> backlog;
 
     public class Data
@@ -34,7 +36,7 @@ public class WebSocketConnection : MonoBehaviour
         public List<int> installationReposIds;
         public List<string> installationRepoNames;
         public List<string> installationReposIssuesUrls;
-        public List<string> installationReposData; // TODO: needs to be List<class>
+        // public List<string> installationReposData; // TODO: needs to be List<class>
         public List<string> backlog;
     }
 
@@ -93,19 +95,19 @@ public class WebSocketConnection : MonoBehaviour
                     // init (params);
                     Debug.Log("On Init, WebsocketConnection.cs");
                     installationId = json.Params.installationId;
-                    Debug.Log(json.Params.installationId);
-                    Debug.Log(installationId);
+                    // Debug.Log(json.Params.installationId);
+                    // Debug.Log(installationId);
                     installationReposIds = new List<int>(json.Params.installationReposIds);
-                    Debug.Log(json.Params.installationReposIds);
-                    Debug.Log(installationReposIds);
+                    // Debug.Log(json.Params.installationReposIds);
+                    // Debug.Log(installationReposIds);
                     // installationRepoNames = json.Params.installationRepoNames;
                     installationRepoNames = new List<string>(json.Params.installationRepoNames);
-                    Debug.Log(json.Params.installationRepoNames);
-                    Debug.Log(installationRepoNames);
+                    // Debug.Log(json.Params.installationRepoNames);
+                    // Debug.Log(installationRepoNames);
                     installationReposIssuesUrls = new List<string>(json.Params.installationReposIssuesUrls);
-                    Debug.Log(json.Params.installationReposIssuesUrls);
-                    Debug.Log(installationReposIssuesUrls);
-                    Debug.Log(installationId);
+                    // Debug.Log(json.Params.installationReposIssuesUrls);
+                    // Debug.Log(installationReposIssuesUrls);
+                    // Debug.Log(installationId);
                     break;
                 case "create":
                     // create (params);

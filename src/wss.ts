@@ -105,7 +105,7 @@ wss.on('connection', (ws) => {
                 installationReposIds,
                 installationRepoNames,
                 installationReposIssuesUrls,
-                installationReposData
+                // installationReposData
             }
         }
 
