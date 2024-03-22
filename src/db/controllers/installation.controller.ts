@@ -24,8 +24,8 @@ export class InstallationController extends ARepository{
     return await this._model.findOne({ owner_id: id }, "_id");
   }
 
-  findInstallationById = async (id: number) => {
-    return await Installation.findById(id);
+  findInstallationById = async (id: number): Promise<any> => {
+    return await this._model.findById(id);
   };
 
   findOrCreateInstallation = async (payload) => { // return type Promise<typeof Installation>

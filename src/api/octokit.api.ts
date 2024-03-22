@@ -145,20 +145,29 @@ class OctokitApi {
    ** ************ **/
 
    // TODO: get issues
-  getIssues = async () => {
-    try {
-      // TODO: getOwnerId ??
-      const repoId: number = await this._repositoryContext.getRepoId(138710780);
-      const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
+    getIssues = async (params: any) => { // issueURLs: string[] = []
+        try {
+            // TODO: getOwnerId ??
+            // const repoId: number = await this._repositoryContext.getRepoId(138710780);
+            // const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
 
-      // this._appContext.octokit.request("GET /issues") // pass owner and repo vars in options obj?
+            //const data = await this._appContext.octokit.request("GET /issues", {
+            //    installationId: installationId,
+            //    headers: {
+            //        'X-GitHub-Api-Version': '2022-11-28'
+            //    }
+            //}); // pass owner and repo vars in options obj?
 
-    } catch (error) {
+            const { data } = await this._appContext.octokit.rest.issues.listForRepo(params);
 
-    }
+            console.log("REPOS FROM GET:", data);
 
-    // this._appContext.octokit.request...
-  };
+        } catch (error) {
+            console.error("fail to hit REST GET issues:", error);
+        }
+
+        // this._appContext.octokit.request...
+    };
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);

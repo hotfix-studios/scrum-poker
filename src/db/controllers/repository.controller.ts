@@ -51,6 +51,16 @@ export class RepositoryController extends ARepository {
     return await this._model.findById(id, "issues_url");
   };
 
+  findRepoNameById = async (repoId: number): Promise<Partial<typeof Repository>> => {
+    const data = await this._model.findOne({ _id: repoId }, "name");
+    console.log("INSIDE CONTROLLER calling model for repo name:", data);
+    return data;
+  };
+
+  getRepoProjectionById = async (repoId: number, projections: string[]): Promise<Partial<typeof Repository>> => {
+    return await this._model.findById(repoId, projections);
+  };
+
   createRepo = async (repo: Partial<OctokitTypes.Repository>): Promise<boolean> => {
     const writeRepo = { _id: repo.id, owner_id: repo.owner.id, ...repo };
     return await this._model.create(writeRepo) ? true : false;
