@@ -5,8 +5,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using NativeWebSocket;
-using System.Collections;
-using UnityEngine.Networking;
+using System.Linq;
+using Unity.VisualScripting;
 
 public class SceneController : MonoBehaviour
 {
@@ -17,7 +17,14 @@ public class SceneController : MonoBehaviour
 
     private List<string> projects;
     private string roomId = GUIDGenerator.guid;
-    public static string userId;
+    public static int installationId;
+    public static string selectedRepoName;
+    public static int selectedRepoId;
+    public static List<int> installationReposIds; // = WebSocketConnection.installationReposIds;
+    public static List<string> installationRepoNames; // = WebSocketConnection.installationRepoNames;
+    public static List<string> installationReposIssuesUrls; // = WebSocketConnection.installationReposIssuesUrls;
+    public static List<string> installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
+    public static List<string> backlog; // TODO: List<string>
 
     void Start()
     {
@@ -36,7 +43,12 @@ public class SceneController : MonoBehaviour
             if (paramName == "installation_id")
             {
                 Debug.Log("Installation ID: " + paramValue);
-                userId = paramValue;
+
+                if (int.TryParse(paramValue, out int result)) {
+                    installationId = result; // TODO: use TryParse instead
+                } else {
+                    Debug.Log("FUCK UYOU");
+                }
                 break;
             }
         }
@@ -73,17 +85,25 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Host")
         {
-            Debug.Log(userId);
+            Debug.Log(installationId);
+            Debug.Log(installationRepoNames);
             isHost = true;
             // Do API call to GET REPOS here!
-            projects = new List<string> { "repo-one", "repo-two", "repo-three" }; // Replace with REPO data!
+            //projects = new List<string> { "repo-one", "repo-two", "repo-three" }; // Replace with REPO data!
             dropdown.choices.Clear();
-            dropdown.choices = projects;
+            //dropdown.choices = projects;
+            dropdown.choices = installationRepoNames; // TODO: .ToList() ?
             buttonCreate.clicked += () =>
             {
                 // This value will be the chosen repo
-                var repo = dropdown.text;
-                Debug.Log($"REPO: {repo}");
+                //var repo = dropdown.text;
+                selectedRepoName = dropdown.text;
+                var selectedIndex = installationRepoNames.FindIndex(repo => repo == selectedRepoName);
+                // TODO: this using installationReposData is close, but that prop will need a class since it is an array of Objs (json?)
+                // selectedRepoId = installationReposData.Find(repo => repo.name = selectedRepoName);
+                selectedRepoId = installationReposIds[selectedIndex];
+                //selectedRepoId = dropdown
+                Debug.Log($"REPO: {selectedRepoName}");
 
                 CreateRoom();
                 // Do API call to GET backlog for chosen repo here!
@@ -130,7 +150,14 @@ public class SceneController : MonoBehaviour
     public class Params
     {
         public string roomId;
-        public string userId;
+        public int installationId;
+        public string selectedRepoName;
+        public int selectedRepoId;
+        public List<int> installationReposIds;
+        public List<string> installationRepoNames;
+        public List<string> installationReposIssuesUrls;
+        public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
+        public List<string> backlog;
     }
 
     async void CreateRoom()
@@ -143,7 +170,10 @@ public class SceneController : MonoBehaviour
                 Params = new Params
                 {
                     roomId = roomId,
-                    userId = userId,
+                    installationId = installationId,
+                    selectedRepoName = selectedRepoName, // single repo name
+                    selectedRepoId = selectedRepoId,
+                    backlog = backlog
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -162,7 +192,7 @@ public class SceneController : MonoBehaviour
                 Params = new Params
                 {
                     roomId = code,
-                    userId = userId
+                    installationId = installationId
                 }
             };
             string json = JsonConvert.SerializeObject(data);
