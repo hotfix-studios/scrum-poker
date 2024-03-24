@@ -64,52 +64,52 @@ wss.on('connection', (ws) => {
         installationId = await params.installationId;
         console.log("INSTALL ID: from INIT PARAMS", params.installationId);
 
-        /* TypeScript fucking me in the ass */
-        let installation = await installationController.findInstallationById(params.installationId);
+        /* ALL OF THESE ARE WORKING */
+        // let installation = await installationController.findInstallationById(params.installationId);
 
         /* TODO: this should probably be a join table query to get repos for each id on DB processor */
-        const installationReposIds: number[] = installation.repos;
+        // const installationReposIds: number[] = installation.repos;
+
         // look up repo by id
         // // get repo.owner_id (query) && repo.name (done)
         // // // look up user by repo.owner_id
         // // // // get user.name
 
         /* TODO: by default "data" returned by controller fn looks like this: { _id: 630630961, name: 'arteiras' } might not need ids Array */
-        const installationRepoNamesPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-          const data = await repositoryController.findRepoNameById(repoId);
-          // @ts-ignore
-          return data.name;
-        });
+        // const installationRepoNamesPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+        //   const data = await repositoryController.findRepoNameById(repoId);
+        //   // @ts-ignore
+        //   return data.name;
+        // });
 
-        const installationReposIssuesUrlsPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-          const data = await repositoryController.getRepoIssuesUrl(repoId);
-          // @ts-ignore
-          return data.issues_url;
-        });
+        // const installationReposIssuesUrlsPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+        //   const data = await repositoryController.getRepoIssuesUrl(repoId);
+        //   // @ts-ignore
+        //   return data.issues_url;
+        // });
 
-        const installationReposDataPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-          // @ts-ignore
-          return repositoryController.getRepoProjectionById(repoId, [ "name", "issues_url" ]);
-          /* above will return { _id: 000000000, name: 'repo-name', issues_url: 'https://...' } */
-        });
+        // const installationReposDataPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+        //   // @ts-ignore
+        //   return repositoryController.getRepoProjectionById(repoId, [ "name", "issues_url" ]);
+        //   /* above will return { _id: 000000000, name: 'repo-name', issues_url: 'https://...' } */
+        // });
 
-        const installationRepoNames = await Promise.all(installationRepoNamesPromises);
-        const installationReposIssuesUrls = await Promise.all(installationReposIssuesUrlsPromises);
-
-        const installationReposData = await Promise.all(installationReposDataPromises);
+        // const installationRepoNames = await Promise.all(installationRepoNamesPromises);
+        // const installationReposIssuesUrls = await Promise.all(installationReposIssuesUrlsPromises);
+        // const installationReposData = await Promise.all(installationReposDataPromises);
 
         const obj = {
             type: 'init',
             params: {
                 installationId: params.installationId,
-                installationReposIds,
-                installationRepoNames,
-                installationReposIssuesUrls,
+                // installationReposIds,
+                // installationRepoNames,
+                // installationReposIssuesUrls,
                 // installationReposData
             }
         }
 
-        console.log("installationReposIds, installationRepoNames, installationReposIssuesUrls");
+        console.log("sending message from node, ONLY installationId");
         console.log(obj);
 
         ws.send(JSON.stringify(obj));
@@ -142,6 +142,7 @@ wss.on('connection', (ws) => {
 
         //const params = { owner: repository.owner.login, repo: repository.name };
 
+        /* TODO: RM THIS BECAUSE IT WILL BE HANDLED ON HTTP INSTEAD */
         const backlog = octokitApi.getIssues({ owner: repoOwnerId, repo: repoName });
 
         // use name to query for issues URL (on repo)
