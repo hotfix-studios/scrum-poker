@@ -95,16 +95,19 @@ public class WebSocketConnection : MonoBehaviour
                     // init (params);
                     Debug.Log("On Init, WebsocketConnection.cs");
                     installationId = json.Params.installationId;
-                    // Debug.Log(json.Params.installationId);
-                    // Debug.Log(installationId);
-                    installationReposIds = new List<int>(json.Params.installationReposIds);
+                    Debug.Log(json.Params.installationId);
+                    Debug.Log(installationId);
+
+                    // installationReposIds = new List<int>(json.Params.installationReposIds);
                     // Debug.Log(json.Params.installationReposIds);
                     // Debug.Log(installationReposIds);
+
                     // installationRepoNames = json.Params.installationRepoNames;
-                    installationRepoNames = new List<string>(json.Params.installationRepoNames);
+                    // installationRepoNames = new List<string>(json.Params.installationRepoNames);
                     // Debug.Log(json.Params.installationRepoNames);
                     // Debug.Log(installationRepoNames);
-                    installationReposIssuesUrls = new List<string>(json.Params.installationReposIssuesUrls);
+
+                    // installationReposIssuesUrls = new List<string>(json.Params.installationReposIssuesUrls);
                     // Debug.Log(json.Params.installationReposIssuesUrls);
                     // Debug.Log(installationReposIssuesUrls);
                     // Debug.Log(installationId);
@@ -130,6 +133,7 @@ public class WebSocketConnection : MonoBehaviour
             Debug.Log($"User: {installationId}");
         };
 
+        // TODO: move to top, right below ws instantiation?
         await ws.Connect();
 
     }
