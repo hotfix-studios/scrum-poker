@@ -24,14 +24,26 @@ public class SceneController : MonoBehaviour
     public static string selectedRepoName;
     public static int selectedRepoId;
     public List<int> installationReposIds = new(); // = WebSocketConnection.installationReposIds;
-    public List<string> installationRepoNames = new(); // = WebSocketConnection.installationRepoNames;
+    public List<string> installationRepoNames; // = WebSocketConnection.installationRepoNames;
     public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
     // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
     public List<string> backlog;
 
     void Start()
     {
-        string fullURL = Application.absoluteURL;
+        // StartUI();
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        DontDestroyOnLoad(gameObject);
+
+                string fullURL = Application.absoluteURL;
 
         int queryStringIndex = fullURL.IndexOf('?');
 
@@ -63,19 +75,12 @@ public class SceneController : MonoBehaviour
         Debug.Log("Base URL Capture:");
         Debug.Log(baseURL);
         // TODO: call StartCoroutine here...
+        StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
+
     }
 
-    private void Awake()
-    {
-        if (instance != null && instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        DontDestroyOnLoad(gameObject);
-    }
-
-    private void OnEnable()
+    // TODO: Move to helpers region or something...
+    private void StartUI()
     {
         VisualElement root = GetComponent<UIDocument>().rootVisualElement;
         Button buttonHost = root.Q<Button>("ButtonHost");
@@ -102,14 +107,18 @@ public class SceneController : MonoBehaviour
             isHost = true;
             //projects = new List<string> { "repo-one", "repo-two", "repo-three" };
             // Doing API call to GET REPOS here!
-            StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
+            // StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
             dropdown.choices.Clear();
             //dropdown.choices = projects;
 
             // TODO: ******** HERE IS WHERE TO PICK BACK UP *********
             // NO ERRORS, BUT DROP DOWN SELECT IS NOT POPULATING
             // UNITY HAS RECEIVED CORRECT REPO DATA (correct data type?) (rm JSON utility so is deserializing correctly?)
-
+            Debug.Log("Dropdown about to be populated:");
+            foreach (var name in installationRepoNames)
+            {
+                Debug.Log(name);
+            }
             dropdown.choices = installationRepoNames;
             buttonCreate.clicked += () =>
             {
@@ -183,7 +192,7 @@ public class SceneController : MonoBehaviour
     }
     private class HttpData
     {
-        public readonly string[] repoNames;
+        public readonly string repoNames;
     }
     #endregion DTO_CLASSES
 
@@ -245,7 +254,19 @@ public class SceneController : MonoBehaviour
             else
             {
                 string responseData = www.downloadHandler.text;
+                Debug.Log("RIGHT BEFORE http handler CALLBACK");
+                Debug.Log(responseData);
+
+                // HttpData _responseDTO = JsonUtility.FromJson<HttpData>(responseData);
+
+                // if (_responseDTO != null)
+                // {
+                //     handleResponse?.Invoke(_responseDTO.repoNames);
+                // }
+
+                // TODO: try making parent scope async and await handleResponse.Invoke call
                 handleResponse?.Invoke(responseData);
+                StartUI();
             }
         }
     }
@@ -255,9 +276,14 @@ public class SceneController : MonoBehaviour
         Debug.Log("Response Repo Names Action: " + responseData);
         try
         {
-            responseData = responseData.Trim('"');
-            // HttpData _responseDTO = JsonUtility.FromJson<HttpData>(responseData);
+            #region STRINGS
+            responseData = responseData.Trim('"', '[', ']', '"');
             string[] responseRepoNames = responseData.Split(',');
+            installationRepoNames = new List<string>(responseRepoNames);
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
+            #endregion STRINGS
+
+            // HttpData _responseDTO = JsonConvert.DeserializeObject<HttpData>(responseData);
 
             // Remove leading and trailing whitespace characters from each string (NOT NEEDED?)
             // for (int i = 0; i < repoNamesArray.Length; i++)
@@ -265,7 +291,12 @@ public class SceneController : MonoBehaviour
             //     repoNamesArray[i] = repoNamesArray[i].Trim();
             // }
 
-            installationRepoNames = new List<string>(responseRepoNames);
+            // installationRepoNames = new List<string>(_responseDTO.repoNames);
+
+            foreach (var item in installationRepoNames)
+            {
+                Debug.Log("List is Populated:" + item);
+            }
             Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
         }
         catch (Exception e)
