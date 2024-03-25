@@ -91,4 +91,4 @@ export class InstallationController extends ARepository{
 }
 
 
-export default new InstallationController(Installation);
+export default InstallationController;

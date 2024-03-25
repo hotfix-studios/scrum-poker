@@ -41,6 +41,15 @@ export class RepositoryController extends ARepository {
     super(model);
   }
 
+  //# ###############
+  //#region REST/CRUD
+  //# ###############
+  //# USE:
+  //# # - Create...
+  //# # - Find...
+  //# # - Update...
+  //# # - Delete...
+  //# ###############
   getRepoId = async (ownerId: number): Promise<number> => {
     return await this._model.findOne({ owner_id: ownerId }, "_id");
   };
@@ -113,6 +122,25 @@ export class RepositoryController extends ARepository {
     }
   };
 
+  //# ##################
+  //#endregion REST/CRUD
+  //# ##################
+  //# ##################
+
+  //# ##################
+  //#region HTTP ROUTES
+  //# ##################
+  //# USE:
+  //# # - Post...
+  //# # - Get...
+  //# # - Put/Patch...
+  //# # - Delete...
+  //# ###############
+
+  //# ##################
+  //#endregion HTTP ROUTES
+  //# ##################
+  //# ##################
 }
 
-export default new RepositoryController(Repository);
+export default RepositoryController;
