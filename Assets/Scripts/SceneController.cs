@@ -277,7 +277,7 @@ public class SceneController : MonoBehaviour
         try
         {
             #region STRINGS
-            responseData = responseData.Trim('"', '[', ']', '"');
+            responseData = responseData.Replace("[", "").Replace("]", "").Replace("\"", "").Trim();
             string[] responseRepoNames = responseData.Split(',');
             installationRepoNames = new List<string>(responseRepoNames);
             Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
