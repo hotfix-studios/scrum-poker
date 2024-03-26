@@ -24,26 +24,32 @@ public class SceneController : MonoBehaviour
     public static string selectedRepoName;
     public static int selectedRepoId;
     public List<int> installationReposIds = new(); // = WebSocketConnection.installationReposIds;
-    public List<string> installationRepoNames; // = WebSocketConnection.installationRepoNames;
+    public List<string> installationRepoNames = new(); // = WebSocketConnection.installationRepoNames;
     public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
     // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
     public List<string> backlog;
 
+    /* Despite Singleton Pattern this was being called multiple times? And not sequenced correctly for async coroutine */
     void Start()
     {
+        /* TODO: possibly make http request here (coroutine call) */
         // StartUI();
     }
 
     private void Awake()
     {
+        /* Establishes SceneController as Singleton */
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
             return;
         }
+
         DontDestroyOnLoad(gameObject);
 
-                string fullURL = Application.absoluteURL;
+        /* Parsing URL for User Installation ID and API Base Url (assigned to class prop) */
+        /* Encapsulate into method ("GetInstallationIdUrl"?) */
+        string fullURL = Application.absoluteURL;
 
         int queryStringIndex = fullURL.IndexOf('?');
 
@@ -64,19 +70,22 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Installation ID: " + paramValue);
 
                 if (int.TryParse(paramValue, out int result)) {
+
                     installationId = result;
                 } else {
-                    Debug.Log("FUCK UYOU");
+
+                    Debug.LogError("--Installation ID from URL param tryParse Fail--");
                 }
+
                 break;
             }
         }
 
         Debug.Log("Base URL Capture:");
         Debug.Log(baseURL);
-        // TODO: call StartCoroutine here...
-        StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
+        Debug.Log("Coroutine calling from AWAKE");
 
+        StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
     }
 
     // TODO: Move to helpers region or something...
@@ -101,25 +110,18 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Host")
         {
-            Debug.Log(installationId);
-            Debug.Log("--IS THIS THE EMPTY LIST? buttonHost click IF LOGIC--");
-            Debug.Log(installationRepoNames);
             isHost = true;
-            //projects = new List<string> { "repo-one", "repo-two", "repo-three" };
-            // Doing API call to GET REPOS here!
-            // StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
-            dropdown.choices.Clear();
-            //dropdown.choices = projects;
 
-            // TODO: ******** HERE IS WHERE TO PICK BACK UP *********
-            // NO ERRORS, BUT DROP DOWN SELECT IS NOT POPULATING
-            // UNITY HAS RECEIVED CORRECT REPO DATA (correct data type?) (rm JSON utility so is deserializing correctly?)
-            Debug.Log("Dropdown about to be populated:");
+            dropdown.choices.Clear();
+
+            Debug.Log("Dropdown about to be populated contents: (from class prop)");
             foreach (var name in installationRepoNames)
             {
                 Debug.Log(name);
             }
+
             dropdown.choices = installationRepoNames;
+
             buttonCreate.clicked += () =>
             {
                 // This value will be the chosen repo
@@ -240,6 +242,7 @@ public class SceneController : MonoBehaviour
     #region HTTP_REQUESTS
     /// <summary>
     /// Coroutine to make http, nearly fully modular however only handles string conversion currently
+    /// (this region could become a prefab)
     /// </summary>
     IEnumerator MakeRequest(string url, string endpoint, Action<string> handleResponse)
     {
@@ -254,7 +257,7 @@ public class SceneController : MonoBehaviour
             else
             {
                 string responseData = www.downloadHandler.text;
-                Debug.Log("RIGHT BEFORE http handler CALLBACK");
+                Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
                 // HttpData _responseDTO = JsonUtility.FromJson<HttpData>(responseData);
@@ -264,7 +267,7 @@ public class SceneController : MonoBehaviour
                 //     handleResponse?.Invoke(_responseDTO.repoNames);
                 // }
 
-                // TODO: try making parent scope async and await handleResponse.Invoke call
+                /* try making parent scope async and await handleResponse.Invoke call IF sequencing failure */
                 handleResponse?.Invoke(responseData);
                 StartUI();
             }
@@ -283,21 +286,17 @@ public class SceneController : MonoBehaviour
             Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
             #endregion STRINGS
 
-            // HttpData _responseDTO = JsonConvert.DeserializeObject<HttpData>(responseData);
-
             // Remove leading and trailing whitespace characters from each string (NOT NEEDED?)
             // for (int i = 0; i < repoNamesArray.Length; i++)
             // {
             //     repoNamesArray[i] = repoNamesArray[i].Trim();
             // }
 
-            // installationRepoNames = new List<string>(_responseDTO.repoNames);
-
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
             foreach (var item in installationRepoNames)
             {
                 Debug.Log("List is Populated:" + item);
             }
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
         }
         catch (Exception e)
         {
