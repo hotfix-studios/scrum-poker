@@ -56,7 +56,7 @@ export class RepositoryController extends ARepository {
 
   // TODO: needs a simple GET to get repo document (problem with types...)
 
-  getRepoIssuesUrl = async (id: number): Promise<string> => {
+  findRepoIssuesUrl = async (id: number): Promise<string> => {
     return await this._model.findById(id, "issues_url");
   };
 

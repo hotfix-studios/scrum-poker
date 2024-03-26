@@ -115,6 +115,14 @@ class OctokitApi {
 
   };
 
+  getRepoIssuesUrl = async (req, res, next) => {
+    const id: number = Number(req.params.id);
+    const issuesUrl = await this._repositoryContext.findRepoIssuesUrl(id);
+
+    res.locals.issuesUrl = issuesUrl;
+    next();
+  };
+
   getAndWriteInstallationRepos = async ({ octokit, payload }): Promise<void> => {
     try {
 
@@ -180,7 +188,7 @@ class OctokitApi {
 
           // TODO: getOwnerId ??
           // const repoId: number = await this._repositoryContext.getRepoId(138710780);
-          // const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
+          // const repoIssuesUrl: string = await this._repositoryContext.findRepoIssuesUrl(repoId);
 
           //const data = await this._appContext.octokit.request("GET /issues", {
           //    installationId: installationId,

@@ -83,7 +83,7 @@ wss.on('connection', (ws) => {
         // });
 
         // const installationReposIssuesUrlsPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-        //   const data = await repositoryController.getRepoIssuesUrl(repoId);
+        //   const data = await repositoryController.findRepoIssuesUrl(repoId);
         //   // @ts-ignore
         //   return data.issues_url;
         // });
