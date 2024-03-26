@@ -9,7 +9,7 @@ import { RepositoryController } from "../db/controllers/repository.controller.js
 import { Context } from "./base/AHandler.js";
 
 /* TYPES */
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { App as AppType } from "octokit";
 /* TODO: destructure types for import optimization */
 import * as OctokitTypes from '../types/octokit.js';
@@ -115,7 +115,19 @@ class OctokitApi {
 
   };
 
-  getRepoIssuesUrl = async (req, res, next) => {
+  getRepoData = async (req: Request, res: Response, next: NextFunction) => {
+    const id: number = Number(req.params.id);
+    const projections: string[] = req.body.projections; // TODO: need to append string[] from C#
+
+    const data = await this._repositoryContext.getRepoProjectionById(id, projections);
+    /* above will return { _id: 000000000, projections[0]: 'document-data', projections[1]: 'https://...' } */
+
+    /* TODO: next steps, this fn or next() middleware fn? */
+    // // // look up user by repo.owner_id
+    // // // // get user.name
+  };
+
+  getRepoIssuesUrl = async (req: Request, res: Response, next: NextFunction) => {
     const id: number = Number(req.params.id);
     const issuesUrl = await this._repositoryContext.findRepoIssuesUrl(id);
 
@@ -123,7 +135,7 @@ class OctokitApi {
     next();
   };
 
-  getRepoOwnerId = async (req: Request, res: Response, next) => {
+  getRepoOwnerId = async (req: Request, res: Response, next: NextFunction) => {
 
   };
 
