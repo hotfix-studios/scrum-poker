@@ -61,7 +61,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
   // TODO: Wss On Connection?
   // Installation
   octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
-  octokitClient.webhooks.on("installation.created", octokitApi.getAndWriteInstallationRepos);
+  octokitClient.webhooks.on("installation.created", octokitApi.getAndPostInstallationRepos);
   octokitClient.webhooks.on("installation.created", octokitApi.setOwnerUser);
   // Repos
   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
