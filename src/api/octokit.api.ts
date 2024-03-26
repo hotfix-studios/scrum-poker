@@ -123,6 +123,10 @@ class OctokitApi {
     next();
   };
 
+  getRepoOwnerId = async (req: Request, res: Response, next) => {
+
+  };
+
   getAndWriteInstallationRepos = async ({ octokit, payload }): Promise<void> => {
     try {
 
