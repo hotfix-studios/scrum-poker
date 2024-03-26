@@ -13,4 +13,9 @@ issuesRouter
   .get()
 
 
+/* make sure cb0 and cb1 call next() */
+// issuesRouter
+//  .route("/:id")
+//  .get([octokitApi.cb0, octokitApi.cb1, octokitApi.cb2])
+
 export default issuesRouter;
