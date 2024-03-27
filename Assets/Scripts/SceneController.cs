@@ -5,8 +5,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using NativeWebSocket;
-using System.Linq;
-using Unity.VisualScripting;
 using System.Collections;
 using UnityEngine.Networking;
 
@@ -28,6 +26,11 @@ public class SceneController : MonoBehaviour
     public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
     // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
     public List<string> backlog;
+
+    // GAME SCENE
+    private bool drawPhase;
+    private bool betPhase;
+    private int betAmount;
 
     /* Despite Singleton Pattern this was being called multiple times? And not sequenced correctly for async coroutine */
     void Start()
@@ -69,10 +72,13 @@ public class SceneController : MonoBehaviour
             {
                 Debug.Log("Installation ID: " + paramValue);
 
-                if (int.TryParse(paramValue, out int result)) {
+                if (int.TryParse(paramValue, out int result))
+                {
 
                     installationId = result;
-                } else {
+                }
+                else
+                {
 
                     Debug.LogError("--Installation ID from URL param tryParse Fail--");
                 }
@@ -101,6 +107,8 @@ public class SceneController : MonoBehaviour
         TextField inviteCode = root.Q<TextField>("InviteCode");
         TextField textFieldInvite = root.Q<TextField>("TextFieldInvite");
         GroupBox participantsBox = root.Q<GroupBox>("ParticipantsBox");
+        Button buttonDeal = root.Q<Button>("ButtonDeal");
+        Button buttonBet = root.Q<Button>("ButtonBet");
 
         if (SceneManager.GetActiveScene().name == "Title")
         {
@@ -155,7 +163,7 @@ public class SceneController : MonoBehaviour
             // TODO: assign class backlog to message sent from sockets (after node)
             // TODO: format backlog here (obj parsing)
             // TODO: log participants
-            if(isHost)
+            if (isHost)
             {
                 textFieldInvite.value = roomId;
             }
@@ -168,7 +176,40 @@ public class SceneController : MonoBehaviour
 
             buttonStart.clicked += () => SceneManager.LoadScene(4);
         }
-    }
+
+        if (SceneManager.GetActiveScene().name == "Game")
+        {
+            // TODO: GET backlog
+            if (drawPhase)
+            {
+                if (isHost)
+                {
+                    buttonDeal.clicked += () =>
+                    {
+                        // TODO: Slice first card from backlog
+                        // TODO: Create SO card
+                        // TODO: Set Card GameObject as currentCard
+                        drawPhase = false;
+                        betPhase = true;
+                    };
+                }
+            }
+            if (betPhase)
+            {
+                buttonDeal.clicked += () =>
+                {
+                    // TODO: Add websocket logic to server-side
+                    Bet(); // Send bet
+                    // TODO: Receive bets
+                };
+                // TODO: All players need a way of betting
+                // TODO: Once all players bet, check for consensus
+                // TODO: If no concensus, repeat betPhase
+                drawPhase = true;
+                betPhase = false;
+            }
+        }
+}
 
     #region DTO_CLASSES
     /// TODO: These three classes are Data Transfer Object classes and can be refactored to be simpler
@@ -239,6 +280,25 @@ public class SceneController : MonoBehaviour
         }
     }
 
+    async void Bet()
+    {
+        if (WebSocketConnection.ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                Type = "bet",
+                Params = new Params
+                {
+                    roomId = code,
+                    installationId = installationId,
+                    // betAmount = betAmount
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            await WebSocketConnection.ws.SendText(json);
+        }
+    }
+
     #region HTTP_REQUESTS
     /// <summary>
     /// Coroutine to make http, nearly fully modular however only handles string conversion currently
@@ -246,7 +306,7 @@ public class SceneController : MonoBehaviour
     /// </summary>
     IEnumerator MakeRequest(string url, string endpoint, Action<string> handleResponse)
     {
-        using(UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint))
+        using (UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint))
         {
             yield return www.SendWebRequest();
 
