@@ -304,6 +304,13 @@ public class SceneController : MonoBehaviour
             throw;
         }
     }
+
+    /* TODO: next http request to make path to get Issues */
+    // look up repo by id
+    // // get repo.owner_id (query) && repo.name (done)
+    // // // look up user by repo.owner_id
+    // // // // get user.name
+
     #endregion HTTP_REQUESTS
 
 }
