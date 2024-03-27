@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Schema, Model, model, Document, FlattenMaps } from "mongoose";
-// This is a hack. TS couldn't infer correct type when actual type passed in
-import type { User } from "../../models/index.js";
+// TODO: This is a hack. TS couldn't infer correct type when actual type passed in (was using typeof User)
+// import type { User } from "../../models/index.js";
 
 // TODO: the typings for _model are all messed up and not inferring correctly...
 export abstract class ARepository {

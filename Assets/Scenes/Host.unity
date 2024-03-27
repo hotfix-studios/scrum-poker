@@ -185,6 +185,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e90104cc6cf4f8459bc6b49132feb7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  installationReposIds: 
+  installationRepoNames: []
+  installationReposIssuesUrls: []
+  backlog: []
 --- !u!1 &174870134
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,6 +355,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df9d1f5d040e50243960beddee344271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedRepoName: 
+  selectedRepoId: 0
 --- !u!4 &1784133443
 Transform:
   m_ObjectHideFlags: 0

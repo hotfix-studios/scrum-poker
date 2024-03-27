@@ -4,16 +4,23 @@ import { fileURLToPath } from 'url';
 import path from "path";
 import cors from "cors";
 
+/* API ROUTERS */
+/* TODO: these should be importing on a single object */
+import issuesRouter from "./issues.router.js";
+import repositoriesRouter from "./repositories.router.js";
+import usersRouter from "./users.router.js";
+
 /* TYPES */
 import { App as AppType } from "octokit";
 import { octokitApi } from "../api/index.js";
 
-// TODO: Move to user.router.ts (create user router) (move express router there and import here...)
-import { userController } from "../db/controllers/index.js";
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const api = Router();
+
+api.use("/issues", issuesRouter);
+api.use("/repos", repositoriesRouter);
+api.use("/users", usersRouter);
 
 export const configureServer = (server: Application) => {
     /* Global Middleware */

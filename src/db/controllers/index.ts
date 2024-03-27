@@ -1,6 +1,8 @@
-import installationController from "./installation.controller.js";
-import userController from "./user.controller.js";
-import repositoryController from "./repository.controller.js";
+import InstallationController from "./installation.controller.js";
+import UserController from "./user.controller.js";
+import RepositoryController from "./repository.controller.js";
+
+import { Installation, User, Repository } from "../models/index.js";
 
 /** ***************** **
  * ******************* *
@@ -8,4 +10,8 @@ import repositoryController from "./repository.controller.js";
  * ******************* *
  ** ***************** **/
 
-export { installationController, userController, repositoryController };
+export const installationController = new InstallationController(Installation);
+export const userController = new UserController(User);
+export const repositoryController = new RepositoryController(Repository);
+
+/* TODO: export all controllers as a single Repository or Unit of Work obj? */

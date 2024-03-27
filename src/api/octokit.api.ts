@@ -9,6 +9,7 @@ import { RepositoryController } from "../db/controllers/repository.controller.js
 import { Context } from "./base/AHandler.js";
 
 /* TYPES */
+import { Request, Response } from "express";
 import { App as AppType } from "octokit";
 /* TODO: destructure types for import optimization */
 import * as OctokitTypes from '../types/octokit.js';
@@ -91,6 +92,29 @@ class OctokitApi {
    *  Repository * **
    ** ************ **/
 
+  getRepos = async (req: Request, res: Response) => {
+    console.log("**ENDPOINT HAS BEEN HIT**");
+    console.log("-- RECEIVING HTTP FROM C# inside octokitApi.getRepos");
+    console.log(req);
+    const id: number = Number(req.params.id); // req.params? req.query?
+    console.log("INSTALL ID: from C# HTTP REQ", id);
+
+    let installation = await this._installationContext.findInstallationById(id);
+
+    const installationReposIds: number[] = installation.repos;
+
+    const installationRepoNamesPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+      const data = await this._repositoryContext.findRepoNameById(repoId);
+      // @ts-ignore
+      return data.name;
+    });
+
+    const installationRepoNames = await Promise.all(installationRepoNamesPromises);
+
+    res.status(200).send(installationRepoNames);
+
+  };
+
   getAndWriteInstallationRepos = async ({ octokit, payload }): Promise<void> => {
     try {
 
@@ -145,19 +169,35 @@ class OctokitApi {
    ** ************ **/
 
    // TODO: get issues
-  getIssues = async () => {
-    try {
-      // TODO: getOwnerId ??
-      const repoId: number = await this._repositoryContext.getRepoId(138710780);
-      const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
+  getIssues = async (params: any) => { // issueURLs: string[] = []
+      try {
 
-      // this._appContext.octokit.request("GET /issues") // pass owner and repo vars in options obj?
+          // look up repo by installation_id
+          // const { id } = req.body;
+          // // get repo.owner_id (query) && repo.name (done)
+          // // // look up user by repo.owner_id
+          // // // // get user.name
 
-    } catch (error) {
+          // TODO: getOwnerId ??
+          // const repoId: number = await this._repositoryContext.getRepoId(138710780);
+          // const repoIssuesUrl: string = await this._repositoryContext.getRepoIssuesUrl(repoId);
 
-    }
+          //const data = await this._appContext.octokit.request("GET /issues", {
+          //    installationId: installationId,
+          //    headers: {
+          //        'X-GitHub-Api-Version': '2022-11-28'
+          //    }
+          //}); // pass owner and repo vars in options obj?
 
-    // this._appContext.octokit.request...
+          const { data } = await this._appContext.octokit.rest.issues.listForRepo(params);
+
+          console.log("REPOS FROM GET:", data);
+
+      } catch (error) {
+          console.error("fail to hit REST GET issues:", error);
+      }
+
+      // this._appContext.octokit.request...
   };
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {

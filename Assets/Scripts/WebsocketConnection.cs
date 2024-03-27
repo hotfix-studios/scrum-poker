@@ -1,12 +1,22 @@
 using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 public class WebSocketConnection : MonoBehaviour
 {
     private static WebSocketConnection instance;
     public static WebSocket ws;
-    public static string userId = SceneController.userId;
+    /* incoming from SceneController/Browser */
+    private int installationId = SceneController.installationId;
+    public string selectedRepoName = SceneController.selectedRepoName;
+    public int selectedRepoId = SceneController.selectedRepoId;
+    /* outgoing to SceneController from Node Server send */
+    public static List<int> installationReposIds; // = SceneController.installationReposIds;
+    public static List<string> installationRepoNames; // = SceneController.installationRepoNames;
+    public static List<string> installationReposIssuesUrls; // = SceneController.installationReposIssuesUrls;
+    // public static List<string> installationReposData; // = SceneController.installationReposData; // TODO: needs List<class>
+    public static List<string> backlog;
 
     public class Data
     {
@@ -20,7 +30,14 @@ public class WebSocketConnection : MonoBehaviour
     public class Params
     {
         public string roomId;
-        public string userId;
+        public int installationId;
+        public string selectedRepoName;
+        public int selectedRepoId;
+        public List<int> installationReposIds;
+        public List<string> installationRepoNames;
+        public List<string> installationReposIssuesUrls;
+        // public List<string> installationReposData; // TODO: needs to be List<class>
+        public List<string> backlog;
     }
 
     async void Awake()
@@ -44,10 +61,12 @@ public class WebSocketConnection : MonoBehaviour
                 Type = "init",
                 Params = new Params
                 {
-                    userId = userId
+                    installationId = installationId
                 }
             };
+            Debug.Log(data.Params);
             string json = JsonConvert.SerializeObject(data);
+            Debug.Log(json);
             ws.SendText(json);
         };
 
@@ -67,19 +86,40 @@ public class WebSocketConnection : MonoBehaviour
             Data json = JsonConvert.DeserializeObject<Data>(message);
             string type = json.Type;
             Params Params = json.Params;
+            Debug.Log("WebsocketConnection inside we.OnMessage, Params:");
+            Debug.Log(Params);
 
             switch (type)
             {
                 case "init":
                     // init (params);
-                    userId = json.Params.userId;
-                    Debug.Log(userId);
+                    Debug.Log("On Init, WebsocketConnection.cs");
+                    installationId = json.Params.installationId;
+                    Debug.Log(json.Params.installationId);
+                    Debug.Log(installationId);
+
+                    // installationReposIds = new List<int>(json.Params.installationReposIds);
+                    // Debug.Log(json.Params.installationReposIds);
+                    // Debug.Log(installationReposIds);
+
+                    // installationRepoNames = json.Params.installationRepoNames;
+                    // installationRepoNames = new List<string>(json.Params.installationRepoNames);
+                    // Debug.Log(json.Params.installationRepoNames);
+                    // Debug.Log(installationRepoNames);
+
+                    // installationReposIssuesUrls = new List<string>(json.Params.installationReposIssuesUrls);
+                    // Debug.Log(json.Params.installationReposIssuesUrls);
+                    // Debug.Log(installationReposIssuesUrls);
+                    // Debug.Log(installationId);
                     break;
                 case "create":
                     // create (params);
+                    // assign backlog to class member
+                    // receive backlog here
                     break;
                 case "join":
                     //join (params);
+                    // TODO: send user who joins (name || id to look up name)
                     break;
                 case "leave":
                     //leave (params);
@@ -90,9 +130,10 @@ public class WebSocketConnection : MonoBehaviour
             }
 
             Debug.Log($"Message received from server containing: {bytes}");
-            Debug.Log($"User: {userId}");
+            Debug.Log($"User: {installationId}");
         };
 
+        // TODO: move to top, right below ws instantiation?
         await ws.Connect();
 
     }

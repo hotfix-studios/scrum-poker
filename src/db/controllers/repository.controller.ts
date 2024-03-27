@@ -41,6 +41,15 @@ export class RepositoryController extends ARepository {
     super(model);
   }
 
+  //# ###############
+  //#region REST/CRUD
+  //# ###############
+  //# USE:
+  //# # - Create...
+  //# # - Find...
+  //# # - Update...
+  //# # - Delete...
+  //# ###############
   getRepoId = async (ownerId: number): Promise<number> => {
     return await this._model.findOne({ owner_id: ownerId }, "_id");
   };
@@ -49,6 +58,16 @@ export class RepositoryController extends ARepository {
 
   getRepoIssuesUrl = async (id: number): Promise<string> => {
     return await this._model.findById(id, "issues_url");
+  };
+
+  findRepoNameById = async (repoId: number): Promise<Partial<typeof Repository>> => {
+    const data = await this._model.findOne({ _id: repoId }, "name");
+    console.log("INSIDE CONTROLLER calling model for repo name:", data);
+    return data;
+  };
+
+  getRepoProjectionById = async (repoId: number, projections: string[]): Promise<Partial<typeof Repository>> => {
+    return await this._model.findById(repoId, projections);
   };
 
   createRepo = async (repo: Partial<OctokitTypes.Repository>): Promise<boolean> => {
@@ -103,6 +122,25 @@ export class RepositoryController extends ARepository {
     }
   };
 
+  //# ##################
+  //#endregion REST/CRUD
+  //# ##################
+  //# ##################
+
+  //# ##################
+  //#region HTTP ROUTES
+  //# ##################
+  //# USE:
+  //# # - Post...
+  //# # - Get...
+  //# # - Put/Patch...
+  //# # - Delete...
+  //# ###############
+
+  //# ##################
+  //#endregion HTTP ROUTES
+  //# ##################
+  //# ##################
 }
 
-export default new RepositoryController(Repository);
+export default RepositoryController;
