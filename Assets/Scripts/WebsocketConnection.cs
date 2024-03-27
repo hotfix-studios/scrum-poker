@@ -15,7 +15,7 @@ public class WebSocketConnection : MonoBehaviour
     public static List<int> installationReposIds; // = SceneController.installationReposIds;
     public static List<string> installationRepoNames; // = SceneController.installationRepoNames;
     public static List<string> installationReposIssuesUrls; // = SceneController.installationReposIssuesUrls;
-    // public static List<string> installationReposData; // = SceneController.installationReposData; // TODO: needs List<class>
+    // public static List<string> installationReposData; // = SceneController.installationReposData;
     public static List<string> backlog;
 
     public class Data
@@ -64,8 +64,9 @@ public class WebSocketConnection : MonoBehaviour
                     installationId = installationId
                 }
             };
-            Debug.Log(data.Params);
+            Debug.Log("Installation ID from Params ws.OnOpen: sending with ws.SendText(json)");
             string json = JsonConvert.SerializeObject(data);
+            Debug.Log("Serialized object to send:");
             Debug.Log(json);
             ws.SendText(json);
         };
@@ -93,33 +94,15 @@ public class WebSocketConnection : MonoBehaviour
             {
                 case "init":
                     // init (params);
-                    Debug.Log("On Init, WebsocketConnection.cs");
+                    Debug.Log("On Init, WebsocketConnection.cs - Params:");
                     installationId = json.Params.installationId;
-                    Debug.Log(json.Params.installationId);
                     Debug.Log(installationId);
-
-                    // installationReposIds = new List<int>(json.Params.installationReposIds);
-                    // Debug.Log(json.Params.installationReposIds);
-                    // Debug.Log(installationReposIds);
-
-                    // installationRepoNames = json.Params.installationRepoNames;
-                    // installationRepoNames = new List<string>(json.Params.installationRepoNames);
-                    // Debug.Log(json.Params.installationRepoNames);
-                    // Debug.Log(installationRepoNames);
-
-                    // installationReposIssuesUrls = new List<string>(json.Params.installationReposIssuesUrls);
-                    // Debug.Log(json.Params.installationReposIssuesUrls);
-                    // Debug.Log(installationReposIssuesUrls);
-                    // Debug.Log(installationId);
                     break;
                 case "create":
                     // create (params);
-                    // assign backlog to class member
-                    // receive backlog here
                     break;
                 case "join":
                     //join (params);
-                    // TODO: send user who joins (name || id to look up name)
                     break;
                 case "leave":
                     //leave (params);
