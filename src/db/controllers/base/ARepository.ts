@@ -48,12 +48,12 @@ export abstract class ARepository {
   };
 
   /**
-   * @param repoId id for document lookup
+   * @param _id id for document lookup
    * @param projections array of strings to filter document data by
    * @returns e.g.: `{ _id: 000000000, projections[0]: 'document-data', projections[1]: 'https://...' }`
    */
-  async findDocumentProjectionById(repoId: number, projections: string[]): Promise<Partial<typeof Document>>{
-    return await this._model.findById(repoId, projections);
+  async findDocumentProjectionById(_id: number, projections: string[]): Promise<Partial<typeof Document>>{
+    return await this._model.findById(_id, projections);
   };
 
   async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
