@@ -10,7 +10,7 @@ const repositoriesRouter = Router();
  */
 repositoriesRouter
   .route("/:id")
-  .get(octokitApi.getRepos);
+  .get(octokitApi.getReposById);
 
 
 export default repositoriesRouter;
