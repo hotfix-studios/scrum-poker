@@ -6,7 +6,7 @@ import { InstallationController } from "../db/controllers/installation.controlle
 import { UserController } from "../db/controllers/user.controller.js";
 import { RepositoryController } from "../db/controllers/repository.controller.js";
 
-import { Context } from "./base/AHandler.js";
+import { Context, ModelContext } from "./base/AHandler.js";
 
 /* TYPES */
 import { Request, Response, NextFunction } from "express";
@@ -69,6 +69,26 @@ class OctokitApi {
    *  Installation  *
    ** ************ **/
 
+  /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
+  getInstallationDataById = async (req: Request, res: Response, next: NextFunction) => {
+    const targetContext = ModelContext.Installation;
+    const id: number = Number(req.params.id);
+    const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+
+    // const projections: string[] = req.body.installation_projections // TODO: need to append string[] from C#
+    //   ? req.body.installation_projections
+    //   : req.body.projections
+
+    const data = await this._installationContext.findDocumentProjectionById(id, projections);
+
+    res.locals.installation_data = data;
+    next();
+
+    /* TODO: next steps, this fn or next() middleware fn? */
+    // // // look up user by repo.owner_id
+    // // // // get user.name
+  };
+
   // TODO: INIT INSTALL DETAILS
   // TODO: this function does more than just get, decouple get and write ops
   getInstallation = async ({ octokit, payload }): Promise<void> => {
@@ -92,7 +112,22 @@ class OctokitApi {
    *  Repository * **
    ** ************ **/
 
-  getRepos = async (req: Request, res: Response) => {
+  getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
+    const targetContext = ModelContext.Repository;
+    const id: number = Number(req.params.id);
+    const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+
+    // const projections: string[] = req.body.repository_projections // TODO: need to append string[] from C#
+    //   ? req.body.repository_projections
+    //   : req.body.projections
+
+    const data = await this._repositoryContext.findDocumentProjectionById(id, projections);
+
+    res.locals.repo_data = data;
+    next();
+  };
+
+  getReposById = async (req: Request, res: Response) => {
     console.log("**ENDPOINT HAS BEEN HIT**");
     console.log("-- RECEIVING HTTP FROM C# inside octokitApi.getRepos");
     console.log(req);
@@ -115,31 +150,20 @@ class OctokitApi {
 
   };
 
-  getRepoData = async (req: Request, res: Response, next: NextFunction) => {
-    const id: number = Number(req.params.id);
-    const projections: string[] = req.body.projections; // TODO: need to append string[] from C#
-
-    const data = await this._repositoryContext.getRepoProjectionById(id, projections);
-    /* above will return { _id: 000000000, projections[0]: 'document-data', projections[1]: 'https://...' } */
-
-    /* TODO: next steps, this fn or next() middleware fn? */
-    // // // look up user by repo.owner_id
-    // // // // get user.name
-  };
-
   getRepoIssuesUrl = async (req: Request, res: Response, next: NextFunction) => {
     const id: number = Number(req.params.id);
-    const issuesUrl = await this._repositoryContext.findRepoIssuesUrl(id);
+    const issues_url = await this._repositoryContext.findRepoIssuesUrl(id);
 
-    res.locals.issuesUrl = issuesUrl;
+    res.locals.data.issues_url = issues_url;
     next();
   };
 
+  /* TODO: needs to project .owner_id but how is it looked up? by _id or by owner_id? */
   getRepoOwnerId = async (req: Request, res: Response, next: NextFunction) => {
-
+    throw new Error("method not implemented");
   };
 
-  getAndWriteInstallationRepos = async ({ octokit, payload }): Promise<void> => {
+  getAndPostInstallationRepos = async ({ octokit, payload }): Promise<void> => {
     try {
 
       const { data } = await octokit.rest.apps.listReposAccessibleToInstallation();
@@ -168,6 +192,41 @@ class OctokitApi {
   /** ************ **
    *  *** User  ** **
    ** ************ **/
+
+    /* TODO: next steps, this fn or next() middleware fn? */
+    // // // look up user by repo.owner_id
+    // // // // get user.name
+  getUserDataById = async (req: Request, res: Response, next: NextFunction) => {
+    const targetContext = ModelContext.User;
+    let id: number;
+
+    /* TODO: this might have bad edge cases where multiple res.locals obj exist (also should be a class function...) */
+    /* IDEA: append "flag" or string pre-Next() i.e.: res.locals.prev = "user" where res.locals.user_data was just appended... */
+    /* request coming from http end point directly */
+    if (req.params.id) {
+      id = Number(req.params.id);
+
+    /* response coming from next() middleware call Installation */
+    } else if (res.locals.installation_data.owner_id) {
+      id = res.locals.installation_data.owner_id
+
+    /* response coming from next() middleware call Installation */
+    } else if (res.locals.repository_data.owner_id) {
+      id = res.locals.repository_data.owner_id;
+
+    /* response coming from next() middleware call Users */
+    } else if (res.locals.user_data._id) {
+      id = res.locals.user_data._id
+    }
+
+    // TODO: make sure this data exists from prev middleware req... if not, append to res.locals in prev
+    // const projections: string[] = req.body.user_projections;
+    const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+
+    const data = await this._userContext.findDocumentProjectionById(id, projections);
+    res.locals.user_data = data;
+    next();
+  };
 
   setOwnerUser = async ({ payload }): Promise<void> => {
     const { installation }: { installation: OctokitTypes.Installation, } = payload;
@@ -223,6 +282,62 @@ class OctokitApi {
 
       // this._appContext.octokit.request...
   };
+
+  /** *************** **
+   *  Util/Wildcard * **
+   ** *************** **/
+
+  /**
+   * @summary utility to conditionally parse projection string[] for intended model
+   * @param obj req.body (will have projections string[])
+   * @returns string[] for model query projections
+   */
+  getProjections = (obj: any) => {
+    return obj.installation_projections
+      ? obj.installation_projections
+      : obj.repository_projections
+        ? obj.repository_projections
+        : obj.user_projections
+          ? obj.user_projections
+          : obj.room_projections
+            ? obj.room_projections
+            : obj.projections;
+  };
+
+  /**
+   * @summary utility to conditionally parse projection string[] for intended model specified by context
+   * @param obj req.body (will have projections string[])
+   * @param targetContext string in "singular-tense" representing target db context (Model) name
+   * @returns string[] for model query projections
+   */
+  getProjectionsByContext = (obj: any, targetContext: string) => {
+    const context = targetContext.toLowerCase();
+    return context === "installation"
+      ? obj.installation_projections
+      : context === "repository"
+        ? obj.repository_projections
+        : context === "user"
+          ? obj.user_projections
+          : context === "room"
+            ? obj.room_projections
+            : obj.projections;
+  };
+
+  sendData = (req: Request, res: Response) => {
+    console.log("Ending middleware chain. Sending response");
+    if (res.locals) {
+      /* res.locals will be garbage collected at the end of every req/res cycle */
+      const processedBody = res.locals;
+      res.send(processedBody);
+    } else {
+      console.warn("res.locals is null | undefined | falsy, sending empty response body.");
+      res.send();
+    }
+  };
+
+  /** **************** **
+   *  Event Handlers * **
+   ** **************** **/
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);
