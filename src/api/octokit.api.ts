@@ -82,6 +82,8 @@ class OctokitApi {
     const data = await this._installationContext.findDocumentProjectionById(id, projections);
 
     res.locals.installation_data = data;
+    // @ts-ignore
+    req.params.id = data.owner_id.toString();
     next();
 
     /* TODO: next steps, this fn or next() middleware fn? */
@@ -124,6 +126,8 @@ class OctokitApi {
     const data = await this._repositoryContext.findDocumentProjectionById(id, projections);
 
     res.locals.repo_data = data;
+    // @ts-ignore
+    req.params.id = data.owner_id.toString();
     next();
   };
 
