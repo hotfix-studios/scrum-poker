@@ -9,6 +9,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using System.Collections;
 using UnityEngine.Networking;
+using System.Data.Common;
 
 public class SceneController : MonoBehaviour
 {
@@ -85,7 +86,8 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
+        // StartCoroutine(GetRepoDataById("api/repos/names/", HandleResponseRepoNames));
+        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseRepoNames));
     }
 
     // TODO: Move to helpers region or something...
@@ -244,9 +246,11 @@ public class SceneController : MonoBehaviour
     /// Coroutine to make http, nearly fully modular however only handles string conversion currently
     /// (this region could become a prefab)
     /// </summary>
-    IEnumerator MakeRequest(string url, string endpoint, Action<string> handleResponse)
+    IEnumerator GetRepoDataById(string endpoint, Action<string> handleResponse)
     {
-        using(UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint))
+        string url = baseURL + endpoint + installationId;
+
+        using(UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
 
@@ -268,6 +272,31 @@ public class SceneController : MonoBehaviour
                 // }
 
                 /* try making parent scope async and await handleResponse.Invoke call IF sequencing failure */
+                handleResponse?.Invoke(responseData);
+                StartUI();
+            }
+        }
+    }
+
+        IEnumerator GetRepoDataById(string endpoint, string[] projections, Action<string> handleResponse)
+    {
+        string pathParams = "?id=" + installationId + "&projections=" + string.Join(",", projections);
+        string url = baseURL + endpoint + installationId + pathParams;
+
+        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP:");
+                Debug.Log(responseData);
+
                 handleResponse?.Invoke(responseData);
                 StartUI();
             }
