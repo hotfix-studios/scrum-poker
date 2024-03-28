@@ -53,7 +53,9 @@ export abstract class ARepository {
    * @returns e.g.: `{ _id: 000000000, projections[0]: 'document-data', projections[1]: 'https://...' }`
    */
   async findDocumentProjectionById(_id: number, projections: string[]): Promise<Partial<typeof Document>>{
-    return await this._model.findById(_id, projections);
+    return projections.length
+      ? await this._model.findById(_id, projections)
+      : await this._model.findById(_id);
   };
 
   async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
