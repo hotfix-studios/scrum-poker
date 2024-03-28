@@ -117,7 +117,9 @@ class OctokitApi {
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     const targetContext = ModelContext.Repository;
     const id: number = Number(req.params.id);
-    const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+    // const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+    /* TODO: WARN - req.params.projections may interfere with next() fn this.getProjectionsByContext calls? */
+    const projections: string[] = this.getProjectionsByContext(req.params.projections?.split(","), targetContext);
 
     // const projections: string[] = req.body.repository_projections // TODO: need to append string[] from C#
     //   ? req.body.repository_projections
@@ -207,21 +209,21 @@ class OctokitApi {
     /* TODO: this might have bad edge cases where multiple res.locals obj exist (also should be a class function...) */
     /* IDEA: append "flag" or string pre-Next() i.e.: res.locals.prev = "user" where res.locals.user_data was just appended... */
     /* request coming from http end point directly */
-    if (req.params.id) {
-      id = Number(req.params.id);
+    // if (req.params.id) {
+    //   id = Number(req.params.id);
 
-    /* response coming from next() middleware call Installation */
-    } else if (res.locals.installation_data.owner_id) {
-      id = res.locals.installation_data.owner_id
+    // /* response coming from next() middleware call Installation */
+    // } else if (res.locals.installation_data.owner_id) {
+    //   id = res.locals.installation_data.owner_id
 
-    /* response coming from next() middleware call Installation */
-    } else if (res.locals.repository_data.owner_id) {
-      id = res.locals.repository_data.owner_id;
+    // /* response coming from next() middleware call Installation */
+    // } else if (res.locals.repository_data.owner_id) {
+    //   id = res.locals.repository_data.owner_id;
 
-    /* response coming from next() middleware call Users */
-    } else if (res.locals.user_data._id) {
-      id = res.locals.user_data._id
-    }
+    // /* response coming from next() middleware call Users */
+    // } else if (res.locals.user_data._id) {
+    //   id = res.locals.user_data._id
+    // }
 
     // TODO: make sure this data exists from prev middleware req... if not, append to res.locals in prev
     // const projections: string[] = req.body.user_projections;
@@ -232,7 +234,17 @@ class OctokitApi {
     next();
   };
 
-  setOwnerUser = async ({ payload }): Promise<void> => {
+  getUserNameByOwnerId = async (req: Request, res: Response, next: NextFunction) => {
+    const targetContext = ModelContext.User;
+    const id: number = Number(req.params.id);
+
+    /* TODO: IDEA: (more modular) maybe just return whole User document (rename method) and parse on C# side? */
+    const data = this._userContext.findDocumentProjectionById(id, ["name"]);
+    res.locals.user_data = data;
+    next();
+  };
+
+  createOwnerUser = async ({ payload }): Promise<void> => {
     const { installation }: { installation: OctokitTypes.Installation, } = payload;
     const { account }: { account: OctokitTypes.User } = installation;
 
@@ -242,11 +254,11 @@ class OctokitApi {
     } catch (error) {
 
       if (!installation || !account) {
-        console.error(`Null value on payload for setOwnerUser`, error);
+        console.error(`Null value on payload for createOwnerUser`, error);
         throw error;
       }
 
-      console.error(`Internal server error from setOwnerUser octokit.api:`, error);
+      console.error(`Internal server error from createOwnerUser octokit.api:`, error);
       throw error;
     }
   };
