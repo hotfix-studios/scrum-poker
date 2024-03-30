@@ -34,7 +34,9 @@ export const configureServer = (server: Application) => {
     server.use(Static(path.resolve(__dirname, "..", "webgl")));
 
     /* All api routes */
-    server.use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
+    server
+        .use(httpLogger)
+        .use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
 
     server.get("/", (req, res) => {
         res.sendFile("/webgl/index.html", { root: "dist" });
@@ -77,3 +79,10 @@ export const registerEventListeners = (octokitClient: AppType) => {
 
 // TODO: check out if this is good:
 // app.webhooks.verify
+
+const httpLogger = (req, res, next) => {
+    const time = new Date();
+    const formattedDate = time.toLocaleTimeString("en-US");
+    console.log("\x1b[32m%s\x1b[0m", `[${formattedDate}] ${req.method} ${req.url}`);
+    next();
+};
