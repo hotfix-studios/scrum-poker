@@ -113,23 +113,47 @@ class OctokitApi {
   /** ************ **
    *  Repository * **
    ** ************ **/
-
+// TODO: PROBLEM NEED TO QUERY WITH INSTALLATION ID FIRST!>!>!>!>!>!!?!?!??!?!?!?!?!!>!>!<>!>!
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
+    console.log("Success calling modular getRepoDataById");
+    console.log("ID from PARAMS: ", req.params.id);
     const targetContext = ModelContext.Repository;
     const id: number = Number(req.params.id);
-    // const projections: string[] = this.getProjectionsByContext(req.body, targetContext);
+
+    const projections: string[] = req.params.projections
+      ? req.params.projections?.split(",")
+      : this.getProjectionsByContext(req.body, targetContext); // TODO: req.body will NOT exist for GETs
+
+    /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
+    let installation = await this._installationContext.findInstallationById(id);
+
+    const installationReposIds: number[] = installation.repos;
+
+    const installationRepoDataPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+      const data = await this._repositoryContext.findDocumentProjectionById(repoId, projections);
+      // @ts-ignore
+      return data;
+    });
+
+    const installationRepoData = await Promise.all(installationRepoDataPromises);
+
     /* TODO: WARN - req.params.projections may interfere with next() fn this.getProjectionsByContext calls? */
-    const projections: string[] = this.getProjectionsByContext(req.params.projections?.split(","), targetContext);
+
+
+    console.log("PROJECTIONS FROM PARAMS: ", projections);
 
     // const projections: string[] = req.body.repository_projections // TODO: need to append string[] from C#
     //   ? req.body.repository_projections
     //   : req.body.projections
 
-    const data = await this._repositoryContext.findDocumentProjectionById(id, projections);
+    // const data = await this._repositoryContext.findDocumentProjectionById(id, projections);
+    // console.log("DATA: document query w dynamic projections == ", data);
+    console.log("DATA: ALL repo data?? == ", installationRepoData);
 
-    res.locals.repo_data = data;
+    res.locals.repo_data = installationRepoData;
+    /* TODO: conditionally apply this?? id */
     // @ts-ignore
-    req.params.id = data.owner_id.toString();
+    // req.params.id = data.owner_id.toString();
     next();
   };
 
@@ -268,7 +292,18 @@ class OctokitApi {
    ** ************ **/
 
    // TODO: get issues
-  getIssues = async (params: any) => { // issueURLs: string[] = []
+  getIssues = async (req: Request, res: Response, next: NextFunction) => { // issueURLs: string[] = []
+
+    const owner_name = res.locals
+      ? this.getUserName(res.locals)
+      : req.params.owner;
+
+    const repo_name = res.locals
+      ? res.locals.repository_data.name
+      : req.params.repo;
+
+    const params = { owner: owner_name, repo: repo_name };
+
       try {
 
           // look up repo by installation_id
@@ -276,6 +311,7 @@ class OctokitApi {
           // // get repo.owner_id (query) && repo.name (done)
           // // // look up user by repo.owner_id
           // // // // get user.name
+          // // // // need (repo owner) user.name and repo.name (for repo issues)
 
           // TODO: getOwnerId ??
           // const repoId: number = await this._repositoryContext.getRepoId(138710780);
@@ -289,11 +325,14 @@ class OctokitApi {
           //}); // pass owner and repo vars in options obj?
 
           const { data } = await this._appContext.octokit.rest.issues.listForRepo(params);
-
           console.log("REPOS FROM GET:", data);
 
+          res.locals.repository_data.issues = data;
+          next();
       } catch (error) {
           console.error("fail to hit REST GET issues:", error);
+          res.locals.repository_data.issues = null;
+          next();
       }
 
       // this._appContext.octokit.request...
@@ -339,6 +378,16 @@ class OctokitApi {
             : obj.projections;
   };
 
+  getUserName = (obj: any) => {
+    return obj.user_data
+      ? obj.user_data.name
+      : obj.repository_data
+        ? obj.repository_data.full_name.split("/")[0]
+        : obj.installation_data
+          ? obj.installation_data
+          : obj.installation_data.owner_name
+  };
+
   sendData = (req: Request, res: Response) => {
     console.log("Ending middleware chain. Sending response");
     if (res.locals) {
@@ -347,7 +396,7 @@ class OctokitApi {
       res.send(processedBody);
     } else {
       console.warn("res.locals is null | undefined | falsy, sending empty response body.");
-      res.send();
+      res.status(200).send();
     }
   };
 
