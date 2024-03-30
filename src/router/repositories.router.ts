@@ -9,7 +9,7 @@ const repositoriesRouter = Router();
  * @implements route /api/repos
  */
 repositoriesRouter
-  .route("names/:id")
+  .route("/names/:id")
   .get(octokitApi.getReposById);
 
   /**
@@ -19,6 +19,11 @@ repositoriesRouter
    */
 repositoriesRouter
   .route("/names/:id/:projections")
-  .get([ octokitApi.getRepoDataById, octokitApi.getUserNameByOwnerId, octokitApi.sendData ]);
+  .get([
+    octokitApi.getRepoDataById,
+    // octokitApi.getUserNameByOwnerId,
+    // octokitApi.getIssues,
+    octokitApi.sendData
+  ]);
 
 export default repositoriesRouter;
