@@ -24,8 +24,11 @@ public class SceneController : MonoBehaviour
     public static int installationId;
     public static string selectedRepoName;
     public static int selectedRepoId;
+    public static int selectedRepoOwnerId;
+    public static List<Repository> installationRepos = new();
     public List<int> installationReposIds = new(); // = WebSocketConnection.installationReposIds;
-    public List<string> installationRepoNames = new(); // = WebSocketConnection.installationRepoNames;
+    public List<string> installationReposNames = new(); // = WebSocketConnection.installationReposNames;
+    public List<int> installationReposOwnerIds = new();
     public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
     // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
     public List<string> backlog;
@@ -87,7 +90,7 @@ public class SceneController : MonoBehaviour
         Debug.Log("Coroutine calling from AWAKE");
 
         // StartCoroutine(GetRepoDataById("api/repos/names/", HandleResponseRepoNames));
-        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseRepoNames));
+        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
     }
 
     // TODO: Move to helpers region or something...
@@ -117,23 +120,27 @@ public class SceneController : MonoBehaviour
             dropdown.choices.Clear();
 
             Debug.Log("Dropdown about to be populated contents: (from class prop)");
-            foreach (var name in installationRepoNames)
+            foreach (var name in installationReposNames)
             {
                 Debug.Log(name);
             }
 
-            dropdown.choices = installationRepoNames;
+            dropdown.choices = installationReposNames;
 
             buttonCreate.clicked += () =>
             {
                 // This value will be the chosen repo
                 selectedRepoName = dropdown.text;
-                var selectedIndex = installationRepoNames.FindIndex(repo => repo == selectedRepoName);
-                // TODO: this using installationReposData is close, but that prop will need a class since it is an array of Objs (json?)
-                // selectedRepoId = installationReposData.Find(repo => repo.name = selectedRepoName);
-                selectedRepoId = installationReposIds[selectedIndex];
+                // var selectedIndex = installationReposNames.FindIndex(repo => repo == selectedRepoName);
+                // selectedRepoId = installationReposIds[selectedIndex];
+                // selectedRepoOwnerId = installationReposOwnerIds[selectedIndex];
+                Repository selectedRepo = installationRepos.FirstOrDefault(repo => repo.name == selectedRepoName);
 
-                Debug.Log($"REPO: {selectedRepoName}");
+                selectedRepoId = selectedRepo._id;
+                selectedRepoOwnerId = selectedRepo.owner_id;
+
+                Debug.Log($"REPO: {selectedRepoName}"); /* TODO: 3/31 star here: */
+                StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] {"name"}, HandleResponseSelectedRepoIssues));
 
                 CreateRoom();
 
@@ -189,14 +196,25 @@ public class SceneController : MonoBehaviour
         public string selectedRepoName;
         public int selectedRepoId;
         public List<int> installationReposIds;
-        public List<string> installationRepoNames;
+        public List<string> installationReposNames;
         public List<string> installationReposIssuesUrls;
-        // public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
         public List<string> backlog;
     }
     private class HttpData
     {
         public readonly string repoNames;
+    }
+
+    public class RepoData
+    {
+        public List<Repository> repo_data { get; set; }
+    }
+
+    public class Repository
+    {
+        public int _id { get; set; }
+        public string name { get; set; }
+        public int owner_id { get; set; }
     }
     #endregion DTO_CLASSES
 
@@ -249,10 +267,14 @@ public class SceneController : MonoBehaviour
     IEnumerator GetRepoDataById(string endpoint, Action<string> handleResponse)
     {
         string url = baseURL + endpoint + installationId;
+        Debug.Log("Made it inside GetRepoDataById call: url - " + url);
 
         using(UnityWebRequest www = UnityWebRequest.Get(url))
         {
+            Debug.Log("-- Inside using UnityWebRequest Get --");
+
             yield return www.SendWebRequest();
+            Debug.Log(www.result);
 
             if (www.result != UnityWebRequest.Result.Success)
             {
@@ -278,10 +300,18 @@ public class SceneController : MonoBehaviour
         }
     }
 
-        IEnumerator GetRepoDataById(string endpoint, string[] projections, Action<string> handleResponse)
+    IEnumerator GetRepoDataById(string endpoint, string[] projections, Action<string> handleResponse)
     {
-        string pathParams = "?id=" + installationId + "&projections=" + string.Join(",", projections);
-        string url = baseURL + endpoint + installationId + pathParams;
+        Debug.Log("Base URL: " + baseURL);
+        Debug.Log("Endpoint: " + endpoint);
+        foreach (var item in projections)
+        {
+            Debug.Log("projection: " + item);
+        }
+        string pathParams = installationId + "/" + string.Join(",", projections);
+        string url = baseURL + endpoint + pathParams;
+
+        Debug.Log("URL: " + url);
 
         using(UnityWebRequest www = UnityWebRequest.Get(url))
         {
@@ -303,6 +333,31 @@ public class SceneController : MonoBehaviour
         }
     }
 
+    IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
+    {
+        /* TODO: handle projections? */
+        Debug.Log("-- GetSelectedRepoIssues --");
+        string url = baseURL + endpoint + selectedRepoOwnerId + "/" + selectedRepoName;
+
+        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP: [ISSUES]");
+                Debug.Log(responseData);
+
+                handleResponse?.Invoke(responseData);
+            }
+        }
+    }
+
     void HandleResponseRepoNames(string responseData)
     {
         Debug.Log("Response Repo Names Action: " + responseData);
@@ -311,8 +366,8 @@ public class SceneController : MonoBehaviour
             #region STRINGS
             responseData = responseData.Replace("[", "").Replace("]", "").Replace("\"", "").Trim();
             string[] responseRepoNames = responseData.Split(',');
-            installationRepoNames = new List<string>(responseRepoNames);
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
+            installationReposNames = new List<string>(responseRepoNames);
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationReposNames));
             #endregion STRINGS
 
             // Remove leading and trailing whitespace characters from each string (NOT NEEDED?)
@@ -321,8 +376,8 @@ public class SceneController : MonoBehaviour
             //     repoNamesArray[i] = repoNamesArray[i].Trim();
             // }
 
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
-            foreach (var item in installationRepoNames)
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationReposNames));
+            foreach (var item in installationReposNames)
             {
                 Debug.Log("List is Populated:" + item);
             }
@@ -332,6 +387,38 @@ public class SceneController : MonoBehaviour
             Debug.LogError("JsonUtility failure:" + e);
             throw;
         }
+    }
+
+    void HandleResponseReposData(string responseData)
+    {
+        RepoData repoData = JsonConvert.DeserializeObject<RepoData>(responseData);
+
+        installationReposIds = repoData.repo_data.Select(repo => repo._id).ToList();
+        installationReposNames = repoData.repo_data.Select(repo => repo.name).ToList();
+        installationReposOwnerIds = repoData.repo_data.Select(repo => repo.owner_id).ToList();
+        installationRepos = new List<Repository>(repoData.repo_data);
+
+        Debug.Log("Installation Repo DESERIALIZATION SUCCESS:" + string.Join(", ", installationReposNames));
+        foreach (var item in installationReposIds)
+        {
+            Debug.Log("Ids List is Populated:" + item);
+        }
+        foreach (var item in installationReposNames)
+        {
+            Debug.Log("Names List is Populated:" + item);
+        }
+        foreach (var item in installationReposOwnerIds)
+        {
+            Debug.Log("Owner Ids List is Populated:" + item);
+        }
+
+    }
+
+    void HandleResponseSelectedRepoIssues(string responseData)
+    {
+        Debug.Log("!!INSIDE FINAL STEP TO LOAD ISSUES!!");
+        Debug.Log("THIS IS THE DATA THAT SHOULD POPULATE ISSUES UI ELEMENT");
+        Debug.Log(responseData);
     }
 
     /* TODO: next http request to make path to get Issues */
