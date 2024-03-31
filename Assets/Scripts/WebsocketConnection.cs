@@ -31,13 +31,13 @@ public class WebSocketConnection : MonoBehaviour
     {
         public string roomId;
         public int installationId;
-        public string selectedRepoName;
-        public int selectedRepoId;
-        public List<int> installationReposIds;
-        public List<string> installationRepoNames;
-        public List<string> installationReposIssuesUrls;
+        // public string selectedRepoName;
+        // public int selectedRepoId;
+        // public List<int> installationReposIds;
+        // public List<string> installationRepoNames;
+        // public List<string> installationReposIssuesUrls;
         // public List<string> installationReposData; // TODO: needs to be List<class>
-        public List<string> backlog;
+        // public List<string> backlog;
     }
 
     async void Awake()

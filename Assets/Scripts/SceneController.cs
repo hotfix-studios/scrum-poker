@@ -225,13 +225,13 @@ public class SceneController : MonoBehaviour
     {
         public string roomId;
         public int installationId;
-        public string selectedRepoName;
-        public int selectedRepoId;
-        public List<int> installationReposIds;
-        public List<string> installationRepoNames;
-        public List<string> installationReposIssuesUrls;
+        // public string selectedRepoName;
+        // public int selectedRepoId;
+        // public List<int> installationReposIds;
+        // public List<string> installationRepoNames;
+        // public List<string> installationReposIssuesUrls;
         // public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
-        public List<string> backlog;
+        // public List<string> backlog;
     }
     private class HttpData
     {
@@ -250,9 +250,9 @@ public class SceneController : MonoBehaviour
                 {
                     roomId = roomId,
                     installationId = installationId,
-                    selectedRepoName = selectedRepoName, // single repo name
-                    selectedRepoId = selectedRepoId,
-                    backlog = backlog
+                    // selectedRepoName = selectedRepoName, // single repo name
+                    // selectedRepoId = selectedRepoId,
+                    // backlog = backlog
                 }
             };
             string json = JsonConvert.SerializeObject(data);
