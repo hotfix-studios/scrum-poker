@@ -333,6 +333,10 @@ public class SceneController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sends http with repo.owner_id and repo.name to GET repo backlog issues
+    /// </summary>
+    /// <param name="endpoint">/api/issues/:owner/:repo</param>
     IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
     {
         /* TODO: handle projections? */
