@@ -28,6 +28,12 @@ const app: AppType = new App({
     secret: webhookSecret
   },
 });
+/* OAuth App Class */
+// const app: AppType = new App({
+//   clientType: "github-app",
+//   clientId: process.env.CLIENT_ID,
+//   clientSecret: process.env.CLIENT_SECRET,
+// });
 
 /**
  * This sets up a middleware function to handle incoming webhook events.
@@ -37,7 +43,7 @@ const app: AppType = new App({
  * - Parse the webhook event payload and identify the type of event.
  * - Trigger the corresponding webhook event handler.
  */
-const middleware = createNodeMiddleware(app.webhooks, {path});
+const middleware = createNodeMiddleware(app.webhooks, { path });
 // TODO: pass just app top above instead of app.webhooks?
 
 export { app, /* server,  wss, */ middleware };
