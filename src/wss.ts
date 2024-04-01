@@ -179,11 +179,8 @@ wss.on('connection', (ws) => {
   const leave = async params => {
     if (rooms.has(params.roomId)) {
       const roomObj = rooms.get(params.roomId);
-      const updatedRoomObj = {
-        ...roomObj,
-         users: roomObj.users.filter(user => user !== params.installationId)
-        };
-      rooms.set(params.roomId, updatedRoomObj);
+      roomObj.users = roomObj.users.filter(user => user !== params.installationId);
+
       console.log(`User left room ${params.roomId}: `, rooms.get(params.roomId));
     } else {
       console.error(`leave: room with id ${params.roomId} does not exist`);
