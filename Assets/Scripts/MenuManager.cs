@@ -85,9 +85,15 @@ public class MenuManager : VisualElement
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e => m_JoinContainer.style.visibility = Visibility.Visible);
 
         m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(e => {
-            // Call CreateLobby()
-            // Add lobby id to lobby
-            // Add icon next to lobby id to copy the id to clipboard
+            // Create room via GUID
+            var guid = Guid.NewGuid().ToString().Substring(0, 5);
+            Store.roomId = guid;
+
+            // Send websocket event to create room
+            WebSocketConnection.CreateRoom();
+
+            // TODO: Add lobby id to lobby
+            // TODO: Add icon next to lobby id to copy the id to clipboard
         });
 
         m_JoinContainer?.Q("JoinLobbyButton")?.RegisterCallback<ClickEvent>(e => {
@@ -95,9 +101,9 @@ public class MenuManager : VisualElement
             // TODO: Add additional validation checks
             if (inviteCode.Length == 5)
             {
-                Store.inviteCode = inviteCode;
-                // Call JoinLobby()
-                // Add player name to room in view
+                Store.roomId = inviteCode;
+                WebSocketConnection.JoinRoom();
+                // TODO: Add player name to room in view
             }
             // ELSE: Have the user re-enter invite code
         });
