@@ -42,8 +42,8 @@ public class WebSocketConnection : MonoBehaviour
             {
                 Type = "init",
             };
-
             string json = JsonConvert.SerializeObject(data);
+            Debug.Log("Serialized object to send:");
             Debug.Log(json);
             ws.SendText(json);
         };
@@ -85,7 +85,6 @@ public class WebSocketConnection : MonoBehaviour
             Debug.Log($"Message received from server containing: {bytes}");
         };
 
-        // TODO: move to top, right below ws instantiation?
         await ws.Connect();
 
     }

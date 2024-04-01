@@ -90,3 +90,31 @@ npm run server
 npm i
 npm run start
 ```
+
+## Naming Patterns
+- Exposed API/Query methods will follow these patters (to designate what they are targeting):
+
+**REST/CRUD**
+```
+  //# ###############
+  //# # REST/CRUD ###
+  //# ###############
+  //# USE:
+  //# # - Create...
+  //# # - Find...
+  //# # - Update...
+  //# # - Delete...
+  //# ###############
+```
+**HTTP COMMUNICATION**
+```
+  //# ##################
+  //# # HTTP ROUTES ####
+  //# ##################
+  //# USE:
+  //# # - Post...
+  //# # - Get...
+  //# # - Put/Patch...
+  //# # - Delete...
+  //# ###############
+```
