@@ -25,5 +25,6 @@ repositoriesRouter
     // octokitApi.getIssues,
     octokitApi.sendData
   ]);
+  // TODO: rm /:code endpoint param across throughput
 
 export default repositoriesRouter;

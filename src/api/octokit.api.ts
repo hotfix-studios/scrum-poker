@@ -350,26 +350,6 @@ class OctokitApi {
       ? res.locals.repository_data.name
       : req.params.repo;
 
-
-    let installationId: number;
-
-    /* TODO: This is a round trip to DB for installation ID which already exists on Client (send on http req instead) */
-    // try {
-
-    //   const installationIdObj = await this._installationContext.findInstallationIdByOwnerId(owner_id);
-    //   installationId = installationIdObj._id;
-
-    // } catch (error) {
-
-    //   console.error("FAILURE to look up installation id by REPO.OWNER_ID caught, api: ", error);
-    //   console.error("\x1b[31m%s\x1b[0m", "Gracefully throwing because installation ID is needed to GET issues...");
-    //   throw error;
-    // }
-
-    // console.log(`INSTALLATION ID: ${installationId} -- authenticating octokit...`);
-    // this._appContext.oauth.createToken({ code: "..." })
-    // const authOctokitObj = this._appContext.oauth.getUserOctokit({ code }); /* TODO: receive PATH PARAM "code=" */
-
     /* This formats the value associated with owner_type (installation || user) for REST url */
     const typeForPath = owner_type === "Organization"
       ? "orgs"

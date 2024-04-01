@@ -21,7 +21,6 @@ public class SceneController : MonoBehaviour
 
     private List<string> projects;
     private string roomId = GUIDGenerator.guid;
-    public static string authCode;
     public static int installationId;
     public static string selectedRepoName;
     public static int selectedRepoId;
@@ -60,8 +59,6 @@ public class SceneController : MonoBehaviour
 
         baseURL = fullURL.Substring(0, queryStringIndex);
 
-        /* TODO: GRAB CODE= PATH PARAM?? */
-
         string queryString = fullURL.Substring(queryStringIndex + 1);
 
         string[] queryParams = queryString.Split('&');
@@ -85,12 +82,6 @@ public class SceneController : MonoBehaviour
                 }
 
                 break;
-            }
-
-            if (paramName == "code")
-            {
-                Debug.Log("Code from URL PATH:" + paramValue);
-                authCode = paramValue;
             }
         }
 
@@ -317,7 +308,7 @@ public class SceneController : MonoBehaviour
         {
             Debug.Log("projection: " + item);
         }
-        string pathParams = authCode + "/" + installationId + "/" + string.Join(",", projections);
+        string pathParams = installationId + "/" + string.Join(",", projections);
         string url = baseURL + endpoint + pathParams;
 
         Debug.Log("URL: " + url);
