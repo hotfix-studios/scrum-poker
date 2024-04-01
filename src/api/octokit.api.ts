@@ -376,8 +376,7 @@ class OctokitApi {
 
     try {
 
-        // const issuesData = await this._appContext.octokit.request("GET /repos/{owner}/{repo}/issues", {
-          const issuesData = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+          const { data: issuesData } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
           owner: params.owner,
           repo: params.repo,
           headers: {
@@ -385,35 +384,36 @@ class OctokitApi {
           }
         });
 
-        // const jsonIssues = issuesData.json();
+        console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
+
+        // const jsonIssues = await issuesData.json();
 
         /* TODO: Should these go into the DB at all? */
-        // const mappedIssues = jsonIssues.map((issue: any) => {
-        //   return {
-        //     url: issue.url,
-        //     repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
-        //     id: issue.id,
-        //     number: issue.number,
-        //     title: issue.title,
-        //     owner_name: issue.user.login,
-        //     owner_id: issue.user.id,
-        //     labels: issue.labels,
-        //     state: issue.state,
-        //     assignee: issue.assignee,
-        //     assignees: issue.assignees,
-        //     created_at: issue.created_at,
-        //     updated_at: issue.updated_at,
-        //     closed_at: issue.closed_at,
-        //     author_association: issue.author_association,
-        //     body: issue.body,
-        //   };
-        // });
+        const mappedIssues = issuesData.map((issue: any) => {
+          return {
+            url: issue.url,
+            repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
+            id: issue.id,
+            number: issue.number,
+            title: issue.title,
+            owner_name: issue.user.login,
+            owner_id: issue.user.id,
+            labels: issue.labels,
+            state: issue.state,
+            assignee: issue.assignee,
+            assignees: issue.assignees,
+            created_at: issue.created_at,
+            updated_at: issue.updated_at,
+            closed_at: issue.closed_at,
+            author_association: issue.author_association,
+            body: issue.body,
+          };
+        });
 
-        // console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
 
-        // res.locals.repository_data.issues = mappedIssues;
+        res.locals.repository_data.issues = mappedIssues;
         // res.locals.repository_data.issues = jsonIssues;
-        res.locals.repository_data.issues = issuesData;
+        // res.locals.repository_data.issues = issuesData;
         next();
     } catch (error) {
       console.error("fail to hit REST GET {issues}:", error);
