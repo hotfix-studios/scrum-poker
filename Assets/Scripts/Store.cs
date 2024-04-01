@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Store : MonoBehaviour
@@ -12,7 +10,11 @@ public class Store : MonoBehaviour
     // GLOBAL STATE VARIABLES
     public static int? installationId;
     public static string repoName;
-    public static string inviteCode;
+    public static string roomId;
+    // OWNER ID
+    // AVATARURL
+    // GH USERNAME
+
     void Awake()
     {
         if (instance != null && instance != this)
