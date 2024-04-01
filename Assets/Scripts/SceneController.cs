@@ -5,8 +5,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using NativeWebSocket;
+using System.Linq;
+using Unity.VisualScripting;
 using System.Collections;
 using UnityEngine.Networking;
+using System.Data.Common;
 
 public class SceneController : MonoBehaviour
 {
@@ -21,10 +24,12 @@ public class SceneController : MonoBehaviour
     public static int installationId;
     public static string selectedRepoName;
     public static int selectedRepoId;
-    public List<int> installationReposIds = new(); // = WebSocketConnection.installationReposIds;
-    public List<string> installationRepoNames = new(); // = WebSocketConnection.installationRepoNames;
-    public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
-    // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
+    public static int selectedRepoOwnerId;
+    public static List<Repository> installationRepos = new();
+    public List<int> installationReposIds = new();
+    public List<string> installationReposNames = new();
+    public List<int> installationReposOwnerIds = new();
+    public List<string> installationReposIssuesUrls = new();
     public List<string> backlog;
 
     // GAME SCENE
@@ -32,7 +37,6 @@ public class SceneController : MonoBehaviour
     private bool betPhase;
     private int betAmount;
 
-    /* Despite Singleton Pattern this was being called multiple times? And not sequenced correctly for async coroutine */
     void Start()
     {
         /* TODO: possibly make http request here (coroutine call) */
@@ -91,7 +95,7 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        StartCoroutine(MakeRequest(baseURL, "api/repos/" + installationId, HandleResponseRepoNames));
+        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] { "name", "owner_id" }, HandleResponseReposData));
     }
 
     // TODO: Move to helpers region or something...
@@ -123,23 +127,27 @@ public class SceneController : MonoBehaviour
             dropdown.choices.Clear();
 
             Debug.Log("Dropdown about to be populated contents: (from class prop)");
-            foreach (var name in installationRepoNames)
+            foreach (var name in installationReposNames)
             {
                 Debug.Log(name);
             }
 
-            dropdown.choices = installationRepoNames;
+            dropdown.choices = installationReposNames;
 
             buttonCreate.clicked += () =>
             {
                 // This value will be the chosen repo
                 selectedRepoName = dropdown.text;
-                var selectedIndex = installationRepoNames.FindIndex(repo => repo == selectedRepoName);
-                // TODO: this using installationReposData is close, but that prop will need a class since it is an array of Objs (json?)
-                // selectedRepoId = installationReposData.Find(repo => repo.name = selectedRepoName);
-                selectedRepoId = installationReposIds[selectedIndex];
+                // var selectedIndex = installationReposNames.FindIndex(repo => repo == selectedRepoName);
+                // selectedRepoId = installationReposIds[selectedIndex];
+                // selectedRepoOwnerId = installationReposOwnerIds[selectedIndex];
+                Repository selectedRepo = installationRepos.FirstOrDefault(repo => repo.name == selectedRepoName);
 
-                Debug.Log($"REPO: {selectedRepoName}");
+                selectedRepoId = selectedRepo._id;
+                selectedRepoOwnerId = selectedRepo.owner_id;
+
+                Debug.Log($"REPO: {selectedRepoName}"); /* TODO: 3/31 star here: */
+                StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] { "name" }, HandleResponseSelectedRepoIssues));
 
                 CreateRoom();
 
@@ -160,7 +168,6 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Lobby")
         {
-            // TODO: assign class backlog to message sent from sockets (after node)
             // TODO: format backlog here (obj parsing)
             // TODO: log participants
             if (isHost)
@@ -209,7 +216,7 @@ public class SceneController : MonoBehaviour
                 betPhase = false;
             }
         }
-}
+    }
 
     #region DTO_CLASSES
     /// TODO: These three classes are Data Transfer Object classes and can be refactored to be simpler
@@ -225,88 +232,84 @@ public class SceneController : MonoBehaviour
     {
         public string roomId;
         public int installationId;
-        // public string selectedRepoName;
-        // public int selectedRepoId;
-        // public List<int> installationReposIds;
-        // public List<string> installationRepoNames;
-        // public List<string> installationReposIssuesUrls;
-        // public List<string> installationReposData; // TODO: this isn't going to be just an array of strings.. needs List<class>?
-        // public List<string> backlog;
+        public string selectedRepoName;
+        public int selectedRepoId;
+        public List<int> installationReposIds;
+        public List<string> installationReposNames;
+        public List<string> installationReposIssuesUrls;
+        public List<string> backlog;
     }
     private class HttpData
     {
         public readonly string repoNames;
     }
+
+    public class RepoData
+    {
+        public List<Repository> repo_data { get; set; }
+    }
+
+    public class Repository
+    {
+        public int _id { get; set; }
+        public string name { get; set; }
+        public int owner_id { get; set; }
+    }
     #endregion DTO_CLASSES
-
-    async void CreateRoom()
-    {
-        if (WebSocketConnection.ws.State == WebSocketState.Open)
-        {
-            var data = new Data
-            {
-                Type = "create",
-                Params = new Params
-                {
-                    roomId = roomId,
-                    installationId = installationId,
-                    // selectedRepoName = selectedRepoName, // single repo name
-                    // selectedRepoId = selectedRepoId,
-                    // backlog = backlog
-                }
-            };
-            string json = JsonConvert.SerializeObject(data);
-            Debug.Log("create" + json);
-            await WebSocketConnection.ws.SendText(json);
-        }
-    }
-
-    async void JoinRoom()
-    {
-        if (WebSocketConnection.ws.State == WebSocketState.Open)
-        {
-            var data = new Data
-            {
-                Type = "join",
-                Params = new Params
-                {
-                    roomId = code,
-                    installationId = installationId
-                }
-            };
-            string json = JsonConvert.SerializeObject(data);
-            Debug.Log("join" + json);
-            await WebSocketConnection.ws.SendText(json);
-        }
-    }
-
-    async void Bet()
-    {
-        if (WebSocketConnection.ws.State == WebSocketState.Open)
-        {
-            var data = new Data
-            {
-                Type = "bet",
-                Params = new Params
-                {
-                    roomId = code,
-                    installationId = installationId,
-                    // betAmount = betAmount
-                }
-            };
-            string json = JsonConvert.SerializeObject(data);
-            await WebSocketConnection.ws.SendText(json);
-        }
-    }
 
     #region HTTP_REQUESTS
     /// <summary>
     /// Coroutine to make http, nearly fully modular however only handles string conversion currently
     /// (this region could become a prefab)
     /// </summary>
-    IEnumerator MakeRequest(string url, string endpoint, Action<string> handleResponse)
+    IEnumerator GetRepoDataById(string endpoint, Action<string> handleResponse)
     {
-        using (UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint))
+        string url = baseURL + endpoint + installationId;
+        Debug.Log("Made it inside GetRepoDataById call: url - " + url);
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            Debug.Log("-- Inside using UnityWebRequest Get --");
+
+            yield return www.SendWebRequest();
+            Debug.Log(www.result);
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP:");
+                Debug.Log(responseData);
+
+                /* TODO: check for response success? Is this handled by www.result block above?? */
+                // if (responseData != null)
+                // {
+                //     handleResponse?.Invoke(responseData);
+                // }
+
+                handleResponse?.Invoke(responseData);
+                StartUI();
+            }
+        }
+    }
+
+    IEnumerator GetRepoDataById(string endpoint, string[] projections, Action<string> handleResponse)
+    {
+        Debug.Log("Base URL: " + baseURL);
+        Debug.Log("Endpoint: " + endpoint);
+        foreach (var item in projections)
+        {
+            Debug.Log("projection: " + item);
+        }
+        string pathParams = installationId + "/" + string.Join(",", projections);
+        string url = baseURL + endpoint + pathParams;
+
+        Debug.Log("URL: " + url);
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
 
@@ -320,16 +323,37 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                // HttpData _responseDTO = JsonUtility.FromJson<HttpData>(responseData);
-
-                // if (_responseDTO != null)
-                // {
-                //     handleResponse?.Invoke(_responseDTO.repoNames);
-                // }
-
-                /* try making parent scope async and await handleResponse.Invoke call IF sequencing failure */
                 handleResponse?.Invoke(responseData);
                 StartUI();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Sends http with repo.owner_id and repo.name to GET repo backlog issues
+    /// </summary>
+    /// <param name="endpoint">/api/issues/:owner/:repo</param>
+    IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
+    {
+        /* TODO: handle projections? */
+        Debug.Log("-- GetSelectedRepoIssues --");
+        string url = baseURL + endpoint + selectedRepoOwnerId + "/" + selectedRepoName;
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP: [ISSUES]");
+                Debug.Log(responseData);
+
+                handleResponse?.Invoke(responseData);
             }
         }
     }
@@ -342,8 +366,8 @@ public class SceneController : MonoBehaviour
             #region STRINGS
             responseData = responseData.Replace("[", "").Replace("]", "").Replace("\"", "").Trim();
             string[] responseRepoNames = responseData.Split(',');
-            installationRepoNames = new List<string>(responseRepoNames);
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
+            installationReposNames = new List<string>(responseRepoNames);
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationReposNames));
             #endregion STRINGS
 
             // Remove leading and trailing whitespace characters from each string (NOT NEEDED?)
@@ -352,8 +376,8 @@ public class SceneController : MonoBehaviour
             //     repoNamesArray[i] = repoNamesArray[i].Trim();
             // }
 
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
-            foreach (var item in installationRepoNames)
+            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationReposNames));
+            foreach (var item in installationReposNames)
             {
                 Debug.Log("List is Populated:" + item);
             }
@@ -364,6 +388,39 @@ public class SceneController : MonoBehaviour
             throw;
         }
     }
+
+    void HandleResponseReposData(string responseData)
+    {
+        RepoData repoData = JsonConvert.DeserializeObject<RepoData>(responseData);
+
+        installationReposIds = repoData.repo_data.Select(repo => repo._id).ToList();
+        installationReposNames = repoData.repo_data.Select(repo => repo.name).ToList();
+        installationReposOwnerIds = repoData.repo_data.Select(repo => repo.owner_id).ToList();
+        installationRepos = new List<Repository>(repoData.repo_data);
+
+        Debug.Log("Installation Repo DESERIALIZATION SUCCESS:" + string.Join(", ", installationReposNames));
+        foreach (var item in installationReposIds)
+        {
+            Debug.Log("Ids List is Populated:" + item);
+        }
+        foreach (var item in installationReposNames)
+        {
+            Debug.Log("Names List is Populated:" + item);
+        }
+        foreach (var item in installationReposOwnerIds)
+        {
+            Debug.Log("Owner Ids List is Populated:" + item);
+        }
+
+    }
+
+    void HandleResponseSelectedRepoIssues(string responseData)
+    {
+        Debug.Log("!!INSIDE FINAL STEP TO LOAD ISSUES!!");
+        Debug.Log("THIS IS THE DATA THAT SHOULD POPULATE ISSUES UI ELEMENT");
+        Debug.Log(responseData);
+    }
+
     #endregion HTTP_REQUESTS
 
 }
