@@ -73,7 +73,7 @@ public class MenuManager : VisualElement
             m_HostContainer.style.visibility = Visibility.Visible;
 
             // Make the HTTP Request to the backend
-            var endpoint = $"api/repos/{Store.installationId}";
+            var endpoint = $"api/repos/names/{Store.installationId}";
             List<string> repoNames = await Utilities.GetRepoNames(endpoint);
 
             // Populate dropdown menu with repo names

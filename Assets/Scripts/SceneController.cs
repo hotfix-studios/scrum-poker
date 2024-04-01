@@ -149,7 +149,7 @@ public class SceneController : MonoBehaviour
                 Debug.Log($"REPO: {selectedRepoName}"); /* TODO: 3/31 star here: */
                 StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] { "name" }, HandleResponseSelectedRepoIssues));
 
-                CreateRoom();
+                // CreateRoom();
 
                 SceneManager.LoadScene(3);
             };
@@ -161,7 +161,7 @@ public class SceneController : MonoBehaviour
             buttonLobby.clicked += () =>
             {
                 code = inviteCode.text;
-                JoinRoom();
+               // WebsocketConnection.JoinRoom();
                 SceneManager.LoadScene(3);
             };
         }
@@ -206,7 +206,7 @@ public class SceneController : MonoBehaviour
                 buttonDeal.clicked += () =>
                 {
                     // TODO: Add websocket logic to server-side
-                    Bet(); // Send bet
+                    // WebsocketConnection.Bet(); // Send bet
                     // TODO: Receive bets
                 };
                 // TODO: All players need a way of betting
