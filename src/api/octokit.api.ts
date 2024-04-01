@@ -42,8 +42,6 @@ const _context: Context = { app, installationController, userController, reposit
  * THIS FILE SHOULD ONLY BE EVENT HANDLER FUNCTIONS THAT CALL octokit (or any?) Controller Functions?
  */
 
-/* TODO: Replace from a fetched Installation ID from 3 below options */
-
 class OctokitApi {
 
   public readonly _appContext: AppType;
@@ -78,10 +76,6 @@ class OctokitApi {
     const id: number = Number(req.params.id);
     const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
 
-    // const projections: string[] = req.body.installation_projections // TODO: need to append string[] from C#
-    //   ? req.body.installation_projections
-    //   : req.body.projections
-
     const data = await this._installationContext.findDocumentProjectionById(id, projections);
 
     res.locals.installation_data = data;
@@ -110,7 +104,7 @@ class OctokitApi {
    *  Repository * **
    ** ************ **/
 
-  /* THIS IS THE FIRST MIDDLEWARE FN TO BE CALLED IN USER WORKFLOW */
+  /* THIS IS THE FIRST MIDDLEWARE FN TO BE CALLED IN END-USER EXPERIENCE */
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Success calling modular getRepoDataById");
     console.log("ID from PARAMS: ", req.params.id);
@@ -125,7 +119,7 @@ class OctokitApi {
 
     const projections: string[] = req.params.projections
       ? req.params.projections?.split(",")
-      : this.getProjectionsByContext(req.params.projections, targetContext); // TODO: req.body will NOT exist for GETs
+      : this.getProjectionsByContext(req.params.projections, targetContext);
 
     /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
     let installation = await this._installationContext.findInstallationById(id);
@@ -154,12 +148,6 @@ class OctokitApi {
 
     console.log("PROJECTIONS FROM PARAMS: ", projections);
 
-    // const projections: string[] = req.body.repository_projections // TODO: need to append string[] from C#
-    //   ? req.body.repository_projections
-    //   : req.body.projections
-
-    // const data = await this._repositoryContext.findDocumentProjectionById(id, projections);
-    // console.log("DATA: document query w dynamic projections == ", data);
     console.log("DATA: ALL repo data?? == ", installationRepoData);
 
     res.locals.installation_data = res.locals.installation_data ? res.locals.installation_data : {};
@@ -399,14 +387,6 @@ class OctokitApi {
 
         // const jsonIssues = issuesData.json();
 
-        /* TODO: MAY NEED TO REFACTOR TO OCTOKIT TO DIVERSIFY RATE LIMITING (this may be acting as one APP for all USERS) */
-        // const data = await fetch(`https://api.github.com/repos/${params.owner}/${params.repo}/issues`, {
-        //     method: 'GET',
-        //     headers: {
-        //         Authorization: `Basic ${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
-        //     }
-        // });
-
         /* TODO: Should these go into the DB at all? */
         // const mappedIssues = jsonIssues.map((issue: any) => {
         //   return {
@@ -444,6 +424,8 @@ class OctokitApi {
   /** *************** **
    *  Util/Wildcard * **
    ** *************** **/
+
+  // TODO: MOVE THESE TO Utils and import? "../utility/index.js";
 
   /**
    * @summary utility to conditionally parse projection string[] for intended model
@@ -541,7 +523,6 @@ class OctokitApi {
     //   console.error(`FAILED at .rest.repos.get()`, error);
     //   throw error;
     // }
-
 
     // const listCollaborators = await installationLog.rest.repos.listCollaborators();
     // console.log(`list Collaborators on rest.REPOS on APP INSTALLATION: ${listCollaborators}`);
