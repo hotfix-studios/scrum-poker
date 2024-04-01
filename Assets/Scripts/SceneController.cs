@@ -26,14 +26,12 @@ public class SceneController : MonoBehaviour
     public static int selectedRepoId;
     public static int selectedRepoOwnerId;
     public static List<Repository> installationRepos = new();
-    public List<int> installationReposIds = new(); // = WebSocketConnection.installationReposIds;
-    public List<string> installationReposNames = new(); // = WebSocketConnection.installationReposNames;
+    public List<int> installationReposIds = new();
+    public List<string> installationReposNames = new();
     public List<int> installationReposOwnerIds = new();
-    public List<string> installationReposIssuesUrls = new(); // = WebSocketConnection.installationReposIssuesUrls;
-    // public List<string> installationReposData = WebSocketConnection.installationReposData; // TODO: needs List<class> not List<string>, come from WSConnection
+    public List<string> installationReposIssuesUrls = new();
     public List<string> backlog;
 
-    /* Despite Singleton Pattern this was being called multiple times? And not sequenced correctly for async coroutine */
     void Start()
     {
         /* TODO: possibly make http request here (coroutine call) */
@@ -89,7 +87,6 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        // StartCoroutine(GetRepoDataById("api/repos/names/", HandleResponseRepoNames));
         StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
     }
 
@@ -161,7 +158,6 @@ public class SceneController : MonoBehaviour
 
         if (SceneManager.GetActiveScene().name == "Lobby")
         {
-            // TODO: assign class backlog to message sent from sockets (after node)
             // TODO: format backlog here (obj parsing)
             // TODO: log participants
             if(isHost)
@@ -229,7 +225,7 @@ public class SceneController : MonoBehaviour
                 {
                     roomId = roomId,
                     installationId = installationId,
-                    selectedRepoName = selectedRepoName, // single repo name
+                    selectedRepoName = selectedRepoName,
                     selectedRepoId = selectedRepoId,
                     backlog = backlog
                 }
@@ -286,14 +282,12 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                // HttpData _responseDTO = JsonUtility.FromJson<HttpData>(responseData);
-
-                // if (_responseDTO != null)
+                /* TODO: check for response success? Is this handled by www.result block above?? */
+                // if (responseData != null)
                 // {
-                //     handleResponse?.Invoke(_responseDTO.repoNames);
+                //     handleResponse?.Invoke(responseData);
                 // }
 
-                /* try making parent scope async and await handleResponse.Invoke call IF sequencing failure */
                 handleResponse?.Invoke(responseData);
                 StartUI();
             }
@@ -339,7 +333,6 @@ public class SceneController : MonoBehaviour
     /// <param name="endpoint">/api/issues/:owner/:repo</param>
     IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
     {
-        /* TODO: GRAB CODE= PATH PARAM?? */
         /* TODO: handle projections? */
         Debug.Log("-- GetSelectedRepoIssues --");
         string url = baseURL + endpoint + selectedRepoOwnerId + "/" + selectedRepoName;
@@ -425,12 +418,6 @@ public class SceneController : MonoBehaviour
         Debug.Log("THIS IS THE DATA THAT SHOULD POPULATE ISSUES UI ELEMENT");
         Debug.Log(responseData);
     }
-
-    /* TODO: next http request to make path to get Issues */
-    // look up repo by id
-    // // get repo.owner_id (query) && repo.name (done)
-    // // // look up user by repo.owner_id
-    // // // // get user.name
 
     #endregion HTTP_REQUESTS
 
