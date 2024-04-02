@@ -315,10 +315,6 @@ class OctokitApi {
         ? Number(req.params.id)
         : null;
 
-    // const owner_name = res.locals
-    //   ? this.getUserName(res.locals)
-    //   : await this._userContext.findDocumentProjectionById(owner_id, ["name"]);
-
     let owner_name: string;
     let owner_type: string;
 
@@ -345,6 +341,9 @@ class OctokitApi {
 
     const params = { owner: owner_name, repo: repo_name, owner_type: typeForPath };
 
+    /**
+     * These two "try" blocks logically fork, top fetches Projects, bottom fetches Issues
+     */
     try {
 
         console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
@@ -355,19 +354,16 @@ class OctokitApi {
             }
         });
 
-        // this._superOctokit
-
         console.log("RAW FETCH DATA: {projects} ", projectsData);
 
         const jsonProjects = await projectsData.json();
 
-        // const { data } = await this._superOctokit.rest.issues.listForRepo(params);
-        // this._appContext.octokit.request...
         console.log("PROJECTS JSON FROM GET: ", jsonProjects);
-        // console.log("ISSUES FROM GET:", mappedIssues);
 
+      /**
+       * TODO: if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues)
+       */
 
-        // next();
     } catch (error) {
         console.error("fail to hit REST GET {projects}:", error);
         res.locals.repository_data.issues = null;
@@ -376,7 +372,8 @@ class OctokitApi {
 
     try {
 
-          const { data: issuesData } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+          // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
+        const { data: issuesData } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
           owner: params.owner,
           repo: params.repo,
           headers: {
@@ -385,6 +382,12 @@ class OctokitApi {
         });
 
         console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
+
+        /**
+         * TODO:
+         * IF not exists in Backlog && Pointed Models
+         * use Issues.controller or whatever to WRITE issues to Backlog Model
+         */
 
         // const jsonIssues = await issuesData.json();
 
@@ -412,12 +415,11 @@ class OctokitApi {
 
 
         res.locals.repository_data.issues = mappedIssues;
-        // res.locals.repository_data.issues = jsonIssues;
-        // res.locals.repository_data.issues = issuesData;
         next();
+
     } catch (error) {
       console.error("fail to hit REST GET {issues}:", error);
-
+      next();
     }
   };
 
@@ -499,6 +501,8 @@ class OctokitApi {
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     console.log("PAYLOAD INSTALL ID:", payload.installation.id);
+
+    // TODO: WRITE new ISSUE TO BACKLOG MODEL
 
     // const installationLog = await this._appContext.getInstallationOctokit(payload.installation.id);
 
