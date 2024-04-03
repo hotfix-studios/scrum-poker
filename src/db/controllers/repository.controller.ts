@@ -56,7 +56,7 @@ export class RepositoryController extends ARepository {
 
   // TODO: needs a simple GET to get repo document (problem with types...)
 
-  getRepoIssuesUrl = async (id: number): Promise<string> => {
+  findRepoIssuesUrl = async (id: number): Promise<string> => {
     return await this._model.findById(id, "issues_url");
   };
 
@@ -64,10 +64,6 @@ export class RepositoryController extends ARepository {
     const data = await this._model.findOne({ _id: repoId }, "name");
     console.log("INSIDE CONTROLLER calling model for repo name:", data);
     return data;
-  };
-
-  getRepoProjectionById = async (repoId: number, projections: string[]): Promise<Partial<typeof Repository>> => {
-    return await this._model.findById(repoId, projections);
   };
 
   createRepo = async (repo: Partial<OctokitTypes.Repository>): Promise<boolean> => {

@@ -10,7 +10,19 @@ const issuesRouter = Router();
  */
 issuesRouter
   .route("/:id")
-  .get()
+  .get();
 
+issuesRouter
+  .route("/:owner/:repo")
+  .get([
+    octokitApi.getUserNameByOwnerId, // TODO: MAKE THIS HANDLE THE PATH PARAMS AND PASS TO .getIssues
+    octokitApi.getIssues,
+    octokitApi.sendData
+  ]);
+
+/* make sure cb0 and cb1 call next() */
+// issuesRouter
+//  .route("/:id")
+//  .get([octokitApi.cb0, octokitApi.cb1, octokitApi.cb2])
 
 export default issuesRouter;

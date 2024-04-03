@@ -13,7 +13,7 @@ public class WebSocketConnection : MonoBehaviour
     public int selectedRepoId = SceneController.selectedRepoId;
     /* outgoing to SceneController from Node Server send */
     public static List<int> installationReposIds; // = SceneController.installationReposIds;
-    public static List<string> installationRepoNames; // = SceneController.installationRepoNames;
+    public static List<string> installationReposNames; // = SceneController.installationRepoNames;
     public static List<string> installationReposIssuesUrls; // = SceneController.installationReposIssuesUrls;
     // public static List<string> installationReposData; // = SceneController.installationReposData;
     public static List<string> backlog;
@@ -34,7 +34,7 @@ public class WebSocketConnection : MonoBehaviour
         public string selectedRepoName;
         public int selectedRepoId;
         public List<int> installationReposIds;
-        public List<string> installationRepoNames;
+        public List<string> installationReposNames;
         public List<string> installationReposIssuesUrls;
         // public List<string> installationReposData; // TODO: needs to be List<class>
         public List<string> backlog;
