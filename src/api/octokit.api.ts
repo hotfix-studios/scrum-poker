@@ -70,6 +70,28 @@ class OctokitApi {
    *  Installation  *
    ** ************ **/
 
+  getAuth = async (req: Request, res: Response, next: NextFunction) => {
+    const id: number = Number(req.params.id);
+    this._installationId = id;
+
+    /* The following will be if OAuth Token/session validation is needed... */
+    // #region Auth Session
+    // const token = await this._appContext.oauth.createToken({ code }); // replace with this._authenticatedOctokit ?
+    // const authObj = this._appContext.oauth.getUserOctokit({ code });
+
+    /* get installation document from DB? */
+    // installation.token = token;
+    // installation.save();
+    // new up auth octokit (OAuth/Auth/App)
+    // #endregion
+
+    /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
+    const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+
+    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(this._installationId);
+    res.sendStatus(200);
+  };
+
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
   getInstallationDataById = async (req: Request, res: Response, next: NextFunction) => {
     const targetContext = ModelContext.Installation;
@@ -107,32 +129,14 @@ class OctokitApi {
   /* THIS IS THE FIRST MIDDLEWARE FN TO BE CALLED IN END-USER EXPERIENCE */
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Success calling modular getRepoDataById");
-    console.log("ID from PARAMS: ", req.params.id);
     const targetContext = ModelContext.Repository;
-    const id: number = Number(req.params.id);
-    this._installationId = id;
-
-    /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
-    const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
-    console.log("SLUG???: ", slug);
-    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(this._installationId);
 
     const projections: string[] = req.params.projections
       ? req.params.projections?.split(",")
       : this.getProjectionsByContext(req.params.projections, targetContext);
 
     /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
-    let installation = await this._installationContext.findInstallationById(id);
-
-    //#region OAuth Token
-    // const token = await this._appContext.oauth.createToken({ code });
-    // const authObj = this._appContext.oauth.getUserOctokit({ code });
-
-    // installation.token = token;
-    // installation.save();
-
-    // new up auth octokit (OAuth/Auth/App)
-    //#endregion
+    const installation = await this._installationContext.findInstallationById(this._installationId);
 
     const installationReposIds: number[] = installation.repos;
 
@@ -147,12 +151,14 @@ class OctokitApi {
     /* TODO: WARN - req.params.projections may interfere with next() fn this.getProjectionsByContext calls? */
 
     console.log("PROJECTIONS FROM PARAMS: ", projections);
-
     console.log("DATA: ALL repo data?? == ", installationRepoData);
 
-    res.locals.installation_data = res.locals.installation_data ? res.locals.installation_data : {};
-    res.locals.installation_data.id = id;
+    /* TODO: Only need this installation_data if next() in middleware sequence requires... */
+    // res.locals.installation_data = res.locals.installation_data ? res.locals.installation_data : {};
+    // res.locals.installation_data.id = this._installationId;
+
     res.locals.repo_data = installationRepoData;
+
     /* TODO: conditionally apply this?? id */
     // @ts-ignore
     // req.params.id = data.owner_id.toString();
