@@ -84,15 +84,15 @@ public class Utilities : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Success: POST installationId to {endpoint}");
+                Debug.Log($"Success: POST installationId to {endpoint}");
             }
         }
     }
 
-    public static async Task<List<string>> GetRepoNames(string endpoint, string[] projections)
+    public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
         var baseURL = GetBaseURL();
-        using (UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint))
+        using (UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint + string.Join(',', projections)))
         {
             var asyncOperation = www.SendWebRequest();
             while (!asyncOperation.isDone)
@@ -111,56 +111,29 @@ public class Utilities : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                // return HandleResponseRepoNames(responseData);
                 return HandleResponseReposData(responseData);
             }
         }
     }
-
-    public static List<string> HandleResponseRepoNames(string responseData)
-    {
-        Debug.Log("Response Repo Names Action: " + responseData);
-        try
-        {
-            var repoData = JsonConvert.DeserializeObject(responseData);
-            Debug.Log(repoData);
-            // Store.repoOwnerId = repoData.owner_id;
-
-            #region STRINGS
-            responseData = responseData.Replace("[", "").Replace("]", "").Replace("\"", "").Trim();
-            string[] responseRepoNames = responseData.Split(',');
-            var installationRepoNames = new List<string>(responseRepoNames);
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
-            #endregion STRINGS
-
-            Debug.Log("Installation Repo Names SUCCESS:" + string.Join(", ", installationRepoNames));
-            foreach (var item in installationRepoNames)
-            {
-                Debug.Log("List is Populated:" + item);
-            }
-
-            return installationRepoNames;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("JsonUtility failure:" + e);
-            throw;
-        }
-    }
-
-    IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
+    // /api/issues/repoOwnerId/repoName
+    public static async Task<List<object>> GetRepoIssues(string endpoint, string[] projections)
     {
         /* TODO: handle projections? */
         Debug.Log("-- GetSelectedRepoIssues --");
-        string url = GetBaseURL() + endpoint + Store.repoOwnerId + "/" + Store.repoName;
+        string url = GetBaseURL() + endpoint; //+ Store.repoOwnerId + "/" + Store.repoName;
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
-            yield return www.SendWebRequest();
+            var asyncOperation = www.SendWebRequest();
+            while (!asyncOperation.isDone)
+            {
+                await Task.Yield();
+            }
 
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError("Error: " + www.error);
+                return null;
             }
             else
             {
@@ -168,17 +141,19 @@ public class Utilities : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP: [ISSUES]");
                 Debug.Log(responseData);
 
-                handleResponse?.Invoke(responseData);
+                return HandleResponseRepoIssues(responseData);
             }
         }
     }
 
     public static List<string> HandleResponseReposData(string responseData)
     {
+        Debug.Log("RESPONSE DATA: " + responseData);
         List<string> repoNames = new List<string>();
-        // List<int> repoOwnerIds = new List<int>();
+        List<int> repoOwnerIds = new List<int>();
 
-        var repoData = JArray.Parse(responseData);
+        var data = JObject.Parse(responseData);
+        var repoData = data["repo_data"];
 
         foreach (var repo in repoData)
         {
@@ -187,30 +162,50 @@ public class Utilities : MonoBehaviour
                 repoNames.Add(repo["name"].ToString());
             }
 
-/*            if (repo["owner_id"] != null && repo["owner_id"].Type == JTokenType.Integer)
+            if (repo["owner_id"] != null && repo["owner_id"].Type == JTokenType.Integer)
             {
                 repoOwnerIds.Add(repo["owner_id"].Value<int>());
-            }*/
+            }
         }
 
-/*        if (repoOwnerIds.Count > 0)
+        if (repoOwnerIds.Count > 0)
         {
             Store.repoOwnerId = repoOwnerIds[0];
-        }*/
+        }
 
         Debug.Log("REPO_NAMES: " + repoNames);
-/*        Debug.Log("REPO_OWNER_IDS: " + repoOwnerIds);
-        Debug.Log("OWNER_ID: " + Store.repoOwnerId);*/
+        Debug.Log("REPO_OWNER_IDS: " + repoOwnerIds);
+        Debug.Log("OWNER_ID: " + Store.repoOwnerId);
 
         return repoNames;
 
     }
 
-    void HandleResponseSelectedRepoIssues(string responseData)
+/*    void HandleResponseSelectedRepoIssues(string responseData)
     {
         Debug.Log("!!INSIDE FINAL STEP TO LOAD ISSUES!!");
         Debug.Log("THIS IS THE DATA THAT SHOULD POPULATE ISSUES UI ELEMENT");
         Debug.Log(responseData);
+    }*/
+
+    public static List<object> HandleResponseRepoIssues(string responseData)
+    {
+        var data = JObject.Parse(responseData);
+        // var repoData = data["repo_data"];
+        List<object> issues = new List<object>(data);
+        /*        var repositoryData = repoData["repository_data"];
+
+                Debug.Log("ISSUES: " + repoData);
+
+                List<object> issues = new List<object>();
+
+                foreach (var repo in repoData)
+                {
+                    issues.Add(repo);
+                }
+
+                Debug.Log(issues);*/
+        return issues;
     }
     #endregion HTTP_REQUESTS
 

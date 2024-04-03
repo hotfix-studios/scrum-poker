@@ -72,9 +72,9 @@ public class MenuManager : VisualElement
             // Set the visibility of the host container to visible
             m_HostContainer.style.visibility = Visibility.Visible;
 
-            // Make the HTTP Request to the backend
+            // Make the HTTP Request to the backend for repo names and owner id
             var endpoint = $"api/repos/names/";
-            List<string> repoNames = await Utilities.GetRepoNames(endpoint, new string[] { "name", "owner_id" });
+            List<string> repoNames = await Utilities.GetRepoNamesAndSetOwnerId(endpoint, new string[] { "name", "owner_id" });
 
             // Populate dropdown menu with repo names
             var dropdown = m_HostContainer?.Q<DropdownField>("ProjectDropdownField");
@@ -84,13 +84,19 @@ public class MenuManager : VisualElement
 
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e => m_JoinContainer.style.visibility = Visibility.Visible);
 
-        m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(e => {
+        m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>( async e => {
             // Create room via GUID
             var guid = Guid.NewGuid().ToString().Substring(0, 5);
             Store.roomId = guid;
 
             // Send websocket event to create room
             WebSocketConnection.CreateRoom();
+
+            // Make the HTTP Request to the backend for issues backlog
+            var endpoint = $"api/issues/{Store.repoOwnerId}/{Store.repoName}";
+            List<object> backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
+            Store.issues = backlog;
+            Debug.Log(Store.issues);
 
             // TODO: Add lobby id to lobby
             // TODO: Add icon next to lobby id to copy the id to clipboard
@@ -110,7 +116,6 @@ public class MenuManager : VisualElement
 
         m_Lobby?.Q("StartGameButton")?.RegisterCallback<ClickEvent>(e => {
             // Hide all UI elements other than topbar
-            // GET backlog
         });
 
         // CHANGE EVENTS

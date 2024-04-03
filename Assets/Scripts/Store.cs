@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Store : MonoBehaviour
@@ -12,6 +13,7 @@ public class Store : MonoBehaviour
     public static string repoName;
     public static int repoOwnerId;
     public static string roomId;
+    public static List<object> issues;
     // AVATARURL
     // GH USERNAME
 
