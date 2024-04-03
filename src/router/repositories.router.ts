@@ -7,10 +7,11 @@ const repositoriesRouter = Router();
 
 /**
  * @implements route /api/repos
+ * @deprecated 4/02/24
  */
-repositoriesRouter
-  .route("/names/:id")
-  .get(octokitApi.getReposById);
+// repositoriesRouter
+//   .route("/names/:id")
+//   .get(octokitApi.getReposById);
 
   /**
    * @summary this route uses 3 middleware to hit repos and users in db, targeting `repo._id, repo.name, user.name`
@@ -22,9 +23,7 @@ repositoriesRouter
   .get([
     octokitApi.getRepoDataById,
     // octokitApi.getUserNameByOwnerId,
-    // octokitApi.getIssues,
     octokitApi.sendData
   ]);
-  // TODO: rm /:code endpoint param across throughput
 
 export default repositoriesRouter;
