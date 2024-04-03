@@ -6,6 +6,7 @@ import cors from "cors";
 
 /* API ROUTERS */
 /* TODO: these should be importing on a single object */
+import installationsRouter from "./installations.router.js";
 import issuesRouter from "./issues.router.js";
 import repositoriesRouter from "./repositories.router.js";
 import usersRouter from "./users.router.js";
@@ -18,6 +19,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const api = Router();
 
+api.use("/installations", installationsRouter);
 api.use("/issues", issuesRouter);
 api.use("/repos", repositoriesRouter);
 api.use("/users", usersRouter);

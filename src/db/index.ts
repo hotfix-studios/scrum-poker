@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-// TODO: Import controllers?
 
 dotenv.config();
 

@@ -18,6 +18,7 @@ public class SceneController : MonoBehaviour
     private static string code;
     private static bool isHost;
     private static List<string> participants;
+    private bool _authComplete = false;
 
     private List<string> projects;
     private string roomId = GUIDGenerator.guid;
@@ -38,7 +39,7 @@ public class SceneController : MonoBehaviour
         // StartUI();
     }
 
-    private void Awake()
+    private async void Awake()
     {
         /* Establishes SceneController as Singleton */
         if (instance != null && instance != this)
@@ -87,7 +88,8 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
+        StartCoroutine(GetAuth("api/installations/auth/"));
+        // StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
     }
 
     // TODO: Move to helpers region or something...
@@ -296,13 +298,17 @@ public class SceneController : MonoBehaviour
 
     IEnumerator GetRepoDataById(string endpoint, string[] projections, Action<string> handleResponse)
     {
+        while (!_authComplete)
+        {
+            yield return null;
+        }
         Debug.Log("Base URL: " + baseURL);
         Debug.Log("Endpoint: " + endpoint);
         foreach (var item in projections)
         {
             Debug.Log("projection: " + item);
         }
-        string pathParams = installationId + "/" + string.Join(",", projections);
+        string pathParams = string.Join(",", projections);
         string url = baseURL + endpoint + pathParams;
 
         Debug.Log("URL: " + url);
@@ -352,6 +358,32 @@ public class SceneController : MonoBehaviour
                 Debug.Log(responseData);
 
                 handleResponse?.Invoke(responseData);
+            }
+        }
+    }
+
+    IEnumerator GetAuth(string endpoint)
+    {
+        string url = baseURL + endpoint + installationId;
+
+        Debug.Log("URL: " + url);
+
+        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP:");
+                Debug.Log(responseData);
+                Debug.Log("Installation has been authorized");
+                _authComplete = true;
+                StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
             }
         }
     }
