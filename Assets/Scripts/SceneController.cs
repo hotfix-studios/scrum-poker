@@ -302,7 +302,7 @@ public class SceneController : MonoBehaviour
         {
             Debug.Log("projection: " + item);
         }
-        string pathParams = installationId + "/" + string.Join(",", projections);
+        string pathParams = string.Join(",", projections);
         string url = baseURL + endpoint + pathParams;
 
         Debug.Log("URL: " + url);
