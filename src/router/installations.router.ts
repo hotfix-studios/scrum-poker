@@ -9,6 +9,6 @@ const installationsRouter = Router();
  */
 installationsRouter
   .route("/auth/:id")
-  .post(octokitApi.getAuth);
+  .post(octokitApi.postAuth);
 
 export default installationsRouter;
