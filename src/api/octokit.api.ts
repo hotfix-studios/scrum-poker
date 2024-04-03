@@ -71,8 +71,10 @@ class OctokitApi {
    ** ************ **/
 
   getAuth = async (req: Request, res: Response, next: NextFunction) => {
+    console.log("getAuth firing!!");
     const id: number = Number(req.params.id);
     this._installationId = id;
+    console.log("installation ID inside getAuth == ", id);
 
     /* The following will be if OAuth Token/session validation is needed... */
     // #region Auth Session
@@ -90,7 +92,7 @@ class OctokitApi {
 
     try {
 
-      this._authenticatedOctokit = await this._appContext.getInstallationOctokit(this._installationId);
+      this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
 
       console.log("Successfully Authenticated and Upgraded Octokit...")
       res.sendStatus(200);
@@ -135,7 +137,6 @@ class OctokitApi {
    *  Repository * **
    ** ************ **/
 
-  /* THIS IS THE FIRST MIDDLEWARE FN TO BE CALLED IN END-USER EXPERIENCE */
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Success calling modular getRepoDataById");
     const targetContext = ModelContext.Repository;
@@ -177,7 +178,6 @@ class OctokitApi {
   getReposById = async (req: Request, res: Response) => {
     console.log("**ENDPOINT HAS BEEN HIT**");
     console.log("-- RECEIVING HTTP FROM C# inside octokitApi.getRepos");
-    console.log(req);
     const id: number = Number(req.params.id); // req.params? req.query?
     console.log("INSTALL ID: from C# HTTP REQ", id);
 
@@ -194,7 +194,6 @@ class OctokitApi {
     const installationRepoNames = await Promise.all(installationRepoNamesPromises);
 
     res.status(200).send(installationRepoNames);
-
   };
 
   getRepoIssuesUrl = async (req: Request, res: Response, next: NextFunction) => {
@@ -228,9 +227,9 @@ class OctokitApi {
   };
 
   handleRepoCreate = async ({ octokit, payload }): Promise<void> => {
-    console.log("event registering...");
     try {
       await this._repositoryContext.createRepo(payload);
+      console.log("event registering... handleRepoCreate: _repositoryContext.createRepo called success✅");
     } catch (error) {
       console.error(`GH Repo Create event call handleRepoCreate write one to DB failure: `, error);
     }
@@ -267,10 +266,15 @@ class OctokitApi {
     // const projections: string[] = req.body.user_projections;
     const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
 
-    const data = await this._userContext.findDocumentProjectionById(id, projections);
-    console.log("FIRST MIDDLEWARE GET USER NAME: ", data);
-    res.locals.user_data = data;
-    next();
+    try {
+
+      const data = await this._userContext.findDocumentProjectionById(id, projections);
+      res.locals.user_data = data;
+      next();
+    } catch (error) {
+
+      console.error("\x1b[31m%s\x1b[0m", "failure userContext.find...ById, projections: ", error);
+    }
   };
 
   getUserNameByOwnerId = async (req: Request, res: Response, next: NextFunction) => {
@@ -283,6 +287,7 @@ class OctokitApi {
     /* TODO: IDEA: (more modular) maybe just return whole User document (rename method) and parse on C# side? */
     const data = await this._userContext
       .findDocumentProjectionById(id, [ "name", "type" ]);
+
     res.locals.user_data = data;
 
     /* if repository_data has not been assigned to locals, create an empty obj */
@@ -362,12 +367,30 @@ class OctokitApi {
     try {
 
         console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
-        const projectsData = await fetch(`https://api.github.com/${params.owner_type}/${params.owner}/projects`, {
-            method: 'GET',
+        // const projectsData = await fetch(`https://api.github.com/${params.owner_type}/${params.owner}/projects`, {
+        //     method: 'GET',
+        //     headers: {
+        //         Authorization: `Basic ${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
+        //     }
+        // });
+
+        let projectsData;
+
+        if (typeForPath == "orgs") {
+          projectsData = await this._authenticatedOctokit.request("GET /orgs/{org}/projects", {
+            org: params.owner,
             headers: {
-                Authorization: `Basic ${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
+              "X-GitHub-Api-Version": "2022-11-28"
             }
-        });
+          });
+        } else if (typeForPath == "users") {
+          projectsData = await this._authenticatedOctokit.request("GET /users/{username}/projects", {
+            username: params.owner,
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28"
+            }
+          });
+        }
 
         console.log("RAW FETCH DATA: {projects} ", projectsData);
 
@@ -380,14 +403,15 @@ class OctokitApi {
        */
 
     } catch (error) {
+
         console.error("fail to hit REST GET {projects}:", error);
         res.locals.repository_data.issues = null;
-        next();
+        // next();
     }
 
     try {
 
-          // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
+        // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
         const { data: issuesData } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
           owner: params.owner,
           repo: params.repo,
@@ -429,13 +453,16 @@ class OctokitApi {
         });
 
 
-        res.locals.repository_data.issues = mappedIssues;
-        next();
+      res.locals.repository_data.issues = mappedIssues;
+      // next();
 
     } catch (error) {
+
       console.error("fail to hit REST GET {issues}:", error);
-      next();
+      // next();
     }
+
+    next();
   };
 
   /** *************** **
@@ -515,7 +542,7 @@ class OctokitApi {
    ** **************** **/
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
-    console.log("PAYLOAD INSTALL ID:", payload.installation.id);
+    // console.log("PAYLOAD INSTALL ID:", payload.installation.id);
 
     // TODO: WRITE new ISSUE TO BACKLOG MODEL
 
