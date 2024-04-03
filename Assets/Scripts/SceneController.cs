@@ -13,7 +13,7 @@ using System.Data.Common;
 
 public class SceneController : MonoBehaviour
 {
-    private static SceneController instance;
+/*    private static SceneController instance;
     private static string baseURL;
     private static string code;
     private static bool isHost;
@@ -39,13 +39,13 @@ public class SceneController : MonoBehaviour
 
     void Start()
     {
-        /* TODO: possibly make http request here (coroutine call) */
+        *//* TODO: possibly make http request here (coroutine call) *//*
         // StartUI();
     }
 
     private void Awake()
     {
-        /* Establishes SceneController as Singleton */
+        *//* Establishes SceneController as Singleton *//*
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -54,8 +54,8 @@ public class SceneController : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);
 
-        /* Parsing URL for User Installation ID and API Base Url (assigned to class prop) */
-        /* Encapsulate into method ("GetInstallationIdUrl"?) */
+        *//* Parsing URL for User Installation ID and API Base Url (assigned to class prop) */
+        /* Encapsulate into method ("GetInstallationIdUrl"?) *//*
         string fullURL = Application.absoluteURL;
 
         int queryStringIndex = fullURL.IndexOf('?');
@@ -95,7 +95,7 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        StartCoroutine(GetRepoDataById("api/repos/names/", new string[] { "name", "owner_id" }, HandleResponseReposData));
+        // StartCoroutine(GetRepoDataById("api/repos/names/", new string[] { "name", "owner_id" }, HandleResponseReposData));
     }
 
     // TODO: Move to helpers region or something...
@@ -146,7 +146,7 @@ public class SceneController : MonoBehaviour
                 selectedRepoId = selectedRepo._id;
                 selectedRepoOwnerId = selectedRepo.owner_id;
 
-                Debug.Log($"REPO: {selectedRepoName}"); /* TODO: 3/31 star here: */
+                Debug.Log($"REPO: {selectedRepoName}"); *//* TODO: 3/31 star here: *//*
                 StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] { "name" }, HandleResponseSelectedRepoIssues));
 
                 // CreateRoom();
@@ -284,7 +284,7 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                /* TODO: check for response success? Is this handled by www.result block above?? */
+                *//* TODO: check for response success? Is this handled by www.result block above?? *//*
                 // if (responseData != null)
                 // {
                 //     handleResponse?.Invoke(responseData);
@@ -335,7 +335,7 @@ public class SceneController : MonoBehaviour
     /// <param name="endpoint">/api/issues/:owner/:repo</param>
     IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
     {
-        /* TODO: handle projections? */
+        *//* TODO: handle projections? *//*
         Debug.Log("-- GetSelectedRepoIssues --");
         string url = baseURL + endpoint + selectedRepoOwnerId + "/" + selectedRepoName;
 
@@ -422,5 +422,5 @@ public class SceneController : MonoBehaviour
     }
 
     #endregion HTTP_REQUESTS
-
+*/
 }

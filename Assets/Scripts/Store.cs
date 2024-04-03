@@ -10,8 +10,8 @@ public class Store : MonoBehaviour
     // GLOBAL STATE VARIABLES
     public static int? installationId;
     public static string repoName;
+    public static int repoOwnerId;
     public static string roomId;
-    // OWNER ID
     // AVATARURL
     // GH USERNAME
 
@@ -26,5 +26,8 @@ public class Store : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         installationId = Utilities.GetInstallationID();
+
+        // POST installationId to the server
+        StartCoroutine(Utilities.PostInstallationId(installationId));
     }
 }
