@@ -70,9 +70,9 @@ class OctokitApi {
    *  Installation  *
    ** ************ **/
 
-  getAuth = async (req: Request, res: Response, next: NextFunction) => {
+  postAuth = async (req: Request, res: Response, next: NextFunction) => {
     console.log("getAuth firing!!");
-    const id: number = Number(req.params.id);
+    const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
     this._installationId = id;
     console.log("installation ID inside getAuth == ", id);
 
