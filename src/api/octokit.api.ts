@@ -88,8 +88,17 @@ class OctokitApi {
     /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
     const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
 
-    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(this._installationId);
-    res.sendStatus(200);
+    try {
+
+      this._authenticatedOctokit = await this._appContext.getInstallationOctokit(this._installationId);
+
+      console.log("Successfully Authenticated and Upgraded Octokit...")
+      res.sendStatus(200);
+    } catch (error) {
+
+      console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
+      res.sendStatus(500);
+    }
   };
 
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
