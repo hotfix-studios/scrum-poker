@@ -18,7 +18,7 @@ repositoriesRouter
    * @returns `obj.user_data = { _id: 1234.., nameL "blah-blah" }`
    */
 repositoriesRouter
-  .route("/names/:id/:projections")
+  .route("/names/:projections")
   .get([
     octokitApi.getRepoDataById,
     // octokitApi.getUserNameByOwnerId,
