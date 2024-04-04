@@ -88,7 +88,21 @@ class OctokitApi {
     // #endregion
 
     /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
+    // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
     const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+
+    // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
+
+    /* option 1 */
+    // this._appContext.octokit.rest.repos.listCollaborators();
+    // write collaborators (_ids) to Users table in DB
+    // write users._ids to Installation.collaborators
+    // this should give collaborator/users access to specific repo
+
+    /* option 2 */
+    // this._appContext.octokit.rest.repos.listCollaborators();
+    // write these collaborators to Installation.collaborators in DB
+    // generate UUID/key (user distributes)
 
     try {
 
@@ -585,6 +599,8 @@ class OctokitApi {
     const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
     const params = { owner: repository.owner.login, repo: repository.name };
     const issueNumber = issue.number;
+
+
 
     /* THIS WILL BE ITS OWN METHOD */
     const { data } = await octokit.rest.issues.listForRepo(params);
