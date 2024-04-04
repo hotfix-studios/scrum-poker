@@ -88,21 +88,7 @@ class OctokitApi {
     // #endregion
 
     /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
-    // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
     const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
-
-    // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
-
-    /* option 1 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write collaborators (_ids) to Users table in DB
-    // write users._ids to Installation.collaborators
-    // this should give collaborator/users access to specific repo
-
-    /* option 2 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write these collaborators to Installation.collaborators in DB
-    // generate UUID/key (user distributes)
 
     try {
 
@@ -408,13 +394,12 @@ class OctokitApi {
 
         console.log("RAW FETCH DATA: {projects} ", projectsData);
 
-        const jsonProjects = await projectsData.json();
+        /* TODO: Deserialize this somehow if needed? currently saying projectsData.json is not a function */
+        // const jsonProjects = await projectsData.json();
 
-        console.log("PROJECTS JSON FROM GET: ", jsonProjects);
+        // console.log("PROJECTS JSON FROM GET: ", jsonProjects);
 
-      /**
-       * TODO: if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues)
-       */
+        // TODO: if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues)
 
     } catch (error) {
 
@@ -422,6 +407,8 @@ class OctokitApi {
         res.locals.repository_data.issues = null;
         // next();
     }
+
+
 
     try {
 
@@ -446,6 +433,7 @@ class OctokitApi {
 
         /* TODO: Should these go into the DB at all? */
         const mappedIssues = issuesData.map((issue: any) => {
+          if (issue.state)
           return {
             url: issue.url,
             repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
@@ -599,8 +587,6 @@ class OctokitApi {
     const { repository, issue }: { repository: OctokitTypes.Repository, issue: OctokitTypes.Issue } = payload;
     const params = { owner: repository.owner.login, repo: repository.name };
     const issueNumber = issue.number;
-
-
 
     /* THIS WILL BE ITS OWN METHOD */
     const { data } = await octokit.rest.issues.listForRepo(params);
