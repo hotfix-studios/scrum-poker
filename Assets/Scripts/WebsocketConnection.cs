@@ -7,20 +7,9 @@ public class WebSocketConnection : MonoBehaviour
 {
     private static WebSocketConnection instance;
     public static WebSocket ws;
-    /* incoming from SceneController/Browser */
-    private int installationId = SceneController.installationId;
-    public string selectedRepoName = SceneController.selectedRepoName;
-    public int selectedRepoId = SceneController.selectedRepoId;
-    /* outgoing to SceneController from Node Server send */
-    public static List<int> installationReposIds; // = SceneController.installationReposIds;
-    public static List<string> installationReposNames; // = SceneController.installationRepoNames;
-    public static List<string> installationReposIssuesUrls; // = SceneController.installationReposIssuesUrls;
-    // public static List<string> installationReposData; // = SceneController.installationReposData;
-    public static List<string> backlog;
 
     public class Data
     {
-        // TODO: Ensure consistency across scripts
         [JsonProperty("type")]
         public string Type { get; set; }
 
@@ -30,14 +19,7 @@ public class WebSocketConnection : MonoBehaviour
     public class Params
     {
         public string roomId;
-        public int installationId;
-        public string selectedRepoName;
-        public int selectedRepoId;
-        public List<int> installationReposIds;
-        public List<string> installationReposNames;
-        public List<string> installationReposIssuesUrls;
-        // public List<string> installationReposData; // TODO: needs to be List<class>
-        public List<string> backlog;
+        public int? installationId;
     }
 
     async void Awake()
@@ -55,16 +37,11 @@ public class WebSocketConnection : MonoBehaviour
 
         ws.OnOpen += () =>
         {
-            Debug.Log("Connection open!");
+            Debug.Log("INIT: Websocket Connection Open (CLIENT)");
             var data = new Data
             {
                 Type = "init",
-                Params = new Params
-                {
-                    installationId = installationId
-                }
             };
-            Debug.Log("Installation ID from Params ws.OnOpen: sending with ws.SendText(json)");
             string json = JsonConvert.SerializeObject(data);
             Debug.Log("Serialized object to send:");
             Debug.Log(json);
@@ -93,19 +70,12 @@ public class WebSocketConnection : MonoBehaviour
             switch (type)
             {
                 case "init":
-                    // init (params);
-                    Debug.Log("On Init, WebsocketConnection.cs - Params:");
-                    installationId = json.Params.installationId;
-                    Debug.Log(installationId);
                     break;
                 case "create":
-                    // create (params);
                     break;
                 case "join":
-                    //join (params);
                     break;
                 case "leave":
-                    //leave (params);
                     break;
                 default:
                     Debug.Log($"Type: ${type} unknown");
@@ -113,10 +83,8 @@ public class WebSocketConnection : MonoBehaviour
             }
 
             Debug.Log($"Message received from server containing: {bytes}");
-            Debug.Log($"User: {installationId}");
         };
 
-        // TODO: move to top, right below ws instantiation?
         await ws.Connect();
 
     }
@@ -128,7 +96,7 @@ public class WebSocketConnection : MonoBehaviour
 #endif
     }
 
-    async void SendWebSocketMessage()
+   async void SendWebSocketMessage()
     {
         if (ws.State == WebSocketState.Open)
         {
@@ -144,5 +112,64 @@ public class WebSocketConnection : MonoBehaviour
     {
         await ws.Close();
     }
+
+    public static async void CreateRoom()
+    {
+        if (ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                Type = "create",
+                Params = new Params
+                {
+                    roomId = Store.roomId,
+                    installationId = Store.installationId,
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            Debug.Log("create" + json);
+            await ws.SendText(json);
+        }
+    }
+
+    public static async void JoinRoom()
+    {
+        if (ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                Type = "join",
+                Params = new Params
+                {
+                    roomId = Store.roomId,
+                    installationId = Store.installationId
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            Debug.Log("join" + json);
+            await ws.SendText(json);
+        }
+    }
+
+    /*
+    public static async void Bet()
+    {
+        if (ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                Type = "bet",
+                Params = new Params
+                {
+                    roomId = Store.roomId,
+                    installationId = Store.installationId,
+                    betAmount = betAmount
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            await ws.SendText(json);
+        }
+    }
+    */
 
 }

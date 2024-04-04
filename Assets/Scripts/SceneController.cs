@@ -13,7 +13,7 @@ using System.Data.Common;
 
 public class SceneController : MonoBehaviour
 {
-    private static SceneController instance;
+/*    private static SceneController instance;
     private static string baseURL;
     private static string code;
     private static bool isHost;
@@ -33,15 +33,20 @@ public class SceneController : MonoBehaviour
     public List<string> installationReposIssuesUrls = new();
     public List<string> backlog;
 
+    // GAME SCENE
+    private bool drawPhase;
+    private bool betPhase;
+    private int betAmount;
+
     void Start()
     {
-        /* TODO: possibly make http request here (coroutine call) */
+        *//* TODO: possibly make http request here (coroutine call) *//*
         // StartUI();
     }
 
     private async void Awake()
     {
-        /* Establishes SceneController as Singleton */
+        *//* Establishes SceneController as Singleton *//*
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -50,8 +55,8 @@ public class SceneController : MonoBehaviour
 
         DontDestroyOnLoad(gameObject);
 
-        /* Parsing URL for User Installation ID and API Base Url (assigned to class prop) */
-        /* Encapsulate into method ("GetInstallationIdUrl"?) */
+        *//* Parsing URL for User Installation ID and API Base Url (assigned to class prop) */
+        /* Encapsulate into method ("GetInstallationIdUrl"?) *//*
         string fullURL = Application.absoluteURL;
 
         int queryStringIndex = fullURL.IndexOf('?');
@@ -72,10 +77,13 @@ public class SceneController : MonoBehaviour
             {
                 Debug.Log("Installation ID: " + paramValue);
 
-                if (int.TryParse(paramValue, out int result)) {
+                if (int.TryParse(paramValue, out int result))
+                {
 
                     installationId = result;
-                } else {
+                }
+                else
+                {
 
                     Debug.LogError("--Installation ID from URL param tryParse Fail--");
                 }
@@ -88,8 +96,7 @@ public class SceneController : MonoBehaviour
         Debug.Log(baseURL);
         Debug.Log("Coroutine calling from AWAKE");
 
-        StartCoroutine(GetAuth("api/installations/auth/"));
-        // StartCoroutine(GetRepoDataById("api/repos/names/", new string[] {"name", "owner_id"}, HandleResponseReposData));
+        // StartCoroutine(GetRepoDataById("api/repos/names/", new string[] { "name", "owner_id" }, HandleResponseReposData));
     }
 
     // TODO: Move to helpers region or something...
@@ -105,6 +112,8 @@ public class SceneController : MonoBehaviour
         TextField inviteCode = root.Q<TextField>("InviteCode");
         TextField textFieldInvite = root.Q<TextField>("TextFieldInvite");
         GroupBox participantsBox = root.Q<GroupBox>("ParticipantsBox");
+        Button buttonDeal = root.Q<Button>("ButtonDeal");
+        Button buttonBet = root.Q<Button>("ButtonBet");
 
         if (SceneManager.GetActiveScene().name == "Title")
         {
@@ -138,10 +147,10 @@ public class SceneController : MonoBehaviour
                 selectedRepoId = selectedRepo._id;
                 selectedRepoOwnerId = selectedRepo.owner_id;
 
-                Debug.Log($"REPO: {selectedRepoName}"); /* TODO: 3/31 star here: */
-                StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] {"name"}, HandleResponseSelectedRepoIssues));
+                Debug.Log($"REPO: {selectedRepoName}"); *//* TODO: 3/31 star here: *//*
+                StartCoroutine(GetSelectedRepoIssues("api/issues/", new string[] { "name" }, HandleResponseSelectedRepoIssues));
 
-                CreateRoom();
+                // CreateRoom();
 
                 SceneManager.LoadScene(3);
             };
@@ -153,7 +162,7 @@ public class SceneController : MonoBehaviour
             buttonLobby.clicked += () =>
             {
                 code = inviteCode.text;
-                JoinRoom();
+               // WebsocketConnection.JoinRoom();
                 SceneManager.LoadScene(3);
             };
         }
@@ -162,7 +171,7 @@ public class SceneController : MonoBehaviour
         {
             // TODO: format backlog here (obj parsing)
             // TODO: log participants
-            if(isHost)
+            if (isHost)
             {
                 textFieldInvite.value = roomId;
             }
@@ -174,6 +183,39 @@ public class SceneController : MonoBehaviour
             // Populate the GroupBox with the participants list
 
             buttonStart.clicked += () => SceneManager.LoadScene(4);
+        }
+
+        if (SceneManager.GetActiveScene().name == "Game")
+        {
+            // TODO: GET backlog
+            if (drawPhase)
+            {
+                if (isHost)
+                {
+                    buttonDeal.clicked += () =>
+                    {
+                        // TODO: Slice first card from backlog
+                        // TODO: Create SO card
+                        // TODO: Set Card GameObject as currentCard
+                        drawPhase = false;
+                        betPhase = true;
+                    };
+                }
+            }
+            if (betPhase)
+            {
+                buttonDeal.clicked += () =>
+                {
+                    // TODO: Add websocket logic to server-side
+                    // WebsocketConnection.Bet(); // Send bet
+                    // TODO: Receive bets
+                };
+                // TODO: All players need a way of betting
+                // TODO: Once all players bet, check for consensus
+                // TODO: If no concensus, repeat betPhase
+                drawPhase = true;
+                betPhase = false;
+            }
         }
     }
 
@@ -216,47 +258,6 @@ public class SceneController : MonoBehaviour
     }
     #endregion DTO_CLASSES
 
-    async void CreateRoom()
-    {
-        if (WebSocketConnection.ws.State == WebSocketState.Open)
-        {
-            var data = new Data
-            {
-                Type = "create",
-                Params = new Params
-                {
-                    roomId = roomId,
-                    installationId = installationId,
-                    selectedRepoName = selectedRepoName,
-                    selectedRepoId = selectedRepoId,
-                    backlog = backlog
-                }
-            };
-            string json = JsonConvert.SerializeObject(data);
-            Debug.Log("create" + json);
-            await WebSocketConnection.ws.SendText(json);
-        }
-    }
-
-    async void JoinRoom()
-    {
-        if (WebSocketConnection.ws.State == WebSocketState.Open)
-        {
-            var data = new Data
-            {
-                Type = "join",
-                Params = new Params
-                {
-                    roomId = code,
-                    installationId = installationId
-                }
-            };
-            string json = JsonConvert.SerializeObject(data);
-            Debug.Log("join" + json);
-            await WebSocketConnection.ws.SendText(json);
-        }
-    }
-
     #region HTTP_REQUESTS
     /// <summary>
     /// Coroutine to make http, nearly fully modular however only handles string conversion currently
@@ -267,7 +268,7 @@ public class SceneController : MonoBehaviour
         string url = baseURL + endpoint + installationId;
         Debug.Log("Made it inside GetRepoDataById call: url - " + url);
 
-        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             Debug.Log("-- Inside using UnityWebRequest Get --");
 
@@ -284,7 +285,7 @@ public class SceneController : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                /* TODO: check for response success? Is this handled by www.result block above?? */
+                *//* TODO: check for response success? Is this handled by www.result block above?? *//*
                 // if (responseData != null)
                 // {
                 //     handleResponse?.Invoke(responseData);
@@ -313,7 +314,7 @@ public class SceneController : MonoBehaviour
 
         Debug.Log("URL: " + url);
 
-        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
 
@@ -339,11 +340,11 @@ public class SceneController : MonoBehaviour
     /// <param name="endpoint">/api/issues/:owner/:repo</param>
     IEnumerator GetSelectedRepoIssues(string endpoint, string[] projections, Action<string> handleResponse)
     {
-        /* TODO: handle projections? */
+        *//* TODO: handle projections? *//*
         Debug.Log("-- GetSelectedRepoIssues --");
         string url = baseURL + endpoint + selectedRepoOwnerId + "/" + selectedRepoName;
 
-        using(UnityWebRequest www = UnityWebRequest.Get(url))
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
 
@@ -452,5 +453,5 @@ public class SceneController : MonoBehaviour
     }
 
     #endregion HTTP_REQUESTS
-
+*/
 }
