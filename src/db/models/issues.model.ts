@@ -5,7 +5,7 @@ const issuesSchema = new Schema({                       // ** REST OBJ. **
   number: { type: Schema.Types.Number, required: true },            // sort by this field
   title: { type: Schema.Types.String, required: true },
   body: { type: Schema.Types.String, required: true },
-  state: { type: Schema.Types.String, required: true },             // ** IF NOT == "open" DON'T FETCH **
+  state: { type: Schema.Types.String, required: true },             // * IF != "open" DON'T FETCH * (can only be "open" or "closed")
   labels: [ { type: Schema.Types.String } ],
   url: { type: Schema.Types.String },
   repository_url: { type: Schema.Types.String, ref: "Repository" },
