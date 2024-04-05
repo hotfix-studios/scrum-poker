@@ -1,4 +1,4 @@
-import { Application, Request, Response, Router, json, urlencoded, static as Static } from "express";
+import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
 import { middleware } from "../app.js";
 import { fileURLToPath } from 'url';
 import path from "path";
@@ -64,7 +64,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
   console.log("\x1b[36m%s\x1b[0m", "Event Liseteners registering...");
   // TODO: Wss On Connection?
   // Installation
-  octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
+  octokitClient.webhooks.on("installation.created", octokitApi.postInstallation);
   octokitClient.webhooks.on("installation.created", octokitApi.getAndPostInstallationRepos);
   octokitClient.webhooks.on("installation.created", octokitApi.createOwnerUser);
   // Repos
@@ -82,7 +82,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
 // TODO: check out if this is good:
 // app.webhooks.verify
 
-const httpLogger = (req, res, next) => {
+const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     const time = new Date();
     const formattedDate = time.toLocaleTimeString("en-US");
     console.log("\x1b[32m%s\x1b[0m", `[${formattedDate}] ${req.method} ${req.url}`);
