@@ -213,6 +213,7 @@ class OctokitApi {
   getAndPostInstallationRepos = async ({ octokit, payload }): Promise<void> => {
     try {
 
+      /* TODO: MOVE REPOS GET? DECOUPLE FROM INSTALLATION? OR NEED TO WRITE COLLABORATORS AND ASSOCIATE WITH REPOS? SEE INSTALLATION SCHEMA */
       const { data } = await octokit.rest.apps.listReposAccessibleToInstallation();
       const { repositories } = data;
 
@@ -424,42 +425,43 @@ class OctokitApi {
 
         // const jsonIssues = await issuesData.json();
 
-        /**
-         * @satisfies issue.labels.includes(\D\)("not digit") should be written to Backlog
-         * @satisfies issue.labels.includes(\d\)("digit") should be written to Pointed
-         */
         const mappedIssues = issuesData.map((issue: any) => {
           if (issue.state === "open") {
-
+            return {
+              url: issue.url,
+              repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
+              id: issue.id,
+              number: issue.number,
+              title: issue.title,
+              owner_name: issue.user.login,
+              owner_id: issue.user.id,
+              labels: issue.labels,
+              state: issue.state,
+              assignee: issue.assignee,
+              assignees: issue.assignees,
+              created_at: issue.created_at,
+              updated_at: issue.updated_at,
+              closed_at: issue.closed_at,
+              author_association: issue.author_association,
+              body: issue.body,
+            };
           }
-          return {
-            url: issue.url,
-            repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
-            id: issue.id,
-            number: issue.number,
-            title: issue.title,
-            owner_name: issue.user.login,
-            owner_id: issue.user.id,
-            labels: issue.labels,
-            state: issue.state,
-            assignee: issue.assignee,
-            assignees: issue.assignees,
-            created_at: issue.created_at,
-            updated_at: issue.updated_at,
-            closed_at: issue.closed_at,
-            author_association: issue.author_association,
-            body: issue.body,
-          };
         });
 
-        /* labels include a "digit" */
+        /**
+         * @satisfies every label includes (\D\)("not digit") should be written to Backlog
+         */
         const backlogIssues = issuesData.filter((issue: any) => {
-          return issue.labels.some((label: any) => /\d/.test(label));
+          /* labels do not include any "digits" */
+          return issue.labels.every((label: any) => /\D/.test(label))
         });
 
-        /* labels do not include any "digits" */
+        /**
+         * @satisfies labels include at least one (\d\)("digit") should be written to Pointed
+         */
         const pointedIssues = issuesData.filter((issue: any) => {
-          return issue.labels.every((label: any) => /\D/.test(label))
+          /* labels include a "digit" */
+          return issue.labels.some((label: any) => /\d/.test(label));
         });
 
         /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
