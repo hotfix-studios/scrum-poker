@@ -88,13 +88,17 @@ export default class Utils {
   };
 
   getUserName = (obj: any) => {
-    return obj.user_data
-      ? obj.user_data.name
-      : obj.repository_data
-        ? obj.repository_data.full_name.split("/")[0]
-        : obj.installation_data
-          ? obj.installation_data
-          : obj.installation_data.owner_name
+    try {
+      return obj.user_data
+        ? obj.user_data.name
+        : obj.repository_data
+          ? obj.repository_data.full_name.split("/")[0]
+          : obj.installation_data
+            ? obj.installation_data
+            : obj.installation_data.owner_name
+    } catch (error) {
+      throw new Error("res.locals data not exists, exiting Utilities getUserName");
+    }
   };
 
   getUserType = (obj: any) => {
@@ -113,5 +117,23 @@ export default class Utils {
     }
     return false;
   }
+
+  findEmptyObjectKey = (locals: any) => {
+    for (const key in locals) {
+        if (Object.keys(locals[key]).length === 0 && locals[key].constructor === Object) {
+            return key; // Return the key of the empty object
+        }
+    }
+    return null; // Return null if no empty object is found
+  };
+
+  deleteEmptyObject = (locals: any) => {
+    const emptyObjectKey = this.findEmptyObjectKey(locals);
+    if (emptyObjectKey !== null) {
+        delete locals[emptyObjectKey]; // Delete the empty object
+        return true; // Return true if an empty object is deleted
+    }
+    return false; // Return false if no empty object is found
+  };
 
 }
