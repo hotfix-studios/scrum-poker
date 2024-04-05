@@ -153,7 +153,7 @@ public class Utilities : MonoBehaviour
         List<int> repoOwnerIds = new List<int>();
 
         var data = JObject.Parse(responseData);
-        var repoData = data["repo_data"];
+        var repoData = data["repository_data"];
 
         foreach (var repo in repoData)
         {
@@ -191,7 +191,7 @@ public class Utilities : MonoBehaviour
     public static List<object> HandleResponseRepoIssues(string responseData)
     {
         var data = JObject.Parse(responseData);
-        // var repoData = data["repo_data"];
+        // var repoData = data["repository_data"];
         List<object> issues = new List<object>(data);
         /*        var repositoryData = repoData["repository_data"];
 
