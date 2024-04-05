@@ -1,7 +1,5 @@
 import { UserController } from "../db/controllers/user.controller.js";
-// import { Context, ModelContext, UserProperties } from "../api/base/AHandler.js";
-// import { ContextTypes } from "../types/index.js";
-import { Context, ModelContext, UserProperties } from '../types/context.js';
+import { Context, UserProperties } from '../types/context.js';
 
 interface PayloadDTO {
   [key: string]: any;

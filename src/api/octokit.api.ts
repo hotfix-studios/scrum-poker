@@ -3,13 +3,11 @@ import { app } from '../app.js';
 /* DB Context Repositories (CRUD) */
 import { installationController, userController, repositoryController } from "../db/controllers/index.js";
 
-// import { Context, ModelContext, UserProperties } from "./base/AHandler.js";
-import { ModelContext } from '../types/context.js';
-
 /* Types */
 import { Request, Response, NextFunction } from "express";
 import { App as AppType, Octokit } from "octokit";
 import { OctokitTypes, ContextTypes } from '../types/index.js';
+import { ModelContext } from '../types/context.js'; // TODO: idk why this needs to be separately imported..
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController };
 
