@@ -414,7 +414,7 @@ class OctokitApi {
           }
         });
 
-        console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
+        // console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
 
         /**
          * TODO:
@@ -424,9 +424,14 @@ class OctokitApi {
 
         // const jsonIssues = await issuesData.json();
 
-        /* TODO: Should these go into the DB at all? */
+        /**
+         * @satisfies issue.labels.includes(\D\)("not digit") should be written to Backlog
+         * @satisfies issue.labels.includes(\d\)("digit") should be written to Pointed
+         */
         const mappedIssues = issuesData.map((issue: any) => {
-          if (issue.state)
+          if (issue.state === "open") {
+
+          }
           return {
             url: issue.url,
             repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
@@ -447,6 +452,17 @@ class OctokitApi {
           };
         });
 
+        /* labels include a "digit" */
+        const backlogIssues = issuesData.filter((issue: any) => {
+          return issue.labels.some((label: any) => /\d/.test(label));
+        });
+
+        /* labels do not include any "digits" */
+        const pointedIssues = issuesData.filter((issue: any) => {
+          return issue.labels.every((label: any) => /\D/.test(label))
+        });
+
+        /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
 
       res.locals.repository_data.issues = mappedIssues;
       // next();
