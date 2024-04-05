@@ -2,35 +2,15 @@ import { Repository } from "../models/index.js";
 import { ARepository } from "./base/ARepository.js";
 
 import { Model, Document } from "mongoose";
-import * as OctokitTypes from "../../types/octokit.js";
+import { DTO, OctokitTypes } from "../../types/index.js";
 
-// TODO: move to types/DTO.d.ts
-interface RepositoryDTO {
-  id: number;
-  name: string;
-  full_name: string;
-  private?: boolean;
-  owner_id?: number;
-  description?: string | null;
-  url?: string;
-  collaborators_url?: string;
-  teams_url?: string;
-  hooks_url?: string;
-  issue_events_url?: string;
-  events_url?: string;
-  assignees_url?: string;
-  languages_url?: string;
-  contributors_url?: string;
-  comments_url?: string;
-  issue_comment_url?: string;
-  contents_url?: string;
-  issues_url?: string;
-  labels_url?: string;
-  clone_url?: string;
-  has_issues?: boolean;
-  has_projects?: boolean;
-  open_issues_count?: number;
-};
+///////////////////// /////////////////////
+//// - CRUD USE: //// //// - HTTP USE: ////
+//// - Create... //// //// - Post...   ////
+//// - Find...   //// //// - Get...    ////
+//// - Update... //// //// - Patch...  ////
+//// - Delete... //// //// - Delete... ////
+///////////////////// /////////////////////
 
 /**
  * This will be the Repository for User Model (CRUD)
@@ -41,15 +21,12 @@ export class RepositoryController extends ARepository {
     super(model);
   }
 
-  //# ###############
-  //#region REST/CRUD
-  //# ###############
-  //# USE:
-  //# # - Create...
-  //# # - Find...
-  //# # - Update...
-  //# # - Delete...
-  //# ###############
+  public _testObj: DTO.Repository;
+
+  ///////////////////////////
+  // #region REST/CRUD //////
+  ///////////////////////////
+
   getRepoId = async (ownerId: number): Promise<number> => {
     return await this._model.findOne({ owner_id: ownerId }, "_id");
   };
@@ -118,25 +95,18 @@ export class RepositoryController extends ARepository {
     }
   };
 
-  //# ##################
-  //#endregion REST/CRUD
-  //# ##################
-  //# ##################
+  ///////////////////////////
+  // #endregion REST/CRUD ///
+  ///////////////////////////
 
-  //# ##################
-  //#region HTTP ROUTES
-  //# ##################
-  //# USE:
-  //# # - Post...
-  //# # - Get...
-  //# # - Put/Patch...
-  //# # - Delete...
-  //# ###############
+  ///////////////////////////
+  // #region HTTP ///////////
+  ///////////////////////////
 
-  //# ##################
-  //#endregion HTTP ROUTES
-  //# ##################
-  //# ##################
+
+  ///////////////////////////
+  // #endregion HTTP ////////
+  ///////////////////////////
 }
 
 export default RepositoryController;

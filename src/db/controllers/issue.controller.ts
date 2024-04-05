@@ -4,6 +4,13 @@ import { ARepository } from "./base/ARepository.js";
 import { Model, Document } from "mongoose";
 import * as OctokitTypes from "../../types/octokit.js";
 
+///////////////////// /////////////////////
+//// - CRUD USE: //// //// - HTTP USE: ////
+//// - Create... //// //// - Post...   ////
+//// - Find...   //// //// - Get...    ////
+//// - Update... //// //// - Patch...  ////
+//// - Delete... //// //// - Delete... ////
+///////////////////// /////////////////////
 
 /**
  * This will be the Repository for User Model (CRUD)

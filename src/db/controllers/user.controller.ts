@@ -5,6 +5,14 @@ import { Request, Response } from "express";
 import { Schema, Model, FilterQuery } from "mongoose";
 import * as OctokitTypes from "../../types/octokit.js";
 
+///////////////////// /////////////////////
+//// - CRUD USE: //// //// - HTTP USE: ////
+//// - Create... //// //// - Post...   ////
+//// - Find...   //// //// - Get...    ////
+//// - Update... //// //// - Patch...  ////
+//// - Delete... //// //// - Delete... ////
+///////////////////// /////////////////////
+
 /**
  * This will be the Repository for User Model (CRUD)
  */
