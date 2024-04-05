@@ -1,27 +1,20 @@
 import { app } from '../app.js';
 
-import dotenv from "dotenv";
-
 /* DB Context Repositories (CRUD) */
 import { installationController, userController, repositoryController } from "../db/controllers/index.js";
-import { InstallationController } from "../db/controllers/installation.controller.js";
-import { UserController } from "../db/controllers/user.controller.js";
-import { RepositoryController } from "../db/controllers/repository.controller.js";
 
-import { Context, ModelContext } from "./base/AHandler.js";
+// import { Context, ModelContext, UserProperties } from "./base/AHandler.js";
+import { ModelContext } from '../types/context.js';
 
-/* TYPES */
+/* Types */
 import { Request, Response, NextFunction } from "express";
 import { App as AppType, Octokit } from "octokit";
-/* TODO: destructure types for import optimization */
-import * as OctokitTypes from '../types/octokit.js';
+import { OctokitTypes, ContextTypes } from '../types/index.js';
+
+const _context: ContextTypes.Context = { app, installationController, userController, repositoryController };
 
 /* Utility Helpers */
-import { findOwner } from "../utility/index.js";
-
-dotenv.config();
-
-const _context: Context = { app, installationController, userController, repositoryController };
+const Utility = new (await import("../utility/index.js")).default(_context);
 
 /**
  * Octokit Responsibilities:
@@ -37,17 +30,12 @@ const _context: Context = { app, installationController, userController, reposit
  * - Post Sprint (completed)(pending completion?)
  */
 
-/**
- * TODO: IDEA:
- * THIS FILE SHOULD ONLY BE EVENT HANDLER FUNCTIONS THAT CALL octokit (or any?) Controller Functions?
- */
-
 class OctokitApi {
 
   public readonly _appContext: AppType;
-  public readonly _installationContext: InstallationController;
-  public readonly _userContext: UserController;
-  public readonly _repositoryContext: RepositoryController;
+  public readonly _installationContext: ContextTypes.InstallationController;
+  public readonly _userContext: ContextTypes.UserController;
+  public readonly _repositoryContext: ContextTypes.RepositoryController;
 
   /**
    * @description Octokit instance with installation ID level authentication (GH App)
@@ -58,17 +46,17 @@ class OctokitApi {
   /**
    * @summary Instantiated Octokit App class exposes Octokit API/REST
    */
-  constructor(_context: Context) {
-    const { app, installationController, userController, repositoryController } = _context;
+  constructor(context: ContextTypes.Context) {
+    const { app, installationController, userController, repositoryController } = context;
     this._appContext = app;
     this._installationContext = installationController;
     this._userContext = userController;
     this._repositoryContext = repositoryController;
   }
 
-  /** ************ **
-   *  Installation  *
-   ** ************ **/
+  ///////////////////////
+  //// Installations ////
+  ///////////////////////
 
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
     console.log("getAuth firing!!");
@@ -107,7 +95,7 @@ class OctokitApi {
   getInstallationDataById = async (req: Request, res: Response, next: NextFunction) => {
     const targetContext = ModelContext.Installation;
     const id: number = Number(req.params.id);
-    const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
+    const projections: string[] = Utility.getProjectionsByContext(req.params.projections, targetContext);
 
     const data = await this._installationContext.findDocumentProjectionById(id, projections);
 
@@ -133,9 +121,10 @@ class OctokitApi {
     }
   };
 
-  /** ************ **
-   *  Repository * **
-   ** ************ **/
+
+  //////////////////////
+  //// Repositories ////
+  //////////////////////
 
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     console.log("Success calling modular getRepoDataById");
@@ -143,7 +132,7 @@ class OctokitApi {
 
     const projections: string[] = req.params.projections
       ? req.params.projections?.split(",")
-      : this.getProjectionsByContext(req.params.projections, targetContext);
+      : Utility.getProjectionsByContext(req.params.projections, targetContext);
 
     /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
     const installation = await this._installationContext.findInstallationById(this._installationId);
@@ -235,9 +224,9 @@ class OctokitApi {
     }
   };
 
-  /** ************ **
-   *  *** User  ** **
-   ** ************ **/
+  //////////////////////
+  ///////  Users  //////
+  //////////////////////
 
   getUserDataById = async (req: Request, res: Response, next: NextFunction) => {
     const targetContext = ModelContext.User;
@@ -264,7 +253,7 @@ class OctokitApi {
 
     // TODO: make sure this data exists from prev middleware req... if not, append to res.locals in prev
     // const projections: string[] = req.body.user_projections;
-    const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
+    const projections: string[] = Utility.getProjectionsByContext(req.params.projections, targetContext);
 
     try {
 
@@ -278,8 +267,6 @@ class OctokitApi {
   };
 
   getUserNameByOwnerId = async (req: Request, res: Response, next: NextFunction) => {
-    const targetContext = ModelContext.User;
-    // const id: number = Number(req.params.id);
     const id: number = req.params.id
       ? Number(req.params.id)
       : Number(req.params.owner);
@@ -323,9 +310,9 @@ class OctokitApi {
     }
   };
 
-  /** ************ **
-   **  ** Issues * **
-   ** ************ **/
+  //////////////////////
+  //////  Issues  //////
+  //////////////////////
 
   // TODO: get issues
   getIssues = async (req: Request, res: Response, next: NextFunction) => { // issueURLs: string[] = []
@@ -339,8 +326,8 @@ class OctokitApi {
     let owner_type: string;
 
     if (res.locals) {
-      owner_name = this.getUserName(res.locals);
-      owner_type = this.getUserType(res.locals); // this handles .user_data and installation_data (only db types with ".type")
+      owner_name = Utility.getUserName(res.locals);
+      owner_type = Utility.getUserType(res.locals); // this handles .user_data and installation_data (only db types with ".type")
     } else {
       const ownerDoc = await this._userContext
         .findDocumentProjectionById(owner_id, [ "name", "type" ]);
@@ -367,12 +354,6 @@ class OctokitApi {
     try {
 
         console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
-        // const projectsData = await fetch(`https://api.github.com/${params.owner_type}/${params.owner}/projects`, {
-        //     method: 'GET',
-        //     headers: {
-        //         Authorization: `Basic ${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
-        //     }
-        // });
 
         let projectsData;
 
@@ -467,65 +448,9 @@ class OctokitApi {
     next();
   };
 
-  /** *************** **
-   *  Util/Wildcard * **
-   ** *************** **/
-
-  // TODO: MOVE THESE TO Utils and import? "../utility/index.js";
-
-  /**
-   * @summary utility to conditionally parse projection string[] for intended model
-   * @param obj req.body (will have projections string[])
-   * @returns string[] for model query projections
-   */
-  getProjections = (obj: any) => {
-    return obj.installation_projections
-      ? obj.installation_projections
-      : obj.repository_projections
-        ? obj.repository_projections
-        : obj.user_projections
-          ? obj.user_projections
-          : obj.room_projections
-            ? obj.room_projections
-            : obj.projections;
-  };
-
-  /**
-   * @summary utility to conditionally parse projection string[] for intended model specified by context
-   * @param obj req.body (will have projections string[])
-   * @param targetContext string in "singular-tense" representing target db context (Model) name
-   * @returns string[] for model query projections
-   */
-  getProjectionsByContext = (obj: any, targetContext: string) => {
-    const context = targetContext.toLowerCase();
-    return context === "installation"
-      ? obj.installation_projections
-      : context === "repository"
-        ? obj.repository_projections
-        : context === "user"
-          ? obj.user_projections
-          : context === "room"
-            ? obj.room_projections
-            : obj.projections;
-  };
-
-  getUserName = (obj: any) => {
-    return obj.user_data
-      ? obj.user_data.name
-      : obj.repository_data
-        ? obj.repository_data.full_name.split("/")[0]
-        : obj.installation_data
-          ? obj.installation_data
-          : obj.installation_data.owner_name
-  };
-
-  getUserType = (obj: any) => {
-    return obj.user_data
-      ? obj.user_data.type
-      : obj.installation_data
-        ? obj.installation_data.type
-        : null // error condition
-  };
+  /////////////////////////
+  ///// Util/Wildcard /////
+  /////////////////////////
 
   sendData = (req: Request, res: Response) => {
     console.log("Ending middleware chain. Sending response");
@@ -539,9 +464,9 @@ class OctokitApi {
     }
   };
 
-  /** **************** **
-   *  Event Handlers * **
-   ** **************** **/
+  ////////////////////////
+  //// Event Handlers ////
+  ////////////////////////
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     // console.log("PAYLOAD INSTALL ID:", payload.installation.id);
@@ -551,7 +476,7 @@ class OctokitApi {
     // const installationLog = await this._appContext.getInstallationOctokit(payload.installation.id);
 
     /* TODO: THESE TWO SHOULD ACTUALLY BE USED AT SOME POINT: */
-    // const foundOwnerId: number = await findOwner(payload);
+    // const foundOwnerId: number = await findOwnerId(payload); // TODO: this fn might work?
     // const dbQueryInstallId: number = await installationController.findInstallationIdByOwnerId(foundOwnerId);
     // console.log("RECURSIVE DB QUERY INSTALL ID:", dbQueryInstallId);
 

@@ -1,48 +1,119 @@
-import { userController } from "../db/controllers/index.js";
+import { UserController } from "../db/controllers/user.controller.js";
+// import { Context, ModelContext, UserProperties } from "../api/base/AHandler.js";
+// import { ContextTypes } from "../types/index.js";
+import { Context, ModelContext, UserProperties } from '../types/context.js';
 
 interface PayloadDTO {
   [key: string]: any;
 }
 
-const _userProperties = [ "user", "owner", "sender", "account" ];
+export default class Utils {
 
-// TODO: rename to findOwnerId
-export const findOwner = async (payload: PayloadDTO): Promise<number | null> => {
-  return await recursePayload(payload);
-};
+  public readonly _userContext: UserController;
+  private _userProperties: typeof UserProperties;
 
-export const recursePayload = async (payload: PayloadDTO): Promise<number | null> => {
-  for (const key in payload) {
-    // if false, will skip prototype props and continue to next key in payload
-    console.log(`Key: ${key}`);
-    if (payload.hasOwnProperty(key)) {
-      const value = payload[key];
-      console.log(`Value: ${value}`);
-      if (_userProperties.includes(key)) {
-        // grab id on key (key.id)
-        const userQueryId = payload[key].id;
-        console.log(`Id of User found: ${userQueryId}`);
-        // check user document for .IsOwner === true
-        const userIsOwner = await userController.userIsOwner(userQueryId);
-        if (userIsOwner) {
-          // if .IsOwner === true return document._id
-          console.log(`found owner: ${userIsOwner}: ${userQueryId}`);
-          return userQueryId;
+  constructor(context: Context) {
+    this._userProperties = UserProperties;
+    this._userContext = context.userController;
+  }
+
+  findOwnerId = async (payload: PayloadDTO): Promise<number | null> => {
+    return await this.recursePayload(payload);
+  };
+
+  recursePayload = async (payload: PayloadDTO): Promise<number | null> => {
+    for (const key in payload) {
+      // if false, will skip prototype props and continue to next key in payload
+      console.log(`Key: ${key}`);
+      if (payload.hasOwnProperty(key)) {
+        const value = payload[key];
+        console.log(`Value: ${value}`);
+        if (this.enumContainsValue(key, this._userProperties)) {
+          // grab id on key (key.id)
+          const userQueryId = payload[key].id;
+          console.log(`Id of User found: ${userQueryId}`);
+          // check user document for .IsOwner === true
+          const userIsOwner = await this._userContext.userIsOwner(userQueryId);
+          if (userIsOwner) {
+            // if .IsOwner === true return document._id
+            console.log(`found owner: ${userIsOwner}: ${userQueryId}`);
+            return userQueryId;
+          }
+        } else if (typeof value === "object" && value !== null) {
+          console.log(`recursing on ${value}`);
+          const foundOwnerId = await this.recursePayload(value);
+          if (foundOwnerId !== null) {
+            return foundOwnerId;
+          }
+        } else {
+          continue;
         }
-      } else if (typeof value === "object" && value !== null) {
-        console.log(`recursing on ${value}`);
-        const foundOwnerId = await recursePayload(value);
-        if (foundOwnerId !== null) {
-          return foundOwnerId;
-        }
-      } else {
-        continue;
       }
     }
+    return null;
+  };
+
+/**
+ * @summary utility to conditionally parse projection string[] for intended model
+ * @param obj req.body (will have projections string[])
+ * @returns string[] for model query projections
+ */
+  getProjections = (obj: any) => {
+    return obj.installation_projections
+      ? obj.installation_projections
+      : obj.repository_projections
+        ? obj.repository_projections
+        : obj.user_projections
+          ? obj.user_projections
+          : obj.room_projections
+            ? obj.room_projections
+            : obj.projections;
+  };
+
+/**
+ * @summary utility to conditionally parse projection string[] for intended model specified by context
+ * @param obj req.body (will have projections string[])
+ * @param targetContext string in "singular-tense" representing target db context (Model) name
+ * @returns string[] for model query projections
+ */
+  getProjectionsByContext = (obj: any, targetContext: string) => {
+    const context = targetContext.toLowerCase();
+    return context === "installation"
+      ? obj.installation_projections
+      : context === "repository"
+        ? obj.repository_projections
+        : context === "user"
+          ? obj.user_projections
+          : context === "room"
+            ? obj.room_projections
+            : obj.projections;
+  };
+
+  getUserName = (obj: any) => {
+    return obj.user_data
+      ? obj.user_data.name
+      : obj.repository_data
+        ? obj.repository_data.full_name.split("/")[0]
+        : obj.installation_data
+          ? obj.installation_data
+          : obj.installation_data.owner_name
+  };
+
+  getUserType = (obj: any) => {
+    return obj.user_data
+      ? obj.user_data.type
+      : obj.installation_data
+        ? obj.installation_data.type
+        : null // error condition
+  };
+
+  enumContainsValue = <T extends Record<string, string>>(value: string, properties: T): boolean => {
+    for (const key in properties) {
+      if (properties[key as keyof T] === value) {
+        return true;
+      }
+    }
+    return false;
   }
-  return null;
-};
 
-
-
-        // const ownerDocument = await userController.socketFindOneById(userQueryId);
+}
