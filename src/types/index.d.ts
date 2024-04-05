@@ -1,2 +1,17 @@
+/**
+ * @summary Types for all DB application layer context
+ * @implements Module for Unit of Work design pattern
+ */
 export * as ContextTypes from "./context.ts";
+
+/**
+ * @summary Types expected from GH REST
+ * @implements Module like a namespace avoids naming collision with DTO module
+ */
 export * as OctokitTypes from "./octokit.ts";
+
+/**
+ * @summary The app processes I/O data to these types/shapes for transit to/from REST and/or DB.
+ * @implements These are exported in their own "DTO" module (like a namespace) to avoid naming collision from REST.
+ */
+export * as DTO from "./DTO.ts";
