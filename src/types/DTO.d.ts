@@ -28,3 +28,9 @@ export interface Repository {
   has_projects?: boolean;
   open_issues_count?: number;
 };
+
+export interface ReqProjectsParams {
+  owner: string;
+  repo: string;
+  owner_type: string;
+}
