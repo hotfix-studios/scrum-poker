@@ -1,6 +1,5 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 
-// import { installationController, userController, repositoryController } from "../db/controllers/index.js";
 import { octokitApi } from "../api/index.js";
 
 const repositoriesRouter = Router();
