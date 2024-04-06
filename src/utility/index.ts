@@ -74,8 +74,10 @@ export default class Utils {
  * @param targetContext string in "singular-tense" representing target db context (Model) name
  * @returns string[] for model query projections
  */
-  getProjectionsByContext = (obj: any, targetContext: string) => {
+  getProjectionsByContext = (obj: any, targetContext: string = ""): string[] | [] => {
+    obj.projections = obj.projections ? obj.projections : [];
     const context = targetContext.toLowerCase();
+
     return context === "installation"
       ? obj.installation_projections
       : context === "repository"
@@ -87,26 +89,39 @@ export default class Utils {
             : obj.projections;
   };
 
-  getUserName = (obj: any) => {
-    try {
-      return obj.user_data
-        ? obj.user_data.name
-        : obj.repository_data
-          ? obj.repository_data.full_name.split("/")[0]
-          : obj.installation_data
-            ? obj.installation_data
-            : obj.installation_data.owner_name
-    } catch (error) {
-      throw new Error("res.locals data not exists, exiting Utilities getUserName");
-    }
+  /**
+   * @description there may be edge cases if user_ids are appended from different router models...
+   * @todo append "flag" pre-Next() i.e.: res.locals.prev = "user" where res.locals.user_data was just appended...
+   * @param obj res.locals.installation_data -> will have one owner ID
+   * @param obj res.locals.repository_data -> this will have an owner BUT will also have collaborators with IDs
+   * @param obj res.locals.user_data -> will have one owner ID
+   */
+  getUserId = (obj: any): number | null => {
+    return obj.installation_data.owner_id
+      ? obj.installation_data.owner_id
+      : obj.repository_data.owner_id
+        ? obj.repository_data.owner_id
+        : obj.user_data._id
+          ? obj.user_data._id
+          : null;
   };
 
-  getUserType = (obj: any) => {
+  getUserName = (obj: any): string | null => {
+    return obj.user_data.name
+      ? obj.user_data.name
+      : obj.repository_data.full_name
+        ? obj.repository_data.full_name.split("/")[0]
+        : obj.installation_data.owner_name
+          ? obj.installation_data.owner_name
+          : null;
+  };
+
+  getUserType = (obj: any): string | null => {
     return obj.user_data
       ? obj.user_data.type
       : obj.installation_data
         ? obj.installation_data.type
-        : null // error condition
+        : null;
   };
 
   enumContainsValue = <T extends Record<string, string>>(value: string, properties: T): boolean => {
@@ -118,19 +133,19 @@ export default class Utils {
     return false;
   }
 
-  findEmptyObjectKey = (locals: any) => {
-    for (const key in locals) {
-        if (Object.keys(locals[key]).length === 0 && locals[key].constructor === Object) {
+  findEmptyObjectKey = (obj: any) => {
+    for (const key in obj) {
+        if (Object.keys(obj[key]).length === 0 && obj[key].constructor === Object) {
             return key; // Return the key of the empty object
         }
     }
     return null; // Return null if no empty object is found
   };
 
-  deleteEmptyObject = (locals: any) => {
-    const emptyObjectKey = this.findEmptyObjectKey(locals);
+  deleteEmptyObject = (obj: any) => {
+    const emptyObjectKey = this.findEmptyObjectKey(obj);
     if (emptyObjectKey !== null) {
-        delete locals[emptyObjectKey]; // Delete the empty object
+        delete obj[emptyObjectKey]; // Delete the empty object
         return true; // Return true if an empty object is deleted
     }
     return false; // Return false if no empty object is found
