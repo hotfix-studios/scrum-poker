@@ -20,7 +20,6 @@ export class UserController extends ARepository {
 
   constructor(model: Model<any>) {
     super(model);
-    // this._model = model;
   }
 
   createUser = async (
