@@ -8,7 +8,8 @@ const issuesSchema = new Schema({                       // ** REST OBJ. **
   state: { type: Schema.Types.String, required: true },             // * IF != "open" DON'T FETCH * (can only be "open" or "closed")
   labels: [ { type: Schema.Types.String } ],
   url: { type: Schema.Types.String },
-  repository_url: { type: Schema.Types.String, ref: "Repository" },
+  repository_url: { type: Schema.Types.String, ref: "Repository" }, // TODO: IS THIS RELATIONSHIP EXISTING??
+  // repository_name: { type: Schema.Types.String },                // from repository.name??
   owner_name: { type: Schema.Types.String },                        // .user.login ** THESE ARE ISSUE OWNER**
   // owner_id: { type: Schema.Types.Number, ref: "User" },          // .user.id    ** NOT ASSOCIATED REPO  **
   owner_avatar: { type: Schema.Types.String },                      // .user.avatar_url
