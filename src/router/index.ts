@@ -37,7 +37,7 @@ export const configureServer = (server: Application) => {
 
     /* All api routes */
     server
-        .use(httpLogger)
+        .use([httpLogger, setResponseLocals, setProjectionsContext])
         .use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
 
     server.get("/", (req, res) => {
@@ -82,9 +82,30 @@ export const registerEventListeners = (octokitClient: AppType) => {
 // TODO: check out if this is good:
 // app.webhooks.verify
 
+/* GLOBAL MIDDLEWARE */
 const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     const time = new Date();
     const formattedDate = time.toLocaleTimeString("en-US");
     console.log("\x1b[32m%s\x1b[0m", `[${formattedDate}] ${req.method} ${req.url}`);
+    next();
+};
+
+const setResponseLocals = (req: Request, res: Response, next: NextFunction): void => {
+    res.locals.installation_data = {};
+    res.locals.repository_data = {};
+    res.locals.user_data = {};
+    next();
+  };
+
+const setProjectionsContext = (req: Request, res: Response, next: NextFunction): void => {
+    const pathSegments = req.url.split("/");
+    console.log("-- -- -- PATH SEGMENTS -- -- -- ", pathSegments);
+    const apiIndex = pathSegments.indexOf("api");
+    console.log("-- -- -- API INDEX -- -- -- ", apiIndex);
+    if (apiIndex !== -1 && apiIndex < pathSegments.length - 1) {
+      res.locals.routeProjectionsContext = pathSegments[apiIndex + 1];
+    } else { /* error condition */
+      res.locals.routeProjectionsContext = "";
+    }
     next();
 };
