@@ -16,9 +16,8 @@ const repositoriesRouter = Router();
 repositoriesRouter
   .route("/names/:projections")
   .get([
-    octokitApi.setResponseLocals,
+    octokitApi.getInstallation,
     octokitApi.getRepoDataById,
-    // octokitApi.getUserNameByOwnerId,
     octokitApi.sendData
   ]);
 

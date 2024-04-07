@@ -14,7 +14,7 @@ issuesRouter
 issuesRouter
   .route("/:owner/:repo")
   .get([
-    // octokitApi.getUserNameAndTypeByOwnerId, // TODO: MAKE THIS HANDLE THE PATH PARAMS AND PASS TO .getIssues
+    octokitApi.getUserNameAndTypeById, // TODO: MAKE THIS HANDLE THE PATH PARAMS AND PASS TO .getIssues
     octokitApi.getIssues,
     octokitApi.sendData
   ]);
