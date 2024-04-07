@@ -1,10 +1,14 @@
-import { UserController } from "../db/controllers/user.controller.js";
 import { Context, UserProperties } from '../types/context.js';
+/* TODO: maybe Utils class should perform any DB operations or require any Models... */
+import { UserController } from "../db/controllers/user.controller.js";
 
 interface PayloadDTO {
   [key: string]: any;
 }
 
+/**
+ * @description This Class parses lookup data from possible res.locals
+ */
 export default class Utils {
 
   public readonly _userContext: UserController;
@@ -14,6 +18,7 @@ export default class Utils {
     this._userProperties = UserProperties;
     this._userContext = context.userController;
   }
+
 
   findOwnerId = async (payload: PayloadDTO): Promise<number | null> => {
     return await this.recursePayload(payload);
@@ -51,24 +56,19 @@ export default class Utils {
     return null;
   };
 
-/**
- * @summary utility to conditionally parse projection string[] for intended model
- * @param obj req.body (will have projections string[])
- * @returns string[] for model query projections
- */
-  getProjections = (obj: any) => {
-    return obj.installation_projections
-      ? obj.installation_projections
-      : obj.repository_projections
-        ? obj.repository_projections
-        : obj.user_projections
-          ? obj.user_projections
-          : obj.room_projections
-            ? obj.room_projections
-            : obj.projections;
+  /**
+   * @summary Checks if current middleware needs to apply projections from url path (http req)
+   * @param middlewareContext The context of the current middleware (installation, repository, user, etc)
+   * @param routeContext The target context for projections to be applied (based on req url path)
+   * @param urlProjections The actual projections to apply to DB ops
+   * @returns string[] for model query projections
+   */
+  getProjectionsByRoute = (middlewareContext: string, routeContext: string, urlProjections: string): string[] => {
+    return middlewareContext === routeContext ? urlProjections?.split(",") : [];
   };
 
 /**
+ * @deprecated
  * @summary utility to conditionally parse projection string[] for intended model specified by context
  * @param obj req.body (will have projections string[])
  * @param targetContext string in "singular-tense" representing target db context (Model) name
@@ -78,13 +78,15 @@ export default class Utils {
     obj.projections = obj.projections ? obj.projections : [];
     const context = targetContext.toLowerCase();
 
-    return context === "installation"
+    return context === "installation" || context === "installations"
       ? obj.installation_projections
-      : context === "repository"
+      : context === "repository" || context === "repos"
         ? obj.repository_projections
-        : context === "user"
+        : context === "user" || context === "users"
           ? obj.user_projections
-          : context === "room"
+          : context === "issue" || context === "issues"
+            ? obj.issues_projections
+          : context === "room" || context === "rooms"
             ? obj.room_projections
             : obj.projections;
   };
@@ -121,6 +123,14 @@ export default class Utils {
       ? obj.user_data.type
       : obj.installation_data
         ? obj.installation_data.type
+        : null;
+  };
+
+  getRepoName = (obj: any): string | null => {
+    return obj.repository_data.name
+      ? obj.repository_data.name
+      : obj.issues_data.repository_name
+        ? obj.issues_data.repository_name
         : null;
   };
 
