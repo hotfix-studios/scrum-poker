@@ -1,6 +1,7 @@
 import { Context, UserProperties } from '../types/context.js';
 /* TODO: maybe Utils class should perform any DB operations or require any Models... */
 import { UserController } from "../db/controllers/user.controller.js";
+import { DTO } from '../types/index.js';
 
 interface PayloadDTO {
   [key: string]: any;
@@ -18,7 +19,6 @@ export default class Utils {
     this._userProperties = UserProperties;
     this._userContext = context.userController;
   }
-
 
   findOwnerId = async (payload: PayloadDTO): Promise<number | null> => {
     return await this.recursePayload(payload);
@@ -63,74 +63,86 @@ export default class Utils {
    * @param urlProjections The actual projections to apply to DB ops
    * @returns string[] for model query projections
    */
-  getProjectionsByRoute = (middlewareContext: string, routeContext: string, urlProjections: string): string[] => {
+  determineIfProjectionsNeeded = (middlewareContext: string, routeContext: string, urlProjections: string): string[] => {
     return middlewareContext === routeContext ? urlProjections?.split(",") : [];
   };
+
+    /**
+   *
+   * @param middlewareContext string from Enum representing current middleware context
+   * @param resLocals temporary route variables returning routeProjectionsContext from route endpoint
+   * @example /api/REPOS/names/:projections
+   * @returns object used to determine if current middleware DB query needs route projections
+   */
+    getQueryContext = (middlewareContext: string, resLocals: any): DTO.httpProjectionsContexts => {
+      return { middlewareContext: middlewareContext, routeProjectionsContext: resLocals.routeProjections }
+    };
 
 /**
  * @deprecated
  * @summary utility to conditionally parse projection string[] for intended model specified by context
- * @param obj req.body (will have projections string[])
+ * @param resLocals (will have projections string[])
  * @param targetContext string in "singular-tense" representing target db context (Model) name
  * @returns string[] for model query projections
  */
-  getProjectionsByContext = (obj: any, targetContext: string = ""): string[] | [] => {
-    obj.projections = obj.projections ? obj.projections : [];
+  getProjectionsByContext = (resLocals: any, targetContext: string = ""): string[] | [] => {
+    resLocals.projections = resLocals.projections ? resLocals.projections : [];
     const context = targetContext.toLowerCase();
 
     return context === "installation" || context === "installations"
-      ? obj.installation_projections
+      ? resLocals.installation_projections
       : context === "repository" || context === "repos"
-        ? obj.repository_projections
+        ? resLocals.repository_projections
         : context === "user" || context === "users"
-          ? obj.user_projections
+          ? resLocals.user_projections
           : context === "issue" || context === "issues"
-            ? obj.issues_projections
+            ? resLocals.issues_projections
           : context === "room" || context === "rooms"
-            ? obj.room_projections
-            : obj.projections;
+            ? resLocals.room_projections
+            : resLocals.projections;
   };
 
   /**
    * @description there may be edge cases if user_ids are appended from different router models...
    * @todo append "flag" pre-Next() i.e.: res.locals.prev = "user" where res.locals.user_data was just appended...
-   * @param obj res.locals.installation_data -> will have one owner ID
-   * @param obj res.locals.repository_data -> this will have an owner BUT will also have collaborators with IDs
-   * @param obj res.locals.user_data -> will have one owner ID
+   * @param resLocals temporary object with relevant data for route
+   * @example res.locals.installation_data -> will have one owner ID
+   * @example res.locals.repository_data -> this will have an owner BUT will also have collaborators with IDs
+   * @example res.locals.user_data -> will have one owner ID
    */
-  getUserId = (obj: any): number | null => {
-    return obj.installation_data.owner_id
-      ? obj.installation_data.owner_id
-      : obj.repository_data.owner_id
-        ? obj.repository_data.owner_id
-        : obj.user_data._id
-          ? obj.user_data._id
+  getUserId = (resLocals: any): number | null => {
+    return resLocals.installation_data.owner_id
+      ? resLocals.installation_data.owner_id
+      : resLocals.repository_data.owner_id
+        ? resLocals.repository_data.owner_id
+        : resLocals.user_data._id
+          ? resLocals.user_data._id
           : null;
   };
 
-  getUserName = (obj: any): string | null => {
-    return obj.user_data.name
-      ? obj.user_data.name
-      : obj.repository_data.full_name
-        ? obj.repository_data.full_name.split("/")[0]
-        : obj.installation_data.owner_name
-          ? obj.installation_data.owner_name
+  getUserName = (resLocals: any): string | null => {
+    return resLocals.user_data.name
+      ? resLocals.user_data.name
+      : resLocals.repository_data.full_name
+        ? resLocals.repository_data.full_name.split("/")[0]
+        : resLocals.installation_data.owner_name
+          ? resLocals.installation_data.owner_name
           : null;
   };
 
-  getUserType = (obj: any): string | null => {
-    return obj.user_data
-      ? obj.user_data.type
-      : obj.installation_data
-        ? obj.installation_data.type
+  getUserType = (resLocals: any): string | null => {
+    return resLocals.user_data
+      ? resLocals.user_data.type
+      : resLocals.installation_data
+        ? resLocals.installation_data.type
         : null;
   };
 
-  getRepoName = (obj: any): string | null => {
-    return obj.repository_data.name
-      ? obj.repository_data.name
-      : obj.issues_data.repository_name
-        ? obj.issues_data.repository_name
+  getRepoName = (resLocals: any): string | null => {
+    return resLocals.repository_data.name
+      ? resLocals.repository_data.name
+      : resLocals.issues_data.repository_name
+        ? resLocals.issues_data.repository_name
         : null;
   };
 
