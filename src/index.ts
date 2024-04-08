@@ -51,7 +51,7 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.log('Unhandled Rejection at:', promise, 'reason:', reason);
-  // TODO: application logging, throwing an error, or other logic here
+  /* TODO: application logging, throwing an error, or other logic here for uncaught promises */
 });
 
 process.on('uncaughtException', (err, origin) => {
@@ -66,4 +66,5 @@ process.on('uncaughtException', (err, origin) => {
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
 
+/* TODO: all 3 of these need testing, idk where fs.writeSync outputs.. */
 /* [node critical failure handling process.on docs](https://nodejs.org/api/process.html#process_event_uncaughtexception) */
