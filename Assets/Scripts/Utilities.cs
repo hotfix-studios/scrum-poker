@@ -62,6 +62,7 @@ public class Utilities : MonoBehaviour
 
     #region HTTP_REQUESTS
 
+    // POST
     public static IEnumerator PostInstallationId(int? installationId)
     {
         var baseURL = GetBaseURL();
@@ -89,10 +90,12 @@ public class Utilities : MonoBehaviour
         }
     }
 
+    // GET
     public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
         var baseURL = GetBaseURL();
-        using (UnityWebRequest www = UnityWebRequest.Get(baseURL + endpoint + string.Join(',', projections)))
+        string url = $"{baseURL}{endpoint}{string.Join(',', projections)}";
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             var asyncOperation = www.SendWebRequest();
             while (!asyncOperation.isDone)
@@ -111,44 +114,13 @@ public class Utilities : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                return HandleResponseReposData(responseData);
-            }
-        }
-    }
-    // /api/issues/repoOwnerId/repoName
-    public static async Task<List<object>> GetRepoIssues(string endpoint, string[] projections)
-    {
-        /* TODO: handle projections? */
-        Debug.Log("-- GetSelectedRepoIssues --");
-        string url = GetBaseURL() + endpoint; //+ Store.repoOwnerId + "/" + Store.repoName;
-
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            var asyncOperation = www.SendWebRequest();
-            while (!asyncOperation.isDone)
-            {
-                await Task.Yield();
-            }
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error: " + www.error);
-                return null;
-            }
-            else
-            {
-                string responseData = www.downloadHandler.text;
-                Debug.Log("Response DESERIALIZING STEP: [ISSUES]");
-                Debug.Log(responseData);
-
-                return HandleResponseRepoIssues(responseData);
+                return HandleResponseRepoNamesAndSetOwnerId(responseData);
             }
         }
     }
 
-    public static List<string> HandleResponseReposData(string responseData)
+    public static List<string> HandleResponseRepoNamesAndSetOwnerId(string responseData)
     {
-        Debug.Log("RESPONSE DATA: " + responseData);
         List<string> repoNames = new List<string>();
         List<int> repoOwnerIds = new List<int>();
 
@@ -181,14 +153,37 @@ public class Utilities : MonoBehaviour
 
     }
 
-/*    void HandleResponseSelectedRepoIssues(string responseData)
+    public static async Task<List<object>> GetRepoIssues(string endpoint, string[] projections)
     {
-        Debug.Log("!!INSIDE FINAL STEP TO LOAD ISSUES!!");
-        Debug.Log("THIS IS THE DATA THAT SHOULD POPULATE ISSUES UI ELEMENT");
-        Debug.Log(responseData);
-    }*/
+        /* TODO: handle projections? */
+        var baseURL = GetBaseURL();
+        string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{Store.repoName}";
 
-    public static List<object> HandleResponseRepoIssues(string responseData)
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            var asyncOperation = www.SendWebRequest();
+            while (!asyncOperation.isDone)
+            {
+                await Task.Yield();
+            }
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+                return null;
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP: [ISSUES]");
+                Debug.Log(responseData);
+
+                return HandleResponseRepoIssues(responseData);
+            }
+        }
+    }
+
+ public static List<object> HandleResponseRepoIssues(string responseData)
     {
         var data = JObject.Parse(responseData);
         // var repoData = data["repo_data"];
@@ -205,6 +200,7 @@ public class Utilities : MonoBehaviour
                 }
 
                 Debug.Log(issues);*/
+        Debug.Log(issues);
         return issues;
     }
     #endregion HTTP_REQUESTS
