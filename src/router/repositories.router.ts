@@ -21,4 +21,9 @@ repositoriesRouter
     octokitApi.sendData
   ]);
 
+/**
+ * @implements repository test route
+ */
+repositoriesRouter.route("/test/:id").get([ octokitApi.getReposByInstallationId, octokitApi.sendData ]);
+
 export default repositoriesRouter;
