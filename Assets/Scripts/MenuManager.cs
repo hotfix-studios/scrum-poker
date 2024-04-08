@@ -126,7 +126,7 @@ public class MenuManager : VisualElement
             {
                 Store.roomId = inviteCode;
                 WebSocketConnection.JoinRoom();
-                // TODO: Add player name to room in view via socket event
+                // TODO: Add player name and avatar to room in view via socket event
                 // TODO: Add user objects to data["params"]["users"] array
                 // TODO: Add userId to those user objects
                 var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
