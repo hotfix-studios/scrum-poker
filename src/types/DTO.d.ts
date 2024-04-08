@@ -34,3 +34,8 @@ export interface ReqProjectsParams {
   repo: string;
   owner_type: string;
 }
+
+export interface httpProjectionsContexts {
+  routeProjectionsContext: string;
+  middlewareContext: string;
+};
