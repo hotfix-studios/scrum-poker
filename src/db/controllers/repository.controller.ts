@@ -27,7 +27,7 @@ export class RepositoryController extends ARepository {
   // #region REST/CRUD //////
   ///////////////////////////
 
-  getRepoId = async (ownerId: number): Promise<number> => {
+  findRepoId = async (ownerId: number): Promise<number> => {
     return await this._model.findOne({ owner_id: ownerId }, "_id");
   };
 
