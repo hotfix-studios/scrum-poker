@@ -111,7 +111,7 @@ const setProjectionsContext = (req: Request, res: Response, next: NextFunction):
     const pathSegments = req.url.split("/");
     console.log("-- -- -- PATH SEGMENTS -- -- -- ", pathSegments);
     const apiIndex = pathSegments.indexOf("api");
-    console.log("-- -- -- API INDEX -- -- -- ", apiIndex);
+
     if (apiIndex !== -1 && apiIndex < pathSegments.length - 1) {
       res.locals.routeProjectionsContext = pathSegments[apiIndex + 1];
     } else { /* error condition */

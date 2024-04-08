@@ -19,35 +19,32 @@ const Utility = new (await import("../utility/index.js")).default(_context);
  * - - Get Backlogs ✔
  * - - Get associated users (repo)
  * - Post Labels == User Input story point values
- * - Get Organization
+ * - Get Organization (by user?)
  * - - Get associated users (org)
- * - Post/Patch story points to issues (look for field with type number (on Project/Issues))
- * - - Add label equivalent story points
+ * - Post/Patch story points to issues (look for label (Issues) or field (Project) with type number)
  * - Post Sprint (completed)(pending completion?)
  */
 
 class OctokitApi {
 
+  /**
+   * @description Base-level-authenticated Octokit instance (exposes Octokit API/REST)
+   */
   public readonly _appContext: AppType;
+
+  /**
+   * @description All DB (Models) controllers (Unit of Work)
+   */
   public readonly _installationContext: ContextTypes.InstallationController;
   public readonly _userContext: ContextTypes.UserController;
   public readonly _repositoryContext: ContextTypes.RepositoryController;
 
   /**
-   * @description Octokit instance with installation ID level authentication (GH App)
+   * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
    */
   private _authenticatedOctokit: Octokit;
   private _installationId: number;
 
-  /**
-   * @implements This string represents the context of the current api route
-   * @example /api/repos/names/projections == "repos"
-   */
-  private _projectionsContext: string;
-
-  /**
-   * @summary Instantiated Octokit App class exposes Octokit API/REST
-   */
   constructor(context: ContextTypes.Context) {
     const { app, installationController, userController, repositoryController } = context;
     this._appContext = app;
@@ -56,9 +53,8 @@ class OctokitApi {
     this._repositoryContext = repositoryController;
   }
 
-  //////////////////////////////////////////
-  // #region //////// Route Handlers ///////
-  //////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // #region /////////////////////// Route Handlers ///////////////////////////
 
   //////////////////////////////////////////
   // #region /////// Installations /////////
@@ -299,7 +295,6 @@ class OctokitApi {
       ? Number(req.params.id)
       : Number(req.params.owner);
 
-    /* TODO: IDEA: (more modular) maybe just return whole User document (rename method) and parse on C# side? */
     const data = await this._userContext
       .findDocumentProjectionById(id, [ "name", "type" ]);
 
@@ -459,7 +454,6 @@ class OctokitApi {
   // #region /////// Util/Wildcard /////////
   //////////////////////////////////////////
 
-
   sendData = (req: Request, res: Response): void => {
     console.log("Ending middleware chain. Sending response");
     /* TODO: with new Global setResponseLocals middleware res.locals will always be truthy... */
@@ -478,12 +472,10 @@ class OctokitApi {
   //////////////////////////////////////////
 
   //////////////////////////////////////////
-  ////// #endregion // Route Handlers //////
-  //////////////////////////////////////////
+  // #endregion ////// Route Handlers //////
 
-  //////////////////////////////////////////
-  // #region /////// Event Handlers ////////
-  //////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // #region /////////////////////// Event Handlers ///////////////////////////
 
   handleInstallationCreate = async ({ octokit, payload }): Promise<void> => {
     console.log(`Entering octokit.api handleInstallationCreate() for - ${payload.installation.account.login}`);
@@ -629,10 +621,9 @@ class OctokitApi {
     }
   };
 
-  //////////////////////////////////////////
-  // #endregion ////// Event Handlers //////
+  /////////////////////////////////////////////////////////////////////////////
+  // #endregion /////////////////////// Event Handlers ////////////////////////
 
 }
-
 
 export default new OctokitApi(_context);
