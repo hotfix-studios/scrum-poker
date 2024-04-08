@@ -1,4 +1,4 @@
-import http from "http";
+import fs from "fs";
 import express from "express";
 // TODO: install @types/cors
 import dotenv from "dotenv";
@@ -8,17 +8,21 @@ import { WebSocketServer } from "ws";
 import { app } from "./app.js";
 
 /* API */
-import { api, configureServer, registerEventListeners } from "./router/index.js";
+import { configureServer, registerEventListeners } from "./router/index.js";
 
-/* ENV VARS */
+/////////////////////////////////////////////////////////
+// #region ///////////////// ENV VARS ///////////////////
 dotenv.config();
 
 const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
 const path = process.env.WEBHOOK_PATH;
 const localWebhookUrl = `http://${host}:${port}`;
+/////////////////////////////////////////////////////////
+// #endregion ///////////////////////////////////////////
 
-/* SERVER SETUP */
+/////////////////////////////////////////////////////////
+// #region ////////////// server setup //////////////////
 const _express = express();
 
 configureServer(_express);
@@ -30,8 +34,36 @@ const server = _express.listen(port, () => {
 });
 
 /* creating a websocket to run on our server */
-const wss = new WebSocketServer({ server }, () => {
-  console.log('WSS started');
-});
+// const wss = new WebSocketServer({ server }, () => {
+//   console.log('WSS started');
+// });
 
 registerEventListeners(app);
+/////////////////////////////////////////////////////////
+// #endregion ///////////////////////////////////////////
+
+/////////////////////////////////////////////////////////
+///// #region top-level node critical-failure catch /////
+process.on('uncaughtExceptionMonitor', (err, origin) => {
+  console.error(`Critical failure, propagated to top-level from ${origin}, error: `, err);
+  /* TODO: create custom monitor class here that will handle application recover or restart from unhandled critical failure... */
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.log('Unhandled Rejection at:', promise, 'reason:', reason);
+  // TODO: application logging, throwing an error, or other logic here
+});
+
+process.on('uncaughtException', (err, origin) => {
+  console.error("Critical Error -- app is about to explode... \n performing synchronous cleanup.. \n writing crash state to log file..");
+  fs.writeSync(
+    process.stderr.fd,
+    `Caught exception: ${err}\n` +
+    `Exception origin: ${origin}\n`,
+  );
+  console.error("goodbye.");
+});
+/////////////////////////////////////////////////////////
+// #endregion ///////////////////////////////////////////
+
+/* [node critical failure handling process.on docs](https://nodejs.org/api/process.html#process_event_uncaughtexception) */
