@@ -2,16 +2,17 @@ import { Schema, model } from "mongoose";
 
 const issuesSchema = new Schema({                       // ** REST OBJ. **
   _id: { type: Schema.Types.Number, required: true },               // .id
+  url: { type: Schema.Types.String },
+  repository_url: { type: Schema.Types.String, ref: "Repository" }, // TODO: IS THIS RELATIONSHIP EXISTING??
+  // repository_name: { type: Schema.Types.String },                // from repository.name??
   number: { type: Schema.Types.Number, required: true },            // sort by this field
   title: { type: Schema.Types.String, required: true },
-  body: { type: Schema.Types.String, required: true },
-  state: { type: Schema.Types.String, required: true },             // ** IF NOT == "open" DON'T FETCH **
-  labels: [ { type: Schema.Types.String } ],
-  url: { type: Schema.Types.String },
-  repository_url: { type: Schema.Types.String, ref: "Repository" },
   owner_name: { type: Schema.Types.String },                        // .user.login ** THESE ARE ISSUE OWNER**
-  // owner_id: { type: Schema.Types.Number, ref: "User" },          // .user.id    ** NOT ASSOCIATED REPO  **
+  owner_id: { type: Schema.Types.Number, ref: "User" },             // .user.id    ** NOT ASSOCIATED REPO  **
   owner_avatar: { type: Schema.Types.String },                      // .user.avatar_url
+  labels: [ { type: Schema.Types.String } ],
+  state: { type: Schema.Types.String, required: true },             // * IF != "open" DON'T FETCH * (can only be "open" or "closed")
+  body: { type: Schema.Types.String, required: true },
   pointed: { type: Schema.Types.Boolean, required: true, default: false },
 });
 

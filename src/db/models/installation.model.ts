@@ -9,5 +9,6 @@ const installationSchema = new Schema({
   repos_url: { type: Schema.Types.String },
   repos: [ { type: Schema.Types.Number, ref: "Repository" } ] // use repo._id (not on Installation Type but IS on REST payload)
 });
+// TODO: move `repos` to `users.repos`
 
 export default model("Installation", installationSchema);
