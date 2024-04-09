@@ -15,10 +15,14 @@ import { OctokitTypes, DTO } from "../../types/index.js";
 /**
  * This will be the Repository for User Model (CRUD)
  */
-export class IssueController extends ARepository {
+export class IssuesController {
 
-  constructor(model: Model<any>) {
-    super(model);
+  private _backlog: typeof Backlog;
+  private _pointed: typeof Pointed;
+
+  constructor(backlogModel: Model<any>, pointedModel: Model<any>) {
+    this._backlog = backlogModel;
+    this._pointed = pointedModel;
   }
 
   createBacklogForRepoIfNotExists = async (issues: OctokitTypes.Issue[]): Promise<boolean> => {
@@ -69,3 +73,5 @@ export class IssueController extends ARepository {
   // define createNewBacklogIssue()
 
 };
+
+export default IssuesController;

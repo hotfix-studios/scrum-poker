@@ -1,5 +1,5 @@
 import { app } from '../app.js';
-import { installationController, userController, repositoryController } from "../db/controllers/index.js";
+import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
 /* Types */
 import { Request, Response, NextFunction } from "express";
@@ -7,7 +7,7 @@ import { App as AppType, Octokit } from "octokit";
 import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
 import { ModelContext } from '../types/context.js'; // TODO: idk why this needs to be separately imported..
 
-const _context: ContextTypes.Context = { app, installationController, userController, repositoryController };
+const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
 
 /* Utility Helpers */
 const Utility = new (await import("../utility/index.js")).default(_context);
@@ -38,6 +38,7 @@ class OctokitApi {
   public readonly _installationContext: ContextTypes.InstallationController;
   public readonly _userContext: ContextTypes.UserController;
   public readonly _repositoryContext: ContextTypes.RepositoryController;
+  public readonly _issuesController: ContextTypes.IssuesController;
 
   /**
    * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
@@ -46,11 +47,12 @@ class OctokitApi {
   private _installationId: number;
 
   constructor(context: ContextTypes.Context) {
-    const { app, installationController, userController, repositoryController } = context;
+    const { app, installationController, userController, repositoryController, issuesController } = context;
     this._appContext = app;
     this._installationContext = installationController;
     this._userContext = userController;
     this._repositoryContext = repositoryController;
+    this._issuesController = issuesController;
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -374,9 +376,9 @@ class OctokitApi {
         const mappedIssues = issuesData.map((issue: any) => {
           if (issue.state === "open") {
             return {
+              _id: issue.id,
               url: issue.url,
               repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
-              id: issue.id,
               number: issue.number,
               title: issue.title,
               owner_name: issue.user.login,
