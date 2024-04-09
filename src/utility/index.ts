@@ -146,6 +146,14 @@ export default class Utils {
         : null;
   };
 
+  processParamsForRestIssues = (resLocals: any): DTO.ReqProjectsParams => {
+    const { name, owner_type } = resLocals.user_data;
+    const repo_name = resLocals.repository_data.name;
+    const typeForPath = owner_type === "Organization" ? "orgs" : "users";
+    const params: DTO.ReqProjectsParams = { owner: name, repo: repo_name, owner_type: typeForPath };
+    return params;
+  };
+
   enumContainsValue = <T extends Record<string, string>>(value: string, properties: T): boolean => {
     for (const key in properties) {
       if (properties[key as keyof T] === value) {
