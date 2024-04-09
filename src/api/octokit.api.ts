@@ -324,38 +324,33 @@ class OctokitApi {
    * @requires owner: owner_name, repo: repo_name, owner_type: typeForPath to GET issues
    */
   getIssues = async (req: Request, res: Response, next: NextFunction) => {
-    const { name, owner_type } = res.locals.user_data;
-    const repo_name = res.locals.repository_data.name;
-
-    /* This formats the value associated with owner_type (installation || user) for REST url */
-    const typeForPath = owner_type === "Organization" ? "orgs" : "users";
-    const params: DTO.ReqProjectsParams = { owner: name, repo: repo_name, owner_type: typeForPath };
+    /* This formats the necessary params for REST url */
+    const params = Utility.processParamsForRestIssues(res.locals);
+    console.log("PARAMS:", params);
 
     /* TODO: DECOUPLE PROJECTS AND ISSUES LOOKUP? HOW TO DETERMINE WHICH REPO USES WHICH? */
-    // #region PROJECTS
-    try {
+    // if (/* SOME CONDITION TO LOOK FOR PROJECTS */)
+    //   try {
 
-        console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
+    //       console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
+    //       const projectsData = await this.getProjectsData(params);
+    //       // @ts-ignore
+    //       console.log("RAW FETCH DATA: {projects} ", projectsData.data);
 
-        const projectsData = await this.getProjectsData(params);
-        // @ts-ignore
-        console.log("RAW FETCH DATA: {projects} ", projectsData.data);
+    //     /* if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues) */
 
-      /* if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues) */
+    //   } catch (error) {
 
-    } catch (error) {
-
-      console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {projects}: from OctokitApi.getIssues exiting route ${req.method} - ${req.path}`);
-      console.error(error);
-      res.locals.repository_data.issues = null;
-    }
-    // #endregion PROJECTS
+    //     console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {projects}: from OctokitApi.getIssues exiting route ${req.method} - ${req.path}`);
+    //     console.error(error);
+    //     res.locals.repository_data.issues = null;
+    //   }
 
     // #region ISSUES
     try {
 
         // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
-        const { data: issuesData } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+        const { data: restIssues } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
           owner: params.owner,
           repo: params.repo,
           headers: {
@@ -363,58 +358,27 @@ class OctokitApi {
           }
         });
 
-        console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
+        console.log("--------------------- REST JAS BEEN CALLED ------------");
+        // console.log(restIssues);
 
-        /**
-         * TODO: START HERE 4/7 (NEW BRANCH AFTER CLEAN UP DONE)
-         * IF not exists in Backlog && Pointed Models
-         * use Issues.controller or whatever to WRITE issues to Backlog Model
-         */
-
-        // const jsonIssues = await issuesData.json();
-
-        const mappedIssues = issuesData.map((issue: any) => {
-          if (issue.state === "open") {
-            return {
-              _id: issue.id,
-              url: issue.url,
-              repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
-              number: issue.number,
-              title: issue.title,
-              owner_name: issue.user.login,
-              owner_id: issue.user.id,
-              labels: issue.labels,
-              state: issue.state,
-              assignee: issue.assignee,
-              assignees: issue.assignees,
-              created_at: issue.created_at,
-              updated_at: issue.updated_at,
-              closed_at: issue.closed_at,
-              author_association: issue.author_association,
-              body: issue.body,
-            };
-          }
-        });
-
-        /**
-         * @satisfies every label includes (\D\)("not digit") should be written to Backlog
-         */
-        const backlogIssues = issuesData.filter((issue: any) => {
-          /* labels do not include any "digits" */
-          return issue.labels.every((label: any) => /\D/.test(label))
-        });
-
-        /**
-         * @satisfies labels include at least one (\d\)("digit") should be written to Pointed
-         */
-        const pointedIssues = issuesData.filter((issue: any) => {
-          /* labels include a "digit" */
-          return issue.labels.some((label: any) => /\d/.test(label));
-        });
+        // console.log("RAW ISSUES DATA FROM REQUEST: ", restIssues);
+        // const jsonIssues = await restIssues.json();
 
         /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
+        const backlogDocuments = await this._issuesController
+          .createBacklogForRepoIfNotExists(restIssues, params.repo);
 
-      res.locals.repository_data.issues = mappedIssues;
+        /* case: backlog already exists in DB */
+        if (backlogDocuments === null) {
+
+          res.locals.repository_data.backlog = await this._issuesController.findBacklog(params.repo);
+        } else {
+
+          res.locals.repository_data.backlog_issues = backlogDocuments;
+        }
+
+      // TODO: HANDLE WRITE AND FIND FOR POINTED ISSUES 4/9
+      // res.locals.repository_data.pointed_issues = pointedDocuments;
 
     } catch (error) {
 
