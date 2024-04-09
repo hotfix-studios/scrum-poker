@@ -1,6 +1,4 @@
-import { Installation, Repository } from "../models/index.js";
 import { ARepository } from "./base/ARepository.js";
-import { Request, Response } from "express";
 import { Schema, Model, FilterQuery, Document } from "mongoose";
 import * as OctokitTypes from '../../types/octokit.js';
 
