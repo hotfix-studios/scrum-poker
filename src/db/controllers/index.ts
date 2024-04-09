@@ -3,7 +3,7 @@ import { UserController } from "./user.controller.js";
 import { RepositoryController } from "./repository.controller.js";
 import { IssuesController } from "./issue.controller.js";
 
-import { Installation, User, Repository } from "../models/index.js";
+import { Installation, User, Repository, Backlog, Pointed } from "../models/index.js";
 
 /** ***************** **
  * ******************* *

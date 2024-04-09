@@ -97,6 +97,8 @@ const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     const time = new Date();
     const formattedDate = time.toLocaleTimeString("en-US");
     console.log("\x1b[32m%s\x1b[0m", `[${formattedDate}] ${req.method} ${req.url}`);
+    const pathSegments = req.url.split("/");
+    console.log("\x1b[33m%s\x1b[0m", `API controller -- ${pathSegments[2]}`);
     next();
 };
 
@@ -109,9 +111,7 @@ const setResponseLocals = (req: Request, res: Response, next: NextFunction): voi
 
 const setProjectionsContext = (req: Request, res: Response, next: NextFunction): void => {
     const pathSegments = req.url.split("/");
-    console.log("-- -- -- PATH SEGMENTS -- -- -- ", pathSegments);
     const apiIndex = pathSegments.indexOf("api");
-
     if (apiIndex !== -1 && apiIndex < pathSegments.length - 1) {
       res.locals.routeProjectionsContext = pathSegments[apiIndex + 1];
     } else { /* error condition */
