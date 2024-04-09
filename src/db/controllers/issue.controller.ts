@@ -2,8 +2,15 @@ import { Backlog, Pointed } from "../models/index.js";
 import { ARepository } from "./base/ARepository.js";
 
 import { Model, Document } from "mongoose";
-import * as OctokitTypes from "../../types/octokit.js";
+import { OctokitTypes, DTO } from "../../types/index.js";
 
+///////////////////// /////////////////////
+//// - CRUD USE: //// //// - HTTP USE: ////
+//// - Create... //// //// - Post...   ////
+//// - Find...   //// //// - Get...    ////
+//// - Update... //// //// - Patch...  ////
+//// - Delete... //// //// - Delete... ////
+///////////////////// /////////////////////
 
 /**
  * This will be the Repository for User Model (CRUD)

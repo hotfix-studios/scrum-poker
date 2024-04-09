@@ -1,27 +1,16 @@
 import { app } from '../app.js';
-
-import dotenv from "dotenv";
-
-/* DB Context Repositories (CRUD) */
 import { installationController, userController, repositoryController } from "../db/controllers/index.js";
-import { InstallationController } from "../db/controllers/installation.controller.js";
-import { UserController } from "../db/controllers/user.controller.js";
-import { RepositoryController } from "../db/controllers/repository.controller.js";
 
-import { Context, ModelContext } from "./base/AHandler.js";
-
-/* TYPES */
+/* Types */
 import { Request, Response, NextFunction } from "express";
 import { App as AppType, Octokit } from "octokit";
-/* TODO: destructure types for import optimization */
-import * as OctokitTypes from '../types/octokit.js';
+import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
+import { ModelContext } from '../types/context.js'; // TODO: idk why this needs to be separately imported..
+
+const _context: ContextTypes.Context = { app, installationController, userController, repositoryController };
 
 /* Utility Helpers */
-import { findOwner } from "../utility/index.js";
-
-dotenv.config();
-
-const _context: Context = { app, installationController, userController, repositoryController };
+const Utility = new (await import("../utility/index.js")).default(_context);
 
 /**
  * Octokit Responsibilities:
@@ -30,45 +19,46 @@ const _context: Context = { app, installationController, userController, reposit
  * - - Get Backlogs ✔
  * - - Get associated users (repo)
  * - Post Labels == User Input story point values
- * - Get Organization
+ * - Get Organization (by user?)
  * - - Get associated users (org)
- * - Post/Patch story points to issues (look for field with type number (on Project/Issues))
- * - - Add label equivalent story points
+ * - Post/Patch story points to issues (look for label (Issues) or field (Project) with type number)
  * - Post Sprint (completed)(pending completion?)
- */
-
-/**
- * TODO: IDEA:
- * THIS FILE SHOULD ONLY BE EVENT HANDLER FUNCTIONS THAT CALL octokit (or any?) Controller Functions?
  */
 
 class OctokitApi {
 
+  /**
+   * @description Base-level-authenticated Octokit instance (exposes Octokit API/REST)
+   */
   public readonly _appContext: AppType;
-  public readonly _installationContext: InstallationController;
-  public readonly _userContext: UserController;
-  public readonly _repositoryContext: RepositoryController;
 
   /**
-   * @description Octokit instance with installation ID level authentication (GH App)
+   * @description All DB (Models) controllers (Unit of Work)
+   */
+  public readonly _installationContext: ContextTypes.InstallationController;
+  public readonly _userContext: ContextTypes.UserController;
+  public readonly _repositoryContext: ContextTypes.RepositoryController;
+
+  /**
+   * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
    */
   private _authenticatedOctokit: Octokit;
   private _installationId: number;
 
-  /**
-   * @summary Instantiated Octokit App class exposes Octokit API/REST
-   */
-  constructor(_context: Context) {
-    const { app, installationController, userController, repositoryController } = _context;
+  constructor(context: ContextTypes.Context) {
+    const { app, installationController, userController, repositoryController } = context;
     this._appContext = app;
     this._installationContext = installationController;
     this._userContext = userController;
     this._repositoryContext = repositoryController;
   }
 
-  /** ************ **
-   *  Installation  *
-   ** ************ **/
+  /////////////////////////////////////////////////////////////////////////////
+  // #region /////////////////////// Route Handlers ///////////////////////////
+
+  //////////////////////////////////////////
+  // #region /////// Installations /////////
+  //////////////////////////////////////////
 
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
     console.log("getAuth firing!!");
@@ -88,7 +78,21 @@ class OctokitApi {
     // #endregion
 
     /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
+    // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
     const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+
+    // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
+
+    /* option 1 */
+    // this._appContext.octokit.rest.repos.listCollaborators();
+    // write collaborators (_ids) to Users table in DB
+    // write users._ids to Installation.collaborators
+    // this should give collaborator/users access to specific repo
+
+    /* option 2 */
+    // this._appContext.octokit.rest.repos.listCollaborators();
+    // write these collaborators to Installation.collaborators in DB
+    // generate UUID/key (user distributes)
 
     try {
 
@@ -104,10 +108,15 @@ class OctokitApi {
   };
 
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
+  /**
+   * @deprecated
+   */
   getInstallationDataById = async (req: Request, res: Response, next: NextFunction) => {
-    const targetContext = ModelContext.Installation;
+    const middlewareContext = ModelContext.Installation;
+    const routeProjectionsContext = res.locals.routeProjectionsContext;
     const id: number = Number(req.params.id);
-    const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
+    // const projections: string[] = Utility.getProjectionsByContext(req.params, this._projectionsContext);
+    const projections = Utility.determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
 
     const data = await this._installationContext.findDocumentProjectionById(id, projections);
 
@@ -117,90 +126,128 @@ class OctokitApi {
     next();
   };
 
-  // TODO: this function does more than just get, decouple get and write ops
-  getInstallation = async ({ octokit, payload }): Promise<void> => {
-    // TODO: un-destructure and log entire input obj
-    console.log(`Entering octokit.api getInstallation() - `);
-    const data = payload;
+  getInstallation = async (req: Request, res: Response, next: NextFunction ) => {
+    const { middlewareContext, routeProjectionsContext } = Utility.getQueryContext(ModelContext.Installation, res.locals);
+    const resLocalsId = Utility.getUserId(res.locals);
+
+    const id: number = this._installationId
+      ? this._installationId
+      : resLocalsId
+        ? resLocalsId
+        : Number(req.params.id);
+
+    const projections = Utility.determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
 
     try {
 
-      await this._installationContext.findOrCreateInstallation(payload);
+      res.locals.installation_data = await this._installationContext.findDocumentProjectionById(id, projections)
+      console.log("RES.LOCALS INSTALLATION DATA: ", res.locals.installation_data);
     } catch (error) {
 
-      console.error(`octokit api getInstallation catch:`, error);
-      throw error;
+      console.error(`Failed looking up User Id with: ${id} from res.locals | req.params.id...`);
+      console.error("\x1b[31m%s\x1b[0m", `octoKitApi.getInstallation failure, exiting route ${req.method} - ${req.path}`, error);
     }
-  };
 
-  /** ************ **
-   *  Repository * **
-   ** ************ **/
-
-  getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("Success calling modular getRepoDataById");
-    const targetContext = ModelContext.Repository;
-
-    const projections: string[] = req.params.projections
-      ? req.params.projections?.split(",")
-      : this.getProjectionsByContext(req.params.projections, targetContext);
-
-    /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
-    const installation = await this._installationContext.findInstallationById(this._installationId);
-
-    const installationReposIds: number[] = installation.repos;
-
-    const installationRepoDataPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-      const data = await this._repositoryContext.findDocumentProjectionById(repoId, projections);
-      // @ts-ignore
-      return data;
-    });
-
-    const installationRepoData = await Promise.all(installationRepoDataPromises);
-
-    /* TODO: WARN - req.params.projections may interfere with next() fn this.getProjectionsByContext calls? */
-
-    console.log("PROJECTIONS FROM PARAMS: ", projections);
-    console.log("DATA: ALL repo data?? == ", installationRepoData);
-
-    /* TODO: Only need this installation_data if next() in middleware sequence requires... */
-    // res.locals.installation_data = res.locals.installation_data ? res.locals.installation_data : {};
-    // res.locals.installation_data.id = this._installationId;
-
-    res.locals.repo_data = installationRepoData;
-
-    /* TODO: conditionally apply this?? id */
-    // @ts-ignore
-    // req.params.id = data.owner_id.toString();
     next();
   };
 
-  getReposById = async (req: Request, res: Response) => {
-    console.log("**ENDPOINT HAS BEEN HIT**");
-    console.log("-- RECEIVING HTTP FROM C# inside octokitApi.getRepos");
-    const id: number = Number(req.params.id); // req.params? req.query?
-    console.log("INSTALL ID: from C# HTTP REQ", id);
+  //////////////////////////////////////////
+  // #endregion ////// Installations ///////
+  //////////////////////////////////////////
 
-    let installation = await this._installationContext.findInstallationById(id);
+  //////////////////////////////////////////
+  // #region /////// Repositories //////////
+  //////////////////////////////////////////
 
-    const installationReposIds: number[] = installation.repos;
+  getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
+    const { middlewareContext, routeProjectionsContext } = Utility
+      .getQueryContext(ModelContext.Repository, res.locals);
 
-    const installationRepoNamesPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
-      const data = await this._repositoryContext.findRepoNameById(repoId);
-      // @ts-ignore
-      return data.name;
-    });
+    const projections = Utility
+      .determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
 
-    const installationRepoNames = await Promise.all(installationRepoNamesPromises);
+      try {
 
-    res.status(200).send(installationRepoNames);
+        const installation = res.locals.installation_data.repos.length
+        ? res.locals.installation_data
+        : await this._installationContext.findInstallationById(this._installationId);
+
+        console.log("INSTALLATION: ", installation);
+
+        const installationReposIds: number[] = installation.repos;
+
+        const installationRepoDataPromises: Promise<any>[] = installationReposIds.map(async (repoId: number) => {
+          return await this._repositoryContext.findDocumentProjectionById(repoId, projections);
+      });
+
+      const installationRepoData = await Promise.all(installationRepoDataPromises);
+
+      console.log("PROJECTIONS FROM PARAMS: ", projections);
+      console.log("DATA: ALL repo data?? == ", installationRepoData);
+
+      /* TODO: Only need this installation_data if next() in middleware sequence requires... */
+      // res.locals.installation_data.id = this._installationId;
+
+      res.locals.repository_data = installationRepoData;
+
+      } catch (error) {
+
+        console.error("\x1b[31m%s\x1b[0m", `octoKitApi.getRepoDataById failure, exiting route ${req.method} - ${req.path}`, error);
+      }
+
+    next();
+  };
+
+  /* TODO: make function that performs installation lookup process to all repos for install data (use in getReposById) */
+  getReposByInstallationId = async (req: Request, res: Response, next: NextFunction) => {
+    let id: number;
+
+    try {
+      id = this._installationId
+        ? this._installationId
+        : req.params.id
+          ? Number(req.params.id)
+          : res.locals.installation_data.id;
+
+        } catch (error) {
+
+      console.error("\x1b[31m%s\x1b[0m", `route ${req.method} - ${req.path}`);
+      console.error("getReposByInstallationId installation id is null.", error);
+      res.sendStatus(404);
+    }
+
+    try {
+
+      const installation = res.locals.installation_data.repos?.length
+          ? res.locals.installation_data
+          : await this._installationContext.findInstallationById(id);
+      const installationReposIds: number[] = installation.repos;
+
+      try {
+
+        /* .repos and .repositories are distinct, repositories includes ALL repo data */
+        res.locals.installation_data.repositories = await this._repositoryContext.find({ _id: { $in: installationReposIds } });
+
+      } catch (error) {
+
+        console.error(`Failed to find repositories by these repo ids ${installationReposIds}`, error);
+        res.locals.installation_data = installation;
+
+      }
+    } catch (error) {
+
+      console.error(`installation ${id} does not exist in DB`);
+      res.sendStatus(404);
+    }
+
+    next();
   };
 
   getRepoIssuesUrl = async (req: Request, res: Response, next: NextFunction) => {
     const id: number = Number(req.params.id);
     const issues_url = await this._repositoryContext.findRepoIssuesUrl(id);
 
-    res.locals.data.issues_url = issues_url;
+    res.locals.repository_data.issues_url = issues_url;
     next();
   };
 
@@ -209,62 +256,28 @@ class OctokitApi {
     throw new Error("method not implemented");
   };
 
-  getAndPostInstallationRepos = async ({ octokit, payload }): Promise<void> => {
-    try {
+  //////////////////////////////////////////
+  // #endregion ////// Repositories ////////
+  //////////////////////////////////////////
 
-      const { data } = await octokit.rest.apps.listReposAccessibleToInstallation();
-      const { repositories } = data;
+  //////////////////////////////////////////
+  // #region /////////// Users /////////////
+  //////////////////////////////////////////
 
-      const documents = await this._repositoryContext.createInstallationRepositories(repositories);
-
-      if (!documents) console.error(`repositories failed to WRITE to DB at repositoryController.createInstallationRepos... call in api`);
-
-    } catch (error) {
-
-      console.error(`FAILED at .rest.apps.listReposAccess...()`, error);
-      throw error;
-    }
-  };
-
-  handleRepoCreate = async ({ octokit, payload }): Promise<void> => {
-    try {
-      await this._repositoryContext.createRepo(payload);
-      console.log("event registering... handleRepoCreate: _repositoryContext.createRepo called success✅");
-    } catch (error) {
-      console.error(`GH Repo Create event call handleRepoCreate write one to DB failure: `, error);
-    }
-  };
-
-  /** ************ **
-   *  *** User  ** **
-   ** ************ **/
-
+  /**
+   * @argument res.locals must contain an array of projections before entering this middleware...
+   * @deprecated
+   */
   getUserDataById = async (req: Request, res: Response, next: NextFunction) => {
-    const targetContext = ModelContext.User;
-    let id: number;
+    const middlewareContext = ModelContext.User;
+    const routeProjectionsContext = res.locals.routeProjectionsContext;
+    // let id: number;
+    const id: number = req.params.id ? Number(req.params.id) : Utility.getUserId(res.locals);
 
-    /* TODO: this might have bad edge cases where multiple res.locals obj exist (also should be a class function...) */
-    /* IDEA: append "flag" or string pre-Next() i.e.: res.locals.prev = "user" where res.locals.user_data was just appended... */
-    /* request coming from http end point directly */
-    // if (req.params.id) {
-    //   id = Number(req.params.id);
+    /* TODO: TEST if new projections and Utility call is working.. */
+    // const projections: string[] = Utility.getProjectionsByContext(req.params, routeProjectionsContext);
+    const projections = Utility.determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
 
-    // /* response coming from next() middleware call Installation */
-    // } else if (res.locals.installation_data.owner_id) {
-    //   id = res.locals.installation_data.owner_id
-
-    // /* response coming from next() middleware call Installation */
-    // } else if (res.locals.repository_data.owner_id) {
-    //   id = res.locals.repository_data.owner_id;
-
-    // /* response coming from next() middleware call Users */
-    // } else if (res.locals.user_data._id) {
-    //   id = res.locals.user_data._id
-    // }
-
-    // TODO: make sure this data exists from prev middleware req... if not, append to res.locals in prev
-    // const projections: string[] = req.body.user_projections;
-    const projections: string[] = this.getProjectionsByContext(req.params.projections, targetContext);
 
     try {
 
@@ -272,143 +285,71 @@ class OctokitApi {
       res.locals.user_data = data;
       next();
     } catch (error) {
-
+      console.error("\x1b[31m%s\x1b[0m", `try to lookup User by Id where Id === ${id}`);
       console.error("\x1b[31m%s\x1b[0m", "failure userContext.find...ById, projections: ", error);
     }
   };
 
-  getUserNameByOwnerId = async (req: Request, res: Response, next: NextFunction) => {
-    const targetContext = ModelContext.User;
-    // const id: number = Number(req.params.id);
+  getUserNameAndTypeById = async (req: Request, res: Response, next: NextFunction) => {
     const id: number = req.params.id
       ? Number(req.params.id)
       : Number(req.params.owner);
 
-    /* TODO: IDEA: (more modular) maybe just return whole User document (rename method) and parse on C# side? */
     const data = await this._userContext
       .findDocumentProjectionById(id, [ "name", "type" ]);
 
     res.locals.user_data = data;
 
-    /* if repository_data has not been assigned to locals, create an empty obj */
-    res.locals.repository_data = res.locals.repository_data
-      ? res.locals.repository_data
-      : {};
-
-    /* get repo name from req if exists, else get it from repository_data from prev middleware assignment */
+    /* get repo name from req if exists, else get it from repository_data from prev middleware assignment, else get it from next() */
     res.locals.repository_data.name = req.params.repo
       ? req.params.repo
       : res.locals.repository_data.name
         ? res.locals.repository_data.name
         : null;
+
     next();
   };
 
-  createOwnerUser = async ({ payload }): Promise<void> => {
-    const { installation }: { installation: OctokitTypes.Installation, } = payload;
-    const { account }: { account: OctokitTypes.User } = installation;
+  //////////////////////////////////////////
+  // #endregion //////// Users /////////////
+  //////////////////////////////////////////
 
-    try {
+  //////////////////////////////////////////
+  // #region //////// Issues  //////////////
+  //////////////////////////////////////////
 
-      await this._userContext.createUser(account, false, true);
-    } catch (error) {
-
-      if (!installation || !account) {
-        console.error(`Null value on payload for createOwnerUser`, error);
-        throw error;
-      }
-
-      console.error(`Internal server error from createOwnerUser octokit.api:`, error);
-      throw error;
-    }
-  };
-
-  /** ************ **
-   **  ** Issues * **
-   ** ************ **/
-
-  // TODO: get issues
-  getIssues = async (req: Request, res: Response, next: NextFunction) => { // issueURLs: string[] = []
-    const owner_id = req.params.owner
-      ? Number(req.params.owner)
-      : req.params.id
-        ? Number(req.params.id)
-        : null;
-
-    let owner_name: string;
-    let owner_type: string;
-
-    if (res.locals) {
-      owner_name = this.getUserName(res.locals);
-      owner_type = this.getUserType(res.locals); // this handles .user_data and installation_data (only db types with ".type")
-    } else {
-      const ownerDoc = await this._userContext
-        .findDocumentProjectionById(owner_id, [ "name", "type" ]);
-      // @ts-ignore
-      owner_name = ownerDoc.name;
-      // @ts-ignore
-      owner_type = ownerDoc.type;
-    }
-
-    const repo_name = res.locals
-      ? res.locals.repository_data.name
-      : req.params.repo;
+  /**
+   * @requires owner: owner_name, repo: repo_name, owner_type: typeForPath to GET issues
+   */
+  getIssues = async (req: Request, res: Response, next: NextFunction) => {
+    const { name, owner_type } = res.locals.user_data;
+    const repo_name = res.locals.repository_data.name;
 
     /* This formats the value associated with owner_type (installation || user) for REST url */
-    const typeForPath = owner_type === "Organization"
-      ? "orgs"
-      : "users";
+    const typeForPath = owner_type === "Organization" ? "orgs" : "users";
+    const params: DTO.ReqProjectsParams = { owner: name, repo: repo_name, owner_type: typeForPath };
 
-    const params = { owner: owner_name, repo: repo_name, owner_type: typeForPath };
-
-    /**
-     * These two "try" blocks logically fork, top fetches Projects, bottom fetches Issues
-     */
+    /* TODO: DECOUPLE PROJECTS AND ISSUES LOOKUP? HOW TO DETERMINE WHICH REPO USES WHICH? */
+    // #region PROJECTS
     try {
 
         console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
-        // const projectsData = await fetch(`https://api.github.com/${params.owner_type}/${params.owner}/projects`, {
-        //     method: 'GET',
-        //     headers: {
-        //         Authorization: `Basic ${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`
-        //     }
-        // });
 
-        let projectsData;
+        const projectsData = await this.getProjectsData(params);
+        // @ts-ignore
+        console.log("RAW FETCH DATA: {projects} ", projectsData.data);
 
-        if (typeForPath == "orgs") {
-          projectsData = await this._authenticatedOctokit.request("GET /orgs/{org}/projects", {
-            org: params.owner,
-            headers: {
-              "X-GitHub-Api-Version": "2022-11-28"
-            }
-          });
-        } else if (typeForPath == "users") {
-          projectsData = await this._authenticatedOctokit.request("GET /users/{username}/projects", {
-            username: params.owner,
-            headers: {
-              "X-GitHub-Api-Version": "2022-11-28"
-            }
-          });
-        }
-
-        console.log("RAW FETCH DATA: {projects} ", projectsData);
-
-        const jsonProjects = await projectsData.json();
-
-        console.log("PROJECTS JSON FROM GET: ", jsonProjects);
-
-      /**
-       * TODO: if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues)
-       */
+      /* if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues) */
 
     } catch (error) {
 
-        console.error("fail to hit REST GET {projects}:", error);
-        res.locals.repository_data.issues = null;
-        // next();
+      console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {projects}: from OctokitApi.getIssues exiting route ${req.method} - ${req.path}`);
+      console.error(error);
+      res.locals.repository_data.issues = null;
     }
+    // #endregion PROJECTS
 
+    // #region ISSUES
     try {
 
         // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
@@ -423,110 +364,99 @@ class OctokitApi {
         console.log("RAW ISSUES DATA FROM REQUEST: ", issuesData);
 
         /**
-         * TODO:
+         * TODO: START HERE 4/7 (NEW BRANCH AFTER CLEAN UP DONE)
          * IF not exists in Backlog && Pointed Models
          * use Issues.controller or whatever to WRITE issues to Backlog Model
          */
 
         // const jsonIssues = await issuesData.json();
 
-        /* TODO: Should these go into the DB at all? */
         const mappedIssues = issuesData.map((issue: any) => {
-          return {
-            url: issue.url,
-            repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
-            id: issue.id,
-            number: issue.number,
-            title: issue.title,
-            owner_name: issue.user.login,
-            owner_id: issue.user.id,
-            labels: issue.labels,
-            state: issue.state,
-            assignee: issue.assignee,
-            assignees: issue.assignees,
-            created_at: issue.created_at,
-            updated_at: issue.updated_at,
-            closed_at: issue.closed_at,
-            author_association: issue.author_association,
-            body: issue.body,
-          };
+          if (issue.state === "open") {
+            return {
+              url: issue.url,
+              repository_url: issue.repository_url, // this can be used to look up issues by (this is repo.url from Mongo)
+              id: issue.id,
+              number: issue.number,
+              title: issue.title,
+              owner_name: issue.user.login,
+              owner_id: issue.user.id,
+              labels: issue.labels,
+              state: issue.state,
+              assignee: issue.assignee,
+              assignees: issue.assignees,
+              created_at: issue.created_at,
+              updated_at: issue.updated_at,
+              closed_at: issue.closed_at,
+              author_association: issue.author_association,
+              body: issue.body,
+            };
+          }
         });
 
+        /**
+         * @satisfies every label includes (\D\)("not digit") should be written to Backlog
+         */
+        const backlogIssues = issuesData.filter((issue: any) => {
+          /* labels do not include any "digits" */
+          return issue.labels.every((label: any) => /\D/.test(label))
+        });
+
+        /**
+         * @satisfies labels include at least one (\d\)("digit") should be written to Pointed
+         */
+        const pointedIssues = issuesData.filter((issue: any) => {
+          /* labels include a "digit" */
+          return issue.labels.some((label: any) => /\d/.test(label));
+        });
+
+        /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
 
       res.locals.repository_data.issues = mappedIssues;
-      // next();
 
     } catch (error) {
 
-      console.error("fail to hit REST GET {issues}:", error);
-      // next();
+      console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {issues}: exiting route ${req.method} - ${req.path}`, error);
     }
+    // #endregion ISSUES
 
     next();
   };
 
-  /** *************** **
-   *  Util/Wildcard * **
-   ** *************** **/
+  getProjectsData = async (params: DTO.ReqProjectsParams) => {
+    let projectsData: Partial<OctokitTypes.OrgProject | OctokitTypes.UserProject>;
 
-  // TODO: MOVE THESE TO Utils and import? "../utility/index.js";
+      if (params.owner_type == "orgs") {
+        projectsData = await this._authenticatedOctokit.request("GET /orgs/{org}/projects", {
+          org: params.owner,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28"
+          }
+        });
+      } else if (params.owner_type == "users") {
+        projectsData = await this._authenticatedOctokit.request("GET /users/{username}/projects", {
+          username: params.owner,
+          headers: {
+            "X-GitHub-Api-Version": "2022-11-28"
+          }
+        });
+      }
 
-  /**
-   * @summary utility to conditionally parse projection string[] for intended model
-   * @param obj req.body (will have projections string[])
-   * @returns string[] for model query projections
-   */
-  getProjections = (obj: any) => {
-    return obj.installation_projections
-      ? obj.installation_projections
-      : obj.repository_projections
-        ? obj.repository_projections
-        : obj.user_projections
-          ? obj.user_projections
-          : obj.room_projections
-            ? obj.room_projections
-            : obj.projections;
+    return projectsData;
   };
 
-  /**
-   * @summary utility to conditionally parse projection string[] for intended model specified by context
-   * @param obj req.body (will have projections string[])
-   * @param targetContext string in "singular-tense" representing target db context (Model) name
-   * @returns string[] for model query projections
-   */
-  getProjectionsByContext = (obj: any, targetContext: string) => {
-    const context = targetContext.toLowerCase();
-    return context === "installation"
-      ? obj.installation_projections
-      : context === "repository"
-        ? obj.repository_projections
-        : context === "user"
-          ? obj.user_projections
-          : context === "room"
-            ? obj.room_projections
-            : obj.projections;
-  };
+  //////////////////////////////////////////
+  // #endregion ///////// Issues ///////////
+  //////////////////////////////////////////
 
-  getUserName = (obj: any) => {
-    return obj.user_data
-      ? obj.user_data.name
-      : obj.repository_data
-        ? obj.repository_data.full_name.split("/")[0]
-        : obj.installation_data
-          ? obj.installation_data
-          : obj.installation_data.owner_name
-  };
 
-  getUserType = (obj: any) => {
-    return obj.user_data
-      ? obj.user_data.type
-      : obj.installation_data
-        ? obj.installation_data.type
-        : null // error condition
-  };
+  //////////////////////////////////////////
+  // #region /////// Util/Wildcard /////////
+  //////////////////////////////////////////
 
-  sendData = (req: Request, res: Response) => {
+  sendData = (req: Request, res: Response): void => {
     console.log("Ending middleware chain. Sending response");
+    /* TODO: with new Global setResponseLocals middleware res.locals will always be truthy... */
     if (res.locals) {
       /* res.locals will be garbage collected at the end of every req/res cycle */
       const processedBody = res.locals;
@@ -537,9 +467,73 @@ class OctokitApi {
     }
   };
 
-  /** **************** **
-   *  Event Handlers * **
-   ** **************** **/
+  //////////////////////////////////////////
+  // #endregion ////// Util/Wildcard ///////
+  //////////////////////////////////////////
+
+  //////////////////////////////////////////
+  // #endregion ////// Route Handlers //////
+
+  /////////////////////////////////////////////////////////////////////////////
+  // #region /////////////////////// Event Handlers ///////////////////////////
+
+  handleInstallationCreate = async ({ octokit, payload }): Promise<void> => {
+    console.log(`Entering octokit.api handleInstallationCreate() for - ${payload.installation.account.login}`);
+
+    try {
+
+      await this._installationContext.findOrCreateInstallation(payload);
+    } catch (error) {
+
+      console.error("\x1b[31m%s\x1b[0m", `octokit api event handler handleInstallationCreate catch: `, error);
+      throw error;
+    }
+  };
+
+  handleInstallationReposFindAndCreate = async ({ octokit, payload }): Promise<void> => {
+    try {
+
+      /* TODO: MOVE REPOS GET? DECOUPLE FROM INSTALLATION? OR NEED TO WRITE COLLABORATORS AND ASSOCIATE WITH REPOS? SEE INSTALLATION SCHEMA */
+      /* TODO: what is the equivalent of res.locals for event handlers? */
+      const { data } = await octokit.rest.apps.listReposAccessibleToInstallation();
+      const { repositories } = data;
+
+      const documents = await this._repositoryContext.createInstallationRepositories(repositories);
+
+    } catch (error) {
+
+      console.error(`FAILED to READ or WRITE to DB at .rest.apps.listReposAccess...()`, error);
+      throw error;
+    }
+  };
+
+  handleRepoCreate = async ({ octokit, payload }): Promise<void> => {
+    try {
+      await this._repositoryContext.createRepo(payload);
+      console.log("event registering... handleRepoCreate: _repositoryContext.createRepo called success✅");
+    } catch (error) {
+      console.error(`GH Repo Create event call handleRepoCreate write one to DB failure: `, error);
+    }
+  };
+
+  handleOwnerUserCreate = async ({ payload }): Promise<void> => {
+    const { installation }: { installation: OctokitTypes.Installation, } = payload;
+    const { account }: { account: OctokitTypes.User } = installation;
+
+    try {
+
+      await this._userContext.createUser(account, false, true);
+    } catch (error) {
+
+      if (!installation || !account) {
+        console.error(`Null value on payload for handleOwnerUserCreate`, error);
+        throw error;
+      }
+
+      console.error(`Internal server error from handleOwnerUserCreate octokit.api:`, error);
+      throw error;
+    }
+  };
 
   issueOpenedHandler = async ({ octokit, payload }): Promise<void> => {
     // console.log("PAYLOAD INSTALL ID:", payload.installation.id);
@@ -549,7 +543,7 @@ class OctokitApi {
     // const installationLog = await this._appContext.getInstallationOctokit(payload.installation.id);
 
     /* TODO: THESE TWO SHOULD ACTUALLY BE USED AT SOME POINT: */
-    // const foundOwnerId: number = await findOwner(payload);
+    // const foundOwnerId: number = await findOwnerId(payload); // TODO: this fn might work?
     // const dbQueryInstallId: number = await installationController.findInstallationIdByOwnerId(foundOwnerId);
     // console.log("RECURSIVE DB QUERY INSTALL ID:", dbQueryInstallId);
 
@@ -586,9 +580,7 @@ class OctokitApi {
     const params = { owner: repository.owner.login, repo: repository.name };
     const issueNumber = issue.number;
 
-    /* THIS WILL BE ITS OWN METHOD */
     const { data } = await octokit.rest.issues.listForRepo(params);
-    // console.log(data);
 
     return octokit.rest.issues.createComment({
       ...params,
@@ -623,13 +615,15 @@ class OctokitApi {
 
   wildCardErrorHandler = (error): void => {
     if (error.name === "AggregateError") {
-      console.error(`Error processing request: ${error.event}`);
+      console.error("\x1b[31m%s\x1b[0m", `Error processing request: ${error.event}`);
     } else {
-      console.error(error);
+      console.error("\x1b[31m%s\x1b[0m", error);
     }
   };
 
-}
+  /////////////////////////////////////////////////////////////////////////////
+  // #endregion /////////////////////// Event Handlers ////////////////////////
 
+}
 
 export default new OctokitApi(_context);

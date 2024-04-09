@@ -199,6 +199,40 @@ export interface Organization {
   description: string;
 }
 
+export interface UserProject {
+  owner_url: string;
+  url: string;
+  html_url: string;
+  columns_url: string;
+  id: number;
+  node_id: string;
+  name: string;
+  body: string;
+  number: number;
+  state: string;
+  creator: User;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface OrgProject {
+  owner_url: string;
+  url: string;
+  html_url: string;
+  columns_url: string;
+  id: number;
+  node_id: string;
+  name: string;
+  body: string;
+  number: number;
+  state: string;
+  creator: User;
+  created_at: Date;
+  updated_at: Date;
+  organization_permission: string;
+  private: boolean;
+}
+
 
 /** ***************** **
  * ******************* *

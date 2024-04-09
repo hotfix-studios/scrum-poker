@@ -1,4 +1,3 @@
-import { Request, Response } from "express";
 import { Schema, Model, model, Document, FlattenMaps } from "mongoose";
 // TODO: This is a hack. TS couldn't infer correct type when actual type passed in (was using typeof User)
 // import type { User } from "../../models/index.js";
@@ -30,16 +29,13 @@ export abstract class ARepository {
     throw new Error("Method not implemented.");
   }
 
-  /* HANDLES REQ RES, NEEDS ON SUCCESS RES.SEND or something */
-  async find(req: Request, res: Response, filter: { [key: string]: any } = {}): Promise<any[]> {
-    //TODO: filter param should come from req?
+  async find(filter: { [key: string]: any } = {}): Promise<any[]> {
     try {
 
       return this._model.find(filter);
     } catch (error) {
 
-      console.error(`Internal server error when getting all from ${this._model}:`, error);
-      res.sendStatus(500).json({ message: "Internal Server Error Get All" });
+      throw error(`Internal server error when getting all from ${this._model}:`, error);
     }
   }
 
@@ -53,28 +49,24 @@ export abstract class ARepository {
    * @returns e.g.: `{ _id: 000000000, projections[0]: 'document-data', projections[1]: 'https://...' }`
    */
   async findDocumentProjectionById(_id: number, projections: string[]): Promise<Partial<typeof Document>>{
+    /* TODO: Partial Document needs to change to a type with obj.name & obj.type.. */
     return projections.length
       ? await this._model.findById(_id, projections)
       : await this._model.findById(_id);
   };
 
-  async httpFindOneById (req: Request, res: Response): Promise<Response> { // TODO: intellisense type: Promise<Response<any, Record<string, any>>>
+  async httpFindOneById (id: string | number): Promise<any | any[]> {
+    if (typeof id === "number") id = id.toString();
+
     try {
 
-      const { id } = req.params;
-
       const document = await this._model.findById(id);
-
-      if (!document) {
-        return res.status(404).json({ message: `Document from ${this._model} not found` });
-      }
-
-      return res.status(200).json(document);
+      return document;
 
     } catch (error) {
 
       console.error(`Internal server error when getting ${this._model}:`, error);
-      res.sendStatus(500).json({ message: "Internal Server Error Get" });
+      throw error;
     }
   }
 

@@ -1,17 +1,23 @@
-import { Application, Request, Response, Router, json, urlencoded, static as Static } from "express";
+import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
 import { middleware } from "../app.js";
 import { fileURLToPath } from 'url';
 import path from "path";
 import cors from "cors";
 
-/* API ROUTERS */
+///////////////////
+/// API ROUTERS ///
+///////////////////
+
 /* TODO: these should be importing on a single object */
 import installationsRouter from "./installations.router.js";
 import issuesRouter from "./issues.router.js";
 import repositoriesRouter from "./repositories.router.js";
 import usersRouter from "./users.router.js";
 
-/* TYPES */
+///////////////////
+////// TYPES //////
+///////////////////
+
 import { App as AppType } from "octokit";
 import { octokitApi } from "../api/index.js";
 
@@ -25,6 +31,7 @@ api.use("/repos", repositoriesRouter);
 api.use("/users", usersRouter);
 
 export const configureServer = (server: Application) => {
+
     /* Global Middleware */
     server
         .use(middleware)
@@ -37,7 +44,7 @@ export const configureServer = (server: Application) => {
 
     /* All api routes */
     server
-        .use(httpLogger)
+        .use([httpLogger, setResponseLocals, setProjectionsContext])
         .use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
 
     server.get("/", (req, res) => {
@@ -51,40 +58,64 @@ export const configureServer = (server: Application) => {
 
 };
 
-    // TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
-    // // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
-    // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
+// TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
+// // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
+// TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
 
 /**
- * This sets up the event listeners (like webhook).
- * E.g.: when the app receives a webhook event (POST?) from GitHub with a `X-GitHub-Event` header value of `pull_request`
+ * @summary This sets up the event listeners (like webhook).
+ * @description e.g. when the app receives a webhook event (POST?) from GitHub with a `X-GitHub-Event` header value of `pull_request`
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
  */
 export const registerEventListeners = (octokitClient: AppType) => {
-  console.log("\x1b[36m%s\x1b[0m", "Event Liseteners registering...");
+  console.log("\x1b[36m%s\x1b[0m", "Event Listeners registering...");
   // TODO: Wss On Connection?
-  // Installation
-  octokitClient.webhooks.on("installation.created", octokitApi.getInstallation);
-  octokitClient.webhooks.on("installation.created", octokitApi.getAndPostInstallationRepos);
-  octokitClient.webhooks.on("installation.created", octokitApi.createOwnerUser);
-  // Repos
+  /* INSTALLATION */
+  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationCreate);
+  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindAndCreate);
+  octokitClient.webhooks.on("installation.created", octokitApi.handleOwnerUserCreate);
+  /* REPOS */
   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
-  // Issues
+  /* ISSUES */
   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
-  // TODO: assign points to Issue
-  // TODO: grab and move Issue from Backlog to In Progress lane
-  // PRs
+  // TODO: label.added? event - grab and move Issue from Backlog to In Progress lane (GH SCRUM POKER v2.0)
+  // octokitClient.webhooks.on("issues.labeled", octokitApi.something);
+  /* PRs */
   octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
-  // Errors
+  /* ERRORS */
   octokitClient.webhooks.onError(octokitApi.wildCardErrorHandler);
 };
 
 // TODO: check out if this is good:
 // app.webhooks.verify
 
-const httpLogger = (req, res, next) => {
+///////////////////////
+/// GLOBAL HANDLERS ///
+///////////////////////
+
+const httpLogger = (req: Request, res: Response, next: NextFunction) => {
     const time = new Date();
     const formattedDate = time.toLocaleTimeString("en-US");
     console.log("\x1b[32m%s\x1b[0m", `[${formattedDate}] ${req.method} ${req.url}`);
+    next();
+};
+
+const setResponseLocals = (req: Request, res: Response, next: NextFunction): void => {
+    res.locals.installation_data = {};
+    res.locals.repository_data = {};
+    res.locals.user_data = {};
+    next();
+  };
+
+const setProjectionsContext = (req: Request, res: Response, next: NextFunction): void => {
+    const pathSegments = req.url.split("/");
+    console.log("-- -- -- PATH SEGMENTS -- -- -- ", pathSegments);
+    const apiIndex = pathSegments.indexOf("api");
+
+    if (apiIndex !== -1 && apiIndex < pathSegments.length - 1) {
+      res.locals.routeProjectionsContext = pathSegments[apiIndex + 1];
+    } else { /* error condition */
+      res.locals.routeProjectionsContext = "";
+    }
     next();
 };
