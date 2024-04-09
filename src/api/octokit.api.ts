@@ -1,13 +1,12 @@
 import { app } from '../app.js';
-import { installationController, userController, repositoryController } from "../db/controllers/index.js";
+import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
 /* Types */
 import { Request, Response, NextFunction } from "express";
 import { App as AppType, Octokit } from "octokit";
 import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
-import { ModelContext } from '../types/context.js'; // TODO: idk why this needs to be separately imported..
 
-const _context: ContextTypes.Context = { app, installationController, userController, repositoryController };
+const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
 
 /* Utility Helpers */
 const Utility = new (await import("../utility/index.js")).default(_context);
@@ -112,7 +111,7 @@ class OctokitApi {
    * @deprecated
    */
   getInstallationDataById = async (req: Request, res: Response, next: NextFunction) => {
-    const middlewareContext = ModelContext.Installation;
+    const middlewareContext = ContextTypes.ModelContext.Installation;
     const routeProjectionsContext = res.locals.routeProjectionsContext;
     const id: number = Number(req.params.id);
     // const projections: string[] = Utility.getProjectionsByContext(req.params, this._projectionsContext);
@@ -127,7 +126,7 @@ class OctokitApi {
   };
 
   getInstallation = async (req: Request, res: Response, next: NextFunction ) => {
-    const { middlewareContext, routeProjectionsContext } = Utility.getQueryContext(ModelContext.Installation, res.locals);
+    const { middlewareContext, routeProjectionsContext } = Utility.getQueryContext(ContextTypes.ModelContext.Installation, res.locals);
     const resLocalsId = Utility.getUserId(res.locals);
 
     const id: number = this._installationId
@@ -161,7 +160,7 @@ class OctokitApi {
 
   getRepoDataById = async (req: Request, res: Response, next: NextFunction) => {
     const { middlewareContext, routeProjectionsContext } = Utility
-      .getQueryContext(ModelContext.Repository, res.locals);
+      .getQueryContext(ContextTypes.ModelContext.Repository, res.locals);
 
     const projections = Utility
       .determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
@@ -269,7 +268,7 @@ class OctokitApi {
    * @deprecated
    */
   getUserDataById = async (req: Request, res: Response, next: NextFunction) => {
-    const middlewareContext = ModelContext.User;
+    const middlewareContext = ContextTypes.ModelContext.User;
     const routeProjectionsContext = res.locals.routeProjectionsContext;
     // let id: number;
     const id: number = req.params.id ? Number(req.params.id) : Utility.getUserId(res.locals);

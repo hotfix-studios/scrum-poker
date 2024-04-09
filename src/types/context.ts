@@ -1,6 +1,4 @@
-export { InstallationController } from "../db/controllers/installation.controller.ts";
-export { UserController } from "../db/controllers/user.controller.ts";
-export { RepositoryController } from "../db/controllers/repository.controller.ts";
+import { InstallationController, UserController, RepositoryController, IssuesController } from "../db/controllers/index.js";
 
 import { App as AppType } from "octokit";
 
@@ -9,6 +7,7 @@ export interface Context {
   installationController: InstallationController;
   userController: UserController;
   repositoryController: RepositoryController;
+  issuesController: IssuesController;
 };
 
 export enum ModelContext {
@@ -24,3 +23,10 @@ export enum UserProperties {
   Sender = "sender",
   Account = "account"
 };
+
+export {
+  InstallationController,
+  UserController,
+  RepositoryController,
+  IssuesController
+}

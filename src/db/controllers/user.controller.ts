@@ -1,7 +1,4 @@
-import { User } from "../models/index.js";
 import { ARepository } from "./base/ARepository.js";
-
-import { Request, Response } from "express";
 import { Schema, Model, FilterQuery } from "mongoose";
 import * as OctokitTypes from "../../types/octokit.js";
 
