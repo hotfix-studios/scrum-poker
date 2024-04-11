@@ -67,16 +67,16 @@ export default class Utils {
     return middlewareContext === routeContext ? urlProjections?.split(",") : [];
   };
 
-    /**
-   *
-   * @param middlewareContext string from Enum representing current middleware context
-   * @param resLocals temporary route variables returning routeProjectionsContext from route endpoint
-   * @example /api/REPOS/names/:projections
-   * @returns object used to determine if current middleware DB query needs route projections
-   */
-    getQueryContext = (middlewareContext: string, resLocals: any): DTO.httpProjectionsContexts => {
-      return { middlewareContext: middlewareContext, routeProjectionsContext: resLocals.routeProjections }
-    };
+  /**
+ *
+ * @param middlewareContext string from Enum representing current middleware context
+ * @param resLocals temporary route variables returning routeProjectionsContext from route endpoint
+ * @example /api/REPOS/names/:projections
+ * @returns object used to determine if current middleware DB query needs route projections
+ */
+  getQueryContext = (middlewareContext: string, resLocals: any): DTO.HttpProjectionsContexts => {
+    return { middlewareContext: middlewareContext, routeProjectionsContext: resLocals.routeProjections }
+  };
 
 /**
  * @deprecated
