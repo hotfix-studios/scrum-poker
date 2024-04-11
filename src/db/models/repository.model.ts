@@ -24,7 +24,9 @@ const repositorySchema = new Schema({
   clone_url: { type: Schema.Types.String, default: "" },
   has_issues: { type: Schema.Types.Boolean, default: false },
   has_projects: { type: Schema.Types.Boolean, default: false },
-  open_issues_count: { type: Schema.Types.Number, default: 0 }
+  open_issues_count: { type: Schema.Types.Number, default: 0 },
+  has_backlog: { type: Schema.Types.Boolean, default: false },
+  has_pointed: { type: Schema.Types.Boolean, default: false }
 });
 
 export default model("Repository", repositorySchema);
