@@ -1,6 +1,6 @@
 import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
 import { middleware } from "../app.js";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 import path from "path";
 import cors from "cors";
 
@@ -72,7 +72,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
   // TODO: Wss On Connection?
   /* INSTALLATION */
   octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationCreate);
-  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindAndCreate);
+  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindOrCreate);
   octokitClient.webhooks.on("installation.created", octokitApi.handleOwnerUserCreate);
   /* REPOS */
   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
