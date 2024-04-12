@@ -63,7 +63,7 @@ process.on('uncaughtException', (err, origin) => {
     process.stderr.fd,
     log
   );
-  /* TODO: For Production, this should be replaced by Sentry or at least a hosted and isolated server for handling http/https and storing logs */
+  /* TODO: For Production, this should be replaced by Sentry? currently on S3.. file needs to be pruned on CRON job, otherwise infinitely expands for logs */
   if (environment === "development") {
     fs.appendFileSync(
       "error.log",
