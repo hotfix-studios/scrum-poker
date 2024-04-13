@@ -80,7 +80,6 @@ export class RepositoryController extends ARepository {
       }
     });
 
-
     try {
 
       const documents = await this._model.create(_repositories);

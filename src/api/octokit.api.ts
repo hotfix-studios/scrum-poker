@@ -62,7 +62,6 @@ class OctokitApi {
   //////////////////////////////////////////
 
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
-    console.log("getAuth firing!!");
     const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
     this._installationId = id;
     console.log("installation ID inside getAuth == ", id);
@@ -323,73 +322,74 @@ class OctokitApi {
    * @requires owner: owner_name, repo: repo_name, owner_type: typeForPath to GET issues
    */
   getIssues = async (req: Request, res: Response, next: NextFunction) => {
-    /* This formats the necessary params for REST url */
     const params = Utility.processParamsForRestIssues(res.locals);
     console.log("PARAMS:", params);
 
-    /* TODO: DECOUPLE PROJECTS AND ISSUES LOOKUP? HOW TO DETERMINE WHICH REPO USES WHICH? */
-    // if (/* SOME CONDITION TO LOOK FOR PROJECTS */)
-    //   try {
+    /* TODO: *important* If a repo has a backlog, an indicator needs to be cached! this will prevent lookup */
+    /* TODO: Look to repository.model has_backlog and has_pointed for pseudo caching or checking instead of looking up... */
+    let backlogDocuments = await this._issuesController.findBacklog(params.repo);
+    console.log(`Backlog found from DB lookup in API getIssues...`);
+    console.log(backlogDocuments);
 
-    //       console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
-    //       const projectsData = await this.getProjectsData(params);
-    //       // @ts-ignore
-    //       console.log("RAW FETCH DATA: {projects} ", projectsData.data);
+    if (backlogDocuments !== null) {
+      res.locals.repository_data.backlog_issues = backlogDocuments;
 
-    //     /* if projectsData found, put on res.locals... obj, then next(), else continue to 2nd Try (fetch Issues) */
+    } else {
 
-    //   } catch (error) {
+      try {
 
-    //     console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {projects}: from OctokitApi.getIssues exiting route ${req.method} - ${req.path}`);
-    //     console.error(error);
-    //     res.locals.repository_data.issues = null;
-    //   }
+          // const { data: restIssues } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
+          const { data: restIssues } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+            owner: params.owner,
+            repo: params.repo,
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28"
+            }
+          });
 
-    // #region ISSUES
-    try {
+          console.log("--------------------- REST JAS BEEN CALLED ------------");
 
-        // const { data } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
-        const { data: restIssues } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
-          owner: params.owner,
-          repo: params.repo,
-          headers: {
-            "X-GitHub-Api-Version": "2022-11-28"
+          // console.log("RAW ISSUES DATA FROM REQUEST: ", restIssues);
+          // const jsonIssues = await restIssues.json();
+
+          /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
+          backlogDocuments = await this._issuesController
+            .createBacklogForRepoIfNotExists(restIssues, params.repo);
+
+          /* fallback case: backlog already exists in DB */
+          if (backlogDocuments === null) {
+
+            res.locals.repository_data.backlog_issues = await this._issuesController.findBacklog(params.repo);
+          } else {
+
+            res.locals.repository_data.backlog_issues = backlogDocuments;
           }
-        });
 
-        console.log("--------------------- REST JAS BEEN CALLED ------------");
-        // console.log(restIssues);
+        // TODO: HANDLE WRITE AND FIND FOR POINTED ISSUES 4/9
+        // res.locals.repository_data.pointed_issues = pointedDocuments;
 
-        // console.log("RAW ISSUES DATA FROM REQUEST: ", restIssues);
-        // const jsonIssues = await restIssues.json();
+      } catch (error) {
 
-        /* TODO: WRITE TO MODELS -- DOES THIS NEED TO BE IN A DIFFERENT MIDDLEWARE FN? */
-        const backlogDocuments = await this._issuesController
-          .createBacklogForRepoIfNotExists(restIssues, params.repo);
-
-        /* case: backlog already exists in DB */
-        if (backlogDocuments === null) {
-
-          res.locals.repository_data.backlog = await this._issuesController.findBacklog(params.repo);
-        } else {
-
-          res.locals.repository_data.backlog_issues = backlogDocuments;
-        }
-
-      // TODO: HANDLE WRITE AND FIND FOR POINTED ISSUES 4/9
-      // res.locals.repository_data.pointed_issues = pointedDocuments;
-
-    } catch (error) {
-
-      console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {issues}: exiting route ${req.method} - ${req.path}`, error);
+        console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {issues}: exiting route ${req.method} - ${req.path}`, error);
+      }
     }
-    // #endregion ISSUES
 
     next();
   };
 
-  getProjectsData = async (params: DTO.ReqProjectsParams) => {
+  /**
+   * @param params ```{ owner: owner-name, repo: repo-name, owner_type: "orgs" | "users" }```
+   * @summary IF a repo has issue data via projects (determine this somehow?)
+   * @description When labels are added data.changes.field_value.field_type === "labels"?
+   */
+  getProjectsData = async (req: Request, res: Response, next: NextFunction) => {
+    /* TODO: HOW TO DETERMINE WHICH REPO USES PROJECTS/ISSUES? */
+    const params = Utility.processParamsForRestIssues(res.locals);
     let projectsData: Partial<OctokitTypes.OrgProject | OctokitTypes.UserProject>;
+
+    try {
+
+      console.log("REST {projects} URL -- ", `https://api.github.com/${params.owner_type}/${params.owner}/projects`);
 
       if (params.owner_type == "orgs") {
         projectsData = await this._authenticatedOctokit.request("GET /orgs/{org}/projects", {
@@ -407,7 +407,18 @@ class OctokitApi {
         });
       }
 
-    return projectsData;
+      // @ts-ignore
+      console.log("RAW FETCH DATA: {projects} ", projectsData.data);
+
+    } catch (error) {
+
+      console.error("\x1b[31m%s\x1b[0m", `fail to hit REST GET {projects}: from OctokitApi.getIssues exiting route ${req.method} - ${req.path}`);
+      console.error(error);
+      projectsData = null;
+    }
+
+    res.locals.repository_data.projects = projectsData;
+    next();
   };
 
   //////////////////////////////////////////
@@ -455,7 +466,7 @@ class OctokitApi {
     }
   };
 
-  handleInstallationReposFindAndCreate = async ({ octokit, payload }): Promise<void> => {
+  handleInstallationReposFindOrCreate = async ({ octokit, payload }): Promise<void> => {
     try {
 
       /* TODO: MOVE REPOS GET? DECOUPLE FROM INSTALLATION? OR NEED TO WRITE COLLABORATORS AND ASSOCIATE WITH REPOS? SEE INSTALLATION SCHEMA */

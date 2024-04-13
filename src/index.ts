@@ -16,7 +16,8 @@ dotenv.config();
 
 const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
-const path = process.env.WEBHOOK_PATH;
+const webhook_path = process.env.WEBHOOK_PATH;
+const environment = process.env.NODE_ENV;
 const localWebhookUrl = `http://${host}:${port}`;
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
@@ -55,12 +56,23 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', (err, origin) => {
+  const log = `Caught exception: ${err}\n` +
+  `Exception origin: ${origin}\n`;
   console.error("Critical Error -- app is about to explode... \n performing synchronous cleanup.. \n writing crash state to log file..");
   fs.writeSync(
     process.stderr.fd,
-    `Caught exception: ${err}\n` +
-    `Exception origin: ${origin}\n`,
+    log
   );
+  /* TODO: For Production, this should be replaced by Sentry? currently on S3.. file needs to be pruned on CRON job, otherwise infinitely expands for logs */
+  if (environment === "development") {
+    fs.appendFileSync(
+      "error.log",
+      `Logging to ./error.log app critical failure:\n
+      ${new Date().toISOString()}\n
+      ${log}\n --- \n
+      \n`
+    );
+  }
   console.error("goodbye.");
 });
 /////////////////////////////////////////////////////////

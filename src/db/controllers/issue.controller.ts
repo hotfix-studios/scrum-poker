@@ -52,14 +52,16 @@ export class IssuesController {
     console.log(`FOUND BACKLOG DOC? ${foundBacklogDoc}`);
     console.log(`FOUND POINTED DOC? ${foundPointedDoc}`);
 
-    let pointedIssuesNumbers: number[];
+    let pointedIssuesNumbers: DTO.IdAndNum[];
 
     if (foundPointedDoc) pointedIssuesNumbers = await this._pointed.find({ repository_name: repoName }, "number");
 
     if (foundBacklogDoc === null) {
       const processedIssues = issues.map((issue: Partial<OctokitTypes.Issue>) => {
-        if (issue.state === "open") { // else case: issue has "closed" state
-          if (!foundPointedDoc || foundPointedDoc && !pointedIssuesNumbers.includes(issue.number)) { // else case: issue.number exists in Pointed
+        // else case: issue has "closed" state
+        if (issue.state === "open") {
+          // else case: issue.number exists in Pointed
+          if (!foundPointedDoc || foundPointedDoc && !this.hasNumber(pointedIssuesNumbers, issue.number)) {
             const labels = issue.labels.length ? issue.labels.map((label: any) => label.name) : [];
             return {
               _id: issue.id,
@@ -78,7 +80,7 @@ export class IssuesController {
       });
 
       /* Resolving issues promises */
-      const issuesToWrite = Promise.all(processedIssues);
+      // const issuesToWrite = Promise.all(processedIssues);
 
       try {
         // console.log(processedIssues);
@@ -99,7 +101,16 @@ export class IssuesController {
   // TODO: issueOpenedHandler will call this method to write single issue document to Backlog
   // define createNewBacklogIssue()
 
+  ///////////////////////////
+  //////// Helpers //////////
+  ///////////////////////////
+
+  hasNumber = (issuesArr: Partial<OctokitTypes.Issue>[], issueNumber: number): boolean => {
+    return issuesArr.some((obj: Partial<OctokitTypes.Issue>) => obj.number === issueNumber);
+  };
+
 };
+
 
 /**
  * @deprecated This logic was all living on the api middlewares level.

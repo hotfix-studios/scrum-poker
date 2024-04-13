@@ -55,7 +55,11 @@ export class InstallationController extends ARepository{
         // }
 
         /* maps repos for installation document to array of owner_ids */
-        if (repositories.length) _repositories = repositories.map((repo: any) => repo.id);
+        if (repositories.length) {
+          _repositories = repositories.map((repo: any) => repo.id);
+        } else { /* else case: User or Org with no Repos */
+          _repositories = [];
+        }
 
         /* TODO: make Partial or VM for DTO type */
         const _insertInstallation = { // insertInstallation: Partial<typeof Installation>
