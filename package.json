@@ -11,8 +11,7 @@
     "predisabled": "xcopy \".\\src\\webgl\" \".\\dist\\webgl\" /s /e /i /y",
     "server": "node ./dist/index.js",
     "wss": "tsc-watch -p tsconfig.json --onSuccess \"node ./dist/wss.js\"",
-    "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\"",
-    "test": "node ./dist/tests/index.test.js"
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\""
   },
   "keywords": [
     "agile",
