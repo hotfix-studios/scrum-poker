@@ -19,7 +19,7 @@
     border-right-color: rgb(52, 125, 57);
     border-top-color: rgb(52, 125, 57);
     border-bottom-color: rgb(52, 125, 57);
-    font-size: 50px;
+    font-size: 35px;
     -unity-font-style: bold;
 }
 
@@ -43,7 +43,7 @@
     border-right-color: rgb(52, 125, 57);
     border-top-color: rgb(52, 125, 57);
     border-bottom-color: rgb(52, 125, 57);
-    font-size: 50px;
+    font-size: 35px;
     -unity-font-style: bold;
 }
 
@@ -58,8 +58,8 @@
     border-right-color: rgb(255, 255, 255);
     border-top-color: rgb(255, 255, 255);
     border-bottom-color: rgb(255, 255, 255);
-    font-size: 50px;
-    -unity-font-style: bold;
+    font-size: 25px;
+    -unity-font-style: normal;
     -unity-text-align: upper-left;
     border-bottom-width: 5px;
     border-top-width: 5px;
@@ -78,8 +78,11 @@
     border-right-color: rgb(255, 255, 255);
     border-top-color: rgb(255, 255, 255);
     border-bottom-color: rgb(255, 255, 255);
-    font-size: 55px;
+    font-size: 25px;
     -unity-font-style: bold;
-    border-bottom-width: 5px;
     -unity-text-align: upper-left;
+    border-bottom-width: 5px;
+    border-top-width: 5px;
+    border-right-width: 5px;
+    border-left-width: 5px;
 }
