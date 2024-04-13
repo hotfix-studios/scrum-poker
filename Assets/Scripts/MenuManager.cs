@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
+// using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public class MenuManager : VisualElement
@@ -12,7 +12,7 @@ public class MenuManager : VisualElement
     // we can switch between easily by showing / hiding different UI containers
     // and querying those containers to get access to individual elements
 
-    SceneController sceneController;
+    // SceneController sceneController;
 
     #region Screens
 
@@ -26,17 +26,18 @@ public class MenuManager : VisualElement
     VisualElement m_HostContainer;
     VisualElement m_JoinContainer;
     VisualElement m_Lobby;
+    VisualElement m_LobbyIdContainer;
 
     #endregion Screens
 
     #region Buttons
 
     // NAVBAR
-/*    Button b_HostButton;
-    Button b_JoinButton;
-    Button b_SettingsButton;
-    Button b_AboutButton;
-    Button b_FAQButton;*/
+    /*    Button b_HostButton;
+        Button b_JoinButton;
+        Button b_SettingsButton;
+        Button b_AboutButton;
+        Button b_FAQButton;*/
 
     // LOBBY
 /*    Button b_HostLobbyButton;
@@ -50,7 +51,7 @@ public class MenuManager : VisualElement
 
     public MenuManager() 
     { 
-        sceneController = SceneController.FindObjectOfType<SceneController>();
+        // sceneController = SceneController.FindObjectOfType<SceneController>();
         this.RegisterCallback<GeometryChangedEvent>(OnGeometryChange);
     }
 
@@ -66,6 +67,7 @@ public class MenuManager : VisualElement
         m_HostContainer = this.Q("HostContainer");
         m_JoinContainer = this.Q("JoinContainer");
         m_Lobby = this.Q("Lobby");
+        m_LobbyIdContainer = this.Q("LobbyIdContainer");
 
         // CLICK EVENTS
         m_NavBar?.Q("HostButton")?.RegisterCallback<ClickEvent>(async e => {
@@ -73,7 +75,7 @@ public class MenuManager : VisualElement
             m_HostContainer.style.visibility = Visibility.Visible;
 
             // Make the HTTP Request to the backend for repo names and owner id
-            var endpoint = $"api/repos/names/";
+            var endpoint = "api/repos/names/";
             List<string> repoNames = await Utilities.GetRepoNamesAndSetOwnerId(endpoint, new string[] { "name", "owner_id" });
 
             // Populate dropdown menu with repo names
@@ -84,22 +86,37 @@ public class MenuManager : VisualElement
 
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e => m_JoinContainer.style.visibility = Visibility.Visible);
 
-        m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>( async e => {
+        m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(async e => {
             // Create room via GUID
             var guid = Guid.NewGuid().ToString().Substring(0, 5);
             Store.roomId = guid;
+            Debug.Log("ROOMID: " + Store.roomId);
 
             // Send websocket event to create room
             WebSocketConnection.CreateRoom();
 
             // Make the HTTP Request to the backend for issues backlog
-            var endpoint = $"api/issues/{Store.repoOwnerId}/{Store.repoName}";
+            var endpoint = "api/issues/";
             List<object> backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
             Store.issues = backlog;
-            Debug.Log(Store.issues);
+            Debug.Log("ISSUES: " + Store.issues);
 
-            // TODO: Add lobby id to lobby
-            // TODO: Add icon next to lobby id to copy the id to clipboard
+            // Add lobby id and button to copy lobby id to lobby
+            m_LobbyIdContainer.style.visibility = Visibility.Visible;
+            var lobbyText = m_LobbyIdContainer?.Q<Label>("LobbyId");
+            lobbyText.text = Store.roomId;
+            Debug.Log(lobbyText.text);
+
+            // Set "start game" button's visibility to visible 
+            var startGame = m_Lobby?.Q("StartGameButton");
+            startGame.style.visibility = Visibility.Visible;
+        });
+
+        // Add Lobby Id to user's clipboard onClick
+        m_LobbyIdContainer?.Q("CopyButton")?.RegisterCallback<ClickEvent>(e => {
+            GUIUtility.systemCopyBuffer = Store.roomId;
+            var copyButton = m_LobbyIdContainer?.Q<Button>("CopyButton");
+            copyButton.text = "copied!";
         });
 
         m_JoinContainer?.Q("JoinLobbyButton")?.RegisterCallback<ClickEvent>(e => {
@@ -109,13 +126,21 @@ public class MenuManager : VisualElement
             {
                 Store.roomId = inviteCode;
                 WebSocketConnection.JoinRoom();
-                // TODO: Add player name to room in view
+                // TODO: Add player name and avatar to room in view via socket event
+                // TODO: Add user objects to data["params"]["users"] array
+                // TODO: Add userId to those user objects
+                var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
+                var newLabel = new Label();
+                newLabel.name = Store.installationId.ToString();
+                newLabel.text = Store.installationId.ToString();
+                participants.Add(newLabel);
             }
             // ELSE: Have the user re-enter invite code
         });
 
         m_Lobby?.Q("StartGameButton")?.RegisterCallback<ClickEvent>(e => {
-            // Hide all UI elements other than topbar
+            // TODO: Hide all UI elements other than topbar
+            // TODO: Load game UI elements
         });
 
         // CHANGE EVENTS
