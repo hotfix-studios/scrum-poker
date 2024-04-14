@@ -47,8 +47,7 @@ const server = _express.listen(port, () => {
 registerEventListeners(app);
 
 // Define a cron job that runs every day at midnight
-const job = new cron.CronJob("0 0 0 * * *", () => {
-  // Path to your error log file
+const job = new cron.CronJob("0 0 * * *", () => {
   const errorLogFilePath = path.resolve(__dirname, "..", "error.log");
 
   // Truncate the error log file to empty it
