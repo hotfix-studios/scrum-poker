@@ -1,0 +1,13 @@
+tags:
+  - name: Installation
+    description: Authenticates GH Scrum Poker App for associated Users. One-to-many Users.
+  - name: User
+    description: A GitHub Contributor or Organization. Many-to-one Installation.
+  - name: Repository
+    description: Joins Users to Issues. One-to-many Issues. Many-to-one Installation. Many-to-one User.
+  - name: Issue
+    description:
+  - name: App
+    description: Octokit client which consumes GitHub REST.
+  - name: DB
+    description: NoSQL cloud database that persists game data. CRUD.

@@ -1,0 +1,31 @@
+parameters:
+  installationID:
+    name: installationID
+    description: Installation ID for associated contributors (convert to Number).
+    in: formData
+    required: true
+    type: string
+  userID:
+    name: userID
+    description: User ID for User or Organization (convert to Number).
+    in: formData
+    required: true
+    type: string
+  repositoryID:
+    name: repositoryID
+    description: Repository ID for Repository associated with User (convert to Number).
+    in: formData
+    required: true
+    type: string
+  issueID:
+    name: issueID
+    description: Issue ID for Issue associated with Repository (convert to Number).
+    in: formData
+    required: true
+    type: string
+  projections:
+    name: projections
+    description: CSV of desired column values to return from DB query
+    in: formData
+    required: false
+    type: string
