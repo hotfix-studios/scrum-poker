@@ -19,25 +19,32 @@ const swaggerDefinition = {
     /* basePath: "/", // Base path (optional) */
   };
 
-const options = {
+export const swaggerOptions = {
     swaggerDefinition,
     apis: ["./src/router/*.ts", "./src/router/*.*.ts", "./src/router/swagger/*.yaml"],
 };
 
 /* stored JSON variable to serve on local node endpoint */
-export const openapiSpecification = swaggerJSDoc(options);
+// export const openapiSpecification = swaggerJSDoc(options);
 
-/* stored JSON file to pass to 3rd party OpenAPI-Spec renderer */
-fs.writeFile(
-    "openapi-spec.json",
-    JSON.stringify(openapiSpecification, null, 2), (err) => {
-        if (err) {
-            console.error("Error writing OpenAPI Specification JSON file: ", err);
-        } else {
-            console.log("OpenAPI Specification JSON file written successfully!");
+export const writeSpecFile = (_options: typeof swaggerOptions): object => {
+    const openapiSpecification = swaggerJSDoc(_options);
+    /* stored JSON file to pass to 3rd party OpenAPI-Spec renderer */
+    fs.writeFile(
+        "openapi-spec.json",
+        JSON.stringify(openapiSpecification, null, 2), (err) => {
+            if (err) {
+                console.error("Error writing OpenAPI Specification JSON file: ", err);
+            } else {
+                console.log("OpenAPI Specification JSON file written successfully!");
+            }
         }
-    }
-);
+    );
+
+    return openapiSpecification;
+};
+
+writeSpecFile(swaggerOptions);
 
 /**
  * @example swagger/openAPI reference docs
