@@ -14,6 +14,7 @@ const Utility = new (await import("../utility/index.js")).default(_context);
 /**
  * Octokit Responsibilities:
  * - Get GH User info ✔
+ * - - Get User data by projections ✔
  * - Get Repos ✔
  * - - Get Backlogs ✔
  * - - Get associated users (repo)
@@ -266,18 +267,22 @@ class OctokitApi {
 
   /**
    * @argument res.locals must contain an array of projections before entering this middleware...
-   * @deprecated
    */
   getUserDataById = async (req: Request, res: Response, next: NextFunction) => {
-    const middlewareContext = ContextTypes.ModelContext.User;
-    const routeProjectionsContext = res.locals.routeProjectionsContext;
-    // let id: number;
-    const id: number = req.params.id ? Number(req.params.id) : Utility.getUserId(res.locals);
+    const { middlewareContext, routeProjectionsContext } = Utility.getQueryContext(
+      ContextTypes.ModelContext.User,
+      res.locals
+    );
 
-    /* TODO: TEST if new projections and Utility call is working.. */
-    // const projections: string[] = Utility.getProjectionsByContext(req.params, routeProjectionsContext);
-    const projections = Utility.determineIfProjectionsNeeded(middlewareContext, routeProjectionsContext, req.params.projections);
+    const id: number = req.params.id
+      ? Number(req.params.id)
+      : Utility.getUserId(res.locals);
 
+    const projections = Utility.determineIfProjectionsNeeded(
+        middlewareContext,
+        routeProjectionsContext,
+        req.params.projections
+      );
 
     try {
 
@@ -431,7 +436,7 @@ class OctokitApi {
   //////////////////////////////////////////
 
   sendData = (req: Request, res: Response): void => {
-    console.log("Ending middleware chain. Sending response");
+    console.log("\x1b[38;5;208m%s\x1b[0m","Ending middleware chain. Sending response");
     /* TODO: with new Global setResponseLocals middleware res.locals will always be truthy... */
     if (res.locals) {
       /* res.locals will be garbage collected at the end of every req/res cycle */
