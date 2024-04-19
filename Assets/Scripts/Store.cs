@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 public class Store : MonoBehaviour
 {
@@ -13,9 +14,9 @@ public class Store : MonoBehaviour
     public static string repoName;
     public static int repoOwnerId;
     public static string roomId;
-    public static List<object> issues;
-    // AVATARURL
-    // GH USERNAME
+    public static object[] issues;
+    public static string avatar;
+    public static string userName;
 
     void Awake()
     {
@@ -31,5 +32,20 @@ public class Store : MonoBehaviour
 
         // POST installationId to the server
         StartCoroutine(Utilities.PostInstallationId(installationId));
+
+        // GET user data (userName, avatar)
+        GetUser();
+    }
+
+    async void GetUser()
+    {
+        var endpoint = "api/users/";
+        Dictionary<string, string> userData = await Utilities.GetUserData(endpoint, new string[] { "name", "avatar_url" });
+
+        if (userData != null)
+        {
+            avatar = userData["avatar_url"];
+            userName = userData["name"];
+        }
     }
 }

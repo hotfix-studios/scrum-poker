@@ -97,7 +97,7 @@ public class MenuManager : VisualElement
 
             // Make the HTTP Request to the backend for issues backlog
             var endpoint = "api/issues/";
-            List<object> backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
+            object[] backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
             Store.issues = backlog;
             Debug.Log("ISSUES: " + Store.issues);
 

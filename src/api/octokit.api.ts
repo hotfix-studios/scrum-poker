@@ -370,7 +370,7 @@ class OctokitApi {
         /* case: backlog already exists in DB */
         if (backlogDocuments === null) {
 
-          res.locals.repository_data.backlog = await this._issuesController.findBacklog(params.repo);
+          res.locals.repository_data.backlog_issues = await this._issuesController.findBacklog(params.repo);
         } else {
 
           res.locals.repository_data.backlog_issues = backlogDocuments;

@@ -9,8 +9,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 
-using static SceneController;
-
 public class Utilities : MonoBehaviour
 {
     public static string GetBaseURL()
@@ -153,7 +151,7 @@ public class Utilities : MonoBehaviour
 
     }
 
-    public static async Task<List<object>> GetRepoIssues(string endpoint, string[] projections)
+    public static async Task<object[]> GetRepoIssues(string endpoint, string[] projections)
     {
         /* TODO: handle projections? */
         var baseURL = GetBaseURL();
@@ -183,26 +181,57 @@ public class Utilities : MonoBehaviour
         }
     }
 
- public static List<object> HandleResponseRepoIssues(string responseData)
+    public static object[] HandleResponseRepoIssues(string responseData)
     {
         var data = JObject.Parse(responseData);
-        // var repoData = data["repository_data"];
-        List<object> issues = new List<object>(data);
-        /*        var repositoryData = repoData["repository_data"];
+        Debug.Log(data);
 
-                Debug.Log("ISSUES: " + repoData);
+        var repoData = data["repository_data"];
+        var backlog = repoData["backlog_issues"];
+        Debug.Log("BACKLOG: " + backlog);
 
-                List<object> issues = new List<object>();
-
-                foreach (var repo in repoData)
-                {
-                    issues.Add(repo);
-                }
-
-                Debug.Log(issues);*/
-        Debug.Log(issues);
+        object[] issues = backlog.ToArray();
         return issues;
     }
+
+    public static async Task<Dictionary<string, string>> GetUserData(string endpoint, string[] projections)
+    {
+        var baseURL = GetBaseURL();
+        string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{string.Join(',', projections)}";
+
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            var asyncOperation = www.SendWebRequest();
+            while (!asyncOperation.isDone)
+            {
+                await Task.Yield();
+            }
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+                return null;
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log("Response DESERIALIZING STEP: [USER DATA]");
+                Debug.Log(responseData);
+
+                return HandleResponseUserData(responseData);
+            }
+        }
+    }
+
+    public static Dictionary<string, string> HandleResponseUserData(string responseData)
+    {
+        var data = JObject.Parse(responseData);
+        Debug.Log(data);
+
+        Dictionary<string, string> userData = data["user_data"].ToObject<Dictionary<string, string>>();
+        return userData;
+    }
+
     #endregion HTTP_REQUESTS
 
-    }
+}
