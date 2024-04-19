@@ -75,7 +75,7 @@ export default class Utils {
  * @returns object used to determine if current middleware DB query needs route projections
  */
   getQueryContext = (middlewareContext: string, resLocals: any): DTO.HttpProjectionsContexts => {
-    return { middlewareContext: middlewareContext, routeProjectionsContext: resLocals.routeProjections }
+    return { middlewareContext: middlewareContext, routeProjectionsContext: resLocals.routeProjectionsContext }
   };
 
 /**
