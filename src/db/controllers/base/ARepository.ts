@@ -50,9 +50,7 @@ export abstract class ARepository {
    */
   async findDocumentProjectionById(_id: number, projections: string[]): Promise<Partial<typeof Document>>{
     /* TODO: Partial Document needs to change to a type with obj.name & obj.type.. */
-    return projections.length
-      ? await this._model.findById(_id, projections)
-      : await this._model.findById(_id);
+    return await this._model.findById(_id, projections);
   };
 
   async httpFindOneById (id: string | number): Promise<any | any[]> {
