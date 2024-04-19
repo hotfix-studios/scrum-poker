@@ -5,10 +5,6 @@ import { octokitApi } from "../api/index.js";
 const usersRouter = Router();
 
 /**
- * @implements route /api/users
- */
-
-/**
  * @openapi
  * /api/users/{id}/{projections}
  *  get:
