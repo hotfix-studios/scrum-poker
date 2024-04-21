@@ -100,7 +100,8 @@ class OctokitApi {
       this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
 
       console.log("Successfully Authenticated and Upgraded Octokit...")
-      res.sendStatus(200);
+      res.status(200);
+      next();
     } catch (error) {
 
       console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
@@ -299,20 +300,91 @@ class OctokitApi {
     const id: number = req.params.id
       ? Number(req.params.id)
       : Number(req.params.owner);
-
+    console.log(`user id on req: ${id}`);
     const data = await this._userContext
       .findDocumentProjectionById(id, [ "name", "type" ]);
 
     res.locals.user_data = data;
+
+    next();
+  };
+
+  getRepoNameByUserIdOrParam = async (req: Request, res: Response, next: NextFunction) => {
+    const id: number = req.params.id
+      ? Number(req.params.id)
+      : req.params.owner
+        ? Number(req.params.owner)
+        : Number(res.locals.user_data._id);
 
     /* get repo name from req if exists, else get it from repository_data from prev middleware assignment, else get it from next() */
     res.locals.repository_data.name = req.params.repo
       ? req.params.repo
       : res.locals.repository_data.name
         ? res.locals.repository_data.name
-        : null;
+        : await this._repositoryContext.findRepoNameByOwnerId(id); // TODO: this could be a problem if owner has multiple repos...
 
     next();
+  };
+
+  getOrganizationMembers = async (req: Request, res: Response, next: NextFunction) => {
+    const { owner } = Utility.processParamsForRestUsers(res.locals);
+
+    /* option 1 */
+    // write collaborators (_ids) to Users table in DB
+    // write users._ids to Installation.collaborators
+    // this should give collaborator/users access to specific repo
+
+    /* option 2 */
+    // write these collaborators to Installation.collaborators in DB
+    // generate UUID/key (user distributes)
+
+    // const { data } = await this._authenticatedOctokit.rest.users.list();
+    // const { data } = await this._authenticatedOctokit.rest.orgs.get();
+
+    ///////////////////////////////////////////////
+    // auth upgrade installation id === 49816043 //
+    // TODO: undo hardcode auth upgrade ///////////
+    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(49816043);
+
+    try {
+
+      const { data } = await this._authenticatedOctokit.rest.orgs.listMembers({ org: owner });
+
+      res.locals.user_data = data;
+    } catch (error) {
+
+      console.error(`ORGANIZATION MEMBERS -- Failure listMembers REST request to GH -- ${owner}`);
+    }
+
+    next();
+  };
+
+  getRepoContributors = async (req: Request, res: Response, next: NextFunction) => {
+    const { repo, owner } = Utility.processParamsForRestUsers(res.locals);
+
+    ///////////////////////////////////////////////
+    // auth upgrade installation id === 49816043 //
+    // TODO: undo hardcode auth upgrade ///////////
+    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(49816043);
+
+    try {
+
+      const { data } = await this._authenticatedOctokit.rest.repos.listCollaborators({ owner, repo });
+
+      res.locals.user_data = data;
+    } catch (error) {
+
+      console.error(`REPOSITORY COLLABORATORS -- Failure listCollaborators REST request to GH -- ${owner} + ${repo}`);
+    }
+
+    next();
+  };
+
+  /**
+   * @description write COLLABORATORS and MEMBERS to DB? TWO distinct POSTS? hook into GET routes???
+   */
+  postAssociatedUsers = async (req: Request, res: Response, next: NextFunction) => {
+    throw new Error("Not Implemented");
   };
 
   //////////////////////////////////////////
@@ -327,7 +399,7 @@ class OctokitApi {
    * @requires owner: owner_name, repo: repo_name, owner_type: typeForPath to GET issues
    */
   getIssues = async (req: Request, res: Response, next: NextFunction) => {
-    const params = Utility.processParamsForRestIssues(res.locals);
+    const params = Utility.processParamsForRestUsers(res.locals);
     console.log("PARAMS:", params);
 
     /* TODO: *important* If a repo has a backlog, an indicator needs to be cached! this will prevent lookup */
@@ -389,7 +461,7 @@ class OctokitApi {
    */
   getProjectsData = async (req: Request, res: Response, next: NextFunction) => {
     /* TODO: HOW TO DETERMINE WHICH REPO USES PROJECTS/ISSUES? */
-    const params = Utility.processParamsForRestIssues(res.locals);
+    const params = Utility.processParamsForRestUsers(res.locals);
     let projectsData: Partial<OctokitTypes.OrgProject | OctokitTypes.UserProject>;
 
     try {
