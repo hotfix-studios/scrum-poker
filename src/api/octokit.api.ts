@@ -143,7 +143,6 @@ class OctokitApi {
     try {
 
       res.locals.installation_data = await this._installationContext.findDocumentProjectionById(id, projections)
-      console.log("RES.LOCALS INSTALLATION DATA: ", res.locals.installation_data);
     } catch (error) {
 
       console.error(`Failed looking up User Id with: ${id} from res.locals | req.params.id...`);
@@ -185,7 +184,7 @@ class OctokitApi {
       const installationRepoData = await Promise.all(installationRepoDataPromises);
 
       console.log("PROJECTIONS FROM PARAMS: ", projections);
-      console.log("DATA: ALL repo data?? == ", installationRepoData);
+      console.log("REPO DATA for RES == ", installationRepoData);
 
       /* TODO: Only need this installation_data if next() in middleware sequence requires... */
       // res.locals.installation_data.id = this._installationId;
