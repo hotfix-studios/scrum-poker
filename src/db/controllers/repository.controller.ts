@@ -31,6 +31,10 @@ export class RepositoryController extends ARepository {
     return await this._model.findOne({ owner_id: ownerId }, "_id");
   };
 
+  findRepoNameByOwnerId = async (ownerId: number): Promise<string> => {
+    return await this._model.findOne({ owner_id: ownerId }, "name");
+  };
+
   // TODO: needs a simple GET to get repo document (problem with types...)
 
   findRepoIssuesUrl = async (id: number): Promise<string> => {
