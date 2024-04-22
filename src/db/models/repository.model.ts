@@ -26,7 +26,14 @@ const repositorySchema = new Schema({
   has_projects: { type: Schema.Types.Boolean, default: false },
   open_issues_count: { type: Schema.Types.Number, default: 0 },
   has_backlog: { type: Schema.Types.Boolean, default: false },
-  has_pointed: { type: Schema.Types.Boolean, default: false }
+  has_pointed: { type: Schema.Types.Boolean, default: false },
+  associated_users: [
+    {
+      _id: { type: Schema.Types.Number, ref: "User" },
+      name: { type: Schema.Types.String },
+      avatar_url: { type: Schema.Types.String }
+    }
+  ]
 });
 
 export default model("Repository", repositorySchema);
