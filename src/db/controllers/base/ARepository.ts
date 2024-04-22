@@ -1,4 +1,5 @@
 import { Schema, Model, model, Document, FlattenMaps } from "mongoose";
+import { OctokitTypes } from "../../../types/index.js";
 // TODO: This is a hack. TS couldn't infer correct type when actual type passed in (was using typeof User)
 // import type { User } from "../../models/index.js";
 
@@ -20,9 +21,34 @@ export abstract class ARepository {
     return await this._model.create(item) ? true : false;
   }
 
-  // async update(id: string, item: T): Promise<boolean> {
-  //   throw new Error("Method not implemented.");
-  // }
+  /**
+   * @summary must only be used for User and Repository Controllers
+   * @param documentId number id to lookup User (Organization) or Repo
+   * @param users Array of associated users from REST to map and write to DB
+   */
+  createAssociatedUsers = async (documentId: number, users: OctokitTypes.User[]): Promise<void> => {
+    const usersDTO = users.map((user: OctokitTypes.User) => {
+      return {
+        _id: user.id,
+        name: user.login,
+        avatar_url: user.avatar_url
+      }
+    });
+
+    try {
+
+      await this._model.updateOne({ _id: documentId }, { associated_users: usersDTO });
+    } catch (error) {
+
+      console.error(`Error writing to ${this._model.modelName}`);
+      console.error(`Failed createAssociatedUsers -- updating document ${documentId}`);
+      throw error;
+    }
+  };
+
+  async update<T>(id: string, item: T): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
 
   async delete(id: string): Promise<boolean> {
 
