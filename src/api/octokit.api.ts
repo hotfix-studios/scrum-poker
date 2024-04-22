@@ -328,6 +328,7 @@ class OctokitApi {
   getOrganizationMembers = async (req: Request, res: Response, next: NextFunction) => {
     const { owner } = Utility.processParamsForRestUsers(res.locals);
 
+    /* TODO: 4/22 determine when createAssociatedUsers (user or repo context) should be called... hook into this GET or isolate (separate user workflow)? */
     /* option 1 */
     // write collaborators (_ids) to Users table in DB
     // write users._ids to Installation.collaborators
