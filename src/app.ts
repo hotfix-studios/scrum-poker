@@ -2,11 +2,12 @@ import dotenv from "dotenv";
 // TODO: db require has been moved to server kick off... test when CRUD setup
 import "./db/index.js";
 
-import { App } from "octokit";
-import { createNodeMiddleware } from "@octokit/webhooks";
+// import { App, OAuthApp } from "octokit";
+import { OAuthApp, createNodeMiddleware } from "@octokit/oauth-app";
+// import { createNodeMiddleware } from "@octokit/webhooks";
 
 /* Types */
-import { App as AppType } from "octokit";
+// import { OAuthApp as AppType } from "@octokit/oauth-app";
 
 dotenv.config();
 
@@ -21,19 +22,21 @@ const privateKey = Buffer
   .toString("ascii");
 
 /* Octokit App Class */
-const app: AppType = new App({
-  appId: appId,
-  privateKey: privateKey,
-  webhooks: {
-    secret: webhookSecret
-  },
-});
-/* OAuth App Class */
 // const app: AppType = new App({
-//   clientType: "github-app",
-//   clientId: process.env.CLIENT_ID,
-//   clientSecret: process.env.CLIENT_SECRET,
+//   appId: appId,
+//   privateKey: privateKey,
+//   webhooks: {
+//     secret: webhookSecret
+//   },
 // });
+/* OAuth App Class */
+//@ts-ignore
+const app: OAuthApp = new OAuthApp({
+  clientType: "oauth-app",
+  clientId: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET
+  /* redirectUrl?: "url" */
+});
 
 /**
  * This sets up a middleware function to handle incoming webhook events.
@@ -43,7 +46,8 @@ const app: AppType = new App({
  * - Parse the webhook event payload and identify the type of event.
  * - Trigger the corresponding webhook event handler.
  */
-const middleware = createNodeMiddleware(app.webhooks, { path });
+// const middleware = createNodeMiddleware(app.webhooks, { path });
+const middleware = createNodeMiddleware(app);
 // TODO: pass just app top above instead of app.webhooks?
 
 export { app, /* server,  wss, */ middleware };
