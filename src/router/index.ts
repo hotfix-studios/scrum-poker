@@ -19,7 +19,8 @@ import usersRouter from "./users.router.js";
 ////// TYPES //////
 ///////////////////
 
-import { App as AppType } from "octokit";
+// import { App as AppType } from "octokit";
+import { OAuthApp } from "@octokit/oauth-app";
 import { octokitApi } from "../api/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -69,7 +70,7 @@ export const configureServer = (server: Application) => {
  * @description e.g. when the app receives a webhook event (POST?) from GitHub with a `X-GitHub-Event` header value of `pull_request`
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
  */
-export const registerEventListeners = (octokitClient: AppType) => {
+export const registerEventListeners = (octokitClient: OAuthApp) => {
   console.log("\x1b[36m%s\x1b[0m", "Event Listeners registering...");
   // TODO: Wss On Connection?
   /* INSTALLATION */
