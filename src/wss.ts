@@ -69,9 +69,20 @@ wss.on('connection', (ws) => {
   };
 
   const join = params => {
-      if (rooms.has(params.roomId)) {
-      rooms.get(params.roomId).users.push(params.installationId);
-      console.log(`User joined room ${params.roomId}: `, rooms.get(params.roomId));
+    // TODO: Replace test data
+    const obj = {
+      type: 'join',
+      params: {
+        userName: "arealplant",
+        avatar: "https://ibb.co/n3jTQLB",
+        roomId: params.roomId,
+      }
+  }
+
+  if (rooms.has(params.roomId)) {
+    rooms.get(params.roomId).users.push(params.installationId);
+    console.log(`User joined room ${params.roomId}: `, rooms.get(params.roomId));
+    ws.send(JSON.stringify(obj));
     } else {
       console.error(`**ERROR** join: room with id ${params.roomId} does not exist`);
     }
