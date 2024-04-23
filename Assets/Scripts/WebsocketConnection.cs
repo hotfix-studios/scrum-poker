@@ -2,6 +2,7 @@ using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 
 public class WebSocketConnection : MonoBehaviour
 {
@@ -20,6 +21,8 @@ public class WebSocketConnection : MonoBehaviour
     {
         public string roomId;
         public int? installationId;
+        public string userName;
+        public string avatar;
     }
 
     async void Awake()
@@ -74,6 +77,7 @@ public class WebSocketConnection : MonoBehaviour
                 case "create":
                     break;
                 case "join":
+                    OnJoin(Params);
                     break;
                 case "leave":
                     break;
@@ -149,6 +153,19 @@ public class WebSocketConnection : MonoBehaviour
             Debug.Log("join" + json);
             await ws.SendText(json);
         }
+    }
+
+    public void OnJoin(Params Params)
+    {
+        Store.AddParticipant(Params);
+
+        // Store.participants = Store.participants.Concat(new object[] { Params }).ToArray();
+        // Debug.Log("ONJOIN: " + Store.participants[0]);
+
+        // Loop through Store.participants
+        // If user being received in join event does not exist
+        // add it to Store.participants
+        // create UI elements: Label.name = Store.userName, Label.text = Store.userName, Image.src = Store.avatar
     }
 
     /*
