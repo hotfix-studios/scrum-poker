@@ -1,6 +1,7 @@
 import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
 import { middleware } from "../app.js";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
+import fs from "fs";
 import path from "path";
 import cors from "cors";
 
@@ -31,13 +32,14 @@ api.use("/repos", repositoriesRouter);
 api.use("/users", usersRouter);
 
 export const configureServer = (server: Application) => {
-
     /* Global Middleware */
     server
         .use(middleware)
         .use(cors())
         .use(json())
         .use(urlencoded({ extended: true }));
+
+    server.get("/error-logger", errorLogger);
 
     /* Serve all static js, css, html, gz files from unity dist/webgl and sub-folders */
     server.use(Static(path.resolve(__dirname, "..", "webgl")));
@@ -72,7 +74,7 @@ export const registerEventListeners = (octokitClient: AppType) => {
   // TODO: Wss On Connection?
   /* INSTALLATION */
   octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationCreate);
-  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindAndCreate);
+  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindOrCreate);
   octokitClient.webhooks.on("installation.created", octokitApi.handleOwnerUserCreate);
   /* REPOS */
   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
@@ -118,4 +120,23 @@ const setProjectionsContext = (req: Request, res: Response, next: NextFunction):
       res.locals.routeProjectionsContext = "";
     }
     next();
+};
+
+/* TODO: This reads from local error.log on disk... needs to be pruned incrementally? */
+const errorLogger = async (_: Request, res: Response): Promise<void> => {
+  try {
+    const pathToFile = path.resolve(__dirname, "..", "..", "error.log");
+    console.log(`Reading from Error Log file on Disk.. -- ${pathToFile}`);
+    fs.readFile(pathToFile, "utf-8", (err, data) => {
+      if (err) {
+        console.error(`404 root error.log could not be read.. ${err}`)
+        res.sendStatus(404);
+      }
+      res.setHeader("Access-Control-Allow-Origin", "*"); /* TODO: SWAP OUT THIS "*" WITH ACTUAL ORIGIN (replace lt proxy) */
+      res.send(data); /* TODO: swap out origin in S3 permissions: CORS when static origin created (when above swap happens) (also noted in src/index) */
+    });
+  } catch (error) {
+    console.error(`500 Failure reading error.log from disk.. ${error}`);
+    res.sendStatus(500);
+  }
 };

@@ -1,4 +1,7 @@
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import cron from "cron";
 import express from "express";
 // TODO: install @types/cors
 import dotenv from "dotenv";
@@ -14,9 +17,12 @@ import { configureServer, registerEventListeners } from "./router/index.js";
 // #region ///////////////// ENV VARS ///////////////////
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const port = process.env.PORT;
 const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "localhost";
-const path = process.env.WEBHOOK_PATH;
+const webhook_path = process.env.WEBHOOK_PATH;
+const environment = process.env.NODE_ENV;
 const localWebhookUrl = `http://${host}:${port}`;
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
@@ -35,10 +41,27 @@ const server = _express.listen(port, () => {
 
 /* creating a websocket to run on our server */
 // const wss = new WebSocketServer({ server }, () => {
-//   console.log('WSS started');
+//   console.log("WSS started");
 // });
 
 registerEventListeners(app);
+
+// Define a cron job that runs every day at midnight
+const job = new cron.CronJob("0 0 * * *", () => {
+  const errorLogFilePath = path.resolve(__dirname, "..", "error.log");
+
+  // Truncate the error log file to empty it
+  fs.truncate(errorLogFilePath, 0, (err) => {
+    if (err) {
+      console.error("Error truncating error.log file:", err);
+    } else {
+      console.log("Disk error.log file has been cleaned out.");
+    }
+  });
+});
+
+// Start the cron job
+job.start();
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
 
@@ -55,16 +78,27 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 process.on('uncaughtException', (err, origin) => {
+  const log = `Caught exception: ${err}\n` +
+  `Exception origin: ${origin}\n`;
   console.error("Critical Error -- app is about to explode... \n performing synchronous cleanup.. \n writing crash state to log file..");
   fs.writeSync(
     process.stderr.fd,
-    `Caught exception: ${err}\n` +
-    `Exception origin: ${origin}\n`,
+    log
   );
+  /* TODO: For Production, this should be replaced by Sentry? currently on S3.. file needs to be pruned on CRON job, otherwise infinitely expands for logs */
+  if (environment === "development") {
+    fs.appendFileSync(
+      "error.log",
+      `Logging to ./error.log app critical failure:\n
+      ${new Date().toISOString()}\n
+      ${log}\n --- \n
+      \n`
+    );
+  }
   console.error("goodbye.");
 });
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
 
-/* TODO: all 3 of these need testing, idk where fs.writeSync outputs.. */
+/* TODO: all 3 of these need testing */
 /* [node critical failure handling process.on docs](https://nodejs.org/api/process.html#process_event_uncaughtexception) */

@@ -29,13 +29,22 @@ export interface Repository {
   open_issues_count?: number;
 };
 
+/**
+ * @interface IssueDTO projection
+ * @example { _id: 1234.., number: 3 }
+ */
+export interface IdAndNum {
+  _id: number,
+  number: number
+};
+
 export interface ReqProjectsParams {
   owner: string;
   repo: string;
   owner_type: string;
 }
 
-export interface httpProjectionsContexts {
+export interface HttpProjectionsContexts {
   routeProjectionsContext: string;
   middlewareContext: string;
 };

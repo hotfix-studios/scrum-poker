@@ -58,6 +58,33 @@ public class Utilities : MonoBehaviour
         return null;
     }
 
+    public static string GetCode()
+    {
+        var baseURL = GetBaseURL();
+
+        string fullURL = Application.absoluteURL;
+
+        int queryStringIndex = fullURL.IndexOf('?');
+
+        string queryString = fullURL.Substring(queryStringIndex + 1);
+
+        string[] queryParams = queryString.Split('&');
+
+        foreach (string param in queryParams)
+        {
+            string[] keyValue = param.Split('=');
+            string paramName = keyValue[0];
+            string paramValue = keyValue[1];
+
+            if (paramName == "code")
+            {
+                Debug.Log("Code: " + paramValue);
+                return paramName;
+            }
+        }
+       return null;
+    }
+
     #region HTTP_REQUESTS
 
     // POST
@@ -88,7 +115,78 @@ public class Utilities : MonoBehaviour
         }
     }
 
+    public static IEnumerator PostCode(string code)
+    {
+        var baseURL = GetBaseURL();
+        var endpoint = $"api/installations/auth/{code}";
+
+        WWWForm form = new WWWForm();
+        form.AddField("code", code);
+
+        using (UnityWebRequest www = UnityWebRequest.Post(baseURL + endpoint, form))
+        {
+            var asyncOperation = www.SendWebRequest();
+            while (!asyncOperation.isDone)
+            {
+                yield return null;
+            }
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+            }
+            else
+            {
+                Debug.Log($"Success: POST code to {endpoint}");
+                Store.token = HandleResponseAuthToken(www.downloadHandler.text);
+                Debug.Log($"Authorization Token: {Store.token}");
+            }
+        }
+    }
+
     // GET
+
+    public static async Task<string> GetAuthToken(string endpoint)
+    {
+        var baseURL = GetBaseURL();
+        string url = $"{baseURL}{endpoint}";
+        using (UnityWebRequest www = UnityWebRequest.Get(url))
+        {
+            var asyncOperation = www.SendWebRequest();
+            while (!asyncOperation.isDone)
+            {
+                await Task.Yield();
+            }
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Error: " + www.error);
+                return null;
+            }
+            else
+            {
+                string responseData = www.downloadHandler.text;
+                Debug.Log(responseData);
+
+                return HandleResponseAuthToken(responseData);
+            }
+        }
+    }
+
+    public static string HandleResponseAuthToken(string responseData)
+    {
+        var data = JObject.Parse(responseData);
+        var token = data["authorization"].ToString();
+
+        if (string.IsNullOrEmpty(token))
+        {
+            Debug.LogError("Error parsing authorization token");
+            return null;
+        }
+
+        return token;
+    }
+
     public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
         var baseURL = GetBaseURL();
@@ -198,6 +296,7 @@ public class Utilities : MonoBehaviour
     {
         var baseURL = GetBaseURL();
         string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{string.Join(',', projections)}";
+        // string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/";
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {

@@ -11,10 +11,10 @@ export interface Context {
 };
 
 export enum ModelContext {
-  Installation = "installation",
-  Repository = "repository",
-  User = "user",
-  Room = "room"
+  Installation = "installations",
+  Repository = "repos",
+  User = "users",
+  Room = "rooms"
 };
 
 export enum UserProperties {
