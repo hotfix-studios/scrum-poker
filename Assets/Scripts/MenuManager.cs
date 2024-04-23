@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 using UnityEngine.Networking;
 // using UnityEngine.UI;
@@ -12,7 +13,7 @@ public class MenuManager : VisualElement
     // we can switch between easily by showing / hiding different UI containers
     // and querying those containers to get access to individual elements
 
-    // SceneController sceneController;
+    // public Store store;
 
     #region Screens
 
@@ -82,9 +83,36 @@ public class MenuManager : VisualElement
             var dropdown = m_HostContainer?.Q<DropdownField>("ProjectDropdownField");
             dropdown.choices.Clear();
             dropdown.choices = repoNames;
+
+            // GET user data (userName, avatar)
+/*            endpoint = "api/users/";
+            Dictionary<string, string> userData = await Utilities.GetUserData(endpoint, new string[] { "name", "avatar_url" });
+
+            if (userData != null)
+            {
+                Store.avatar = userData["avatar_url"];
+                Store.userName = userData["name"];
+            }
+            Debug.Log("AVATAR_URL: " + Store.avatar);
+            Debug.Log("USERNAME: " + Store.userName);*/
         });
 
-        m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e => m_JoinContainer.style.visibility = Visibility.Visible);
+        m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e =>
+        {
+            m_JoinContainer.style.visibility = Visibility.Visible;
+        });
+
+        m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(async e =>
+        {
+            // TODO: Write a function to GET the CLIENT_ID from the server (if it cannot be accessed via GetEnvironmentVariable in Unity)
+            string clientId = System.Environment.GetEnvironmentVariable("CLIENT_ID");
+            Debug.Log("CLIENT_ID: " + clientId);
+
+            var CLIENT_ID = "bc388b03d7ee8a62013c";
+            string authURL = $"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}";
+
+            Application.OpenURL(authURL);
+        });
 
         m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(async e => {
             // Create room via GUID
@@ -97,7 +125,7 @@ public class MenuManager : VisualElement
 
             // Make the HTTP Request to the backend for issues backlog
             var endpoint = "api/issues/";
-            List<object> backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
+            object[] backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
             Store.issues = backlog;
             Debug.Log("ISSUES: " + Store.issues);
 
@@ -149,4 +177,14 @@ public class MenuManager : VisualElement
             Debug.Log("Selected value: " + Store.repoName);
         });
     }
+
+    private void AddParticipantToLobby()
+    {
+        var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
+        var newLabel = new Label();
+        newLabel.name = Store.installationId.ToString();
+        newLabel.text = Store.installationId.ToString();
+        participants.Add(newLabel);
+    }
+
 }

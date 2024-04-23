@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
+using Unity.VisualScripting;
+// using static Store;
 
 public class Store : MonoBehaviour
 {
@@ -9,13 +12,18 @@ public class Store : MonoBehaviour
     private static Store instance;
 
     // GLOBAL STATE VARIABLES
+    public static string? code;
+    public static string token;
     public static int? installationId;
     public static string repoName;
     public static int repoOwnerId;
     public static string roomId;
-    public static List<object> issues;
-    // AVATARURL
-    // GH USERNAME
+    public static object[] issues;
+    public static string avatar;
+    public static string userName;
+
+    // public static object[] participants;
+    public static List<object> participants;
 
     void Awake()
     {
@@ -27,9 +35,48 @@ public class Store : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        installationId = Utilities.GetInstallationID();
+        code = Utilities.GetCode();
 
+        // POST code to the server
+        if (code != null)
+        {
+            StartCoroutine(Utilities.PostCode(code));
+        }
+
+        if (token != null)
+        {
+            Debug.Log("TOKEN: " + token);
+        }
+
+        // installationId = Utilities.GetInstallationID();
+        
         // POST installationId to the server
-        StartCoroutine(Utilities.PostInstallationId(installationId));
+        // StartCoroutine(Utilities.PostInstallationId(installationId));
+
     }
+
+/*    async public static void GetUser()
+    {
+        var endpoint = "api/users/";
+        Dictionary<string, string> userData = await Utilities.GetUserData(endpoint, new string[] { "name", "avatar_url" });
+
+        if (userData != null)
+        {
+            avatar = userData["avatar_url"];
+            userName = userData["name"];
+        }
+        Debug.Log("AVATAR_URL: " + avatar);
+        Debug.Log("USERNAME: " + userName);
+    }*/
+
+    // DELEGATES && EVENTS
+    public delegate void ParticipantsChanged();
+    public static event ParticipantsChanged OnParticipantsChanged;
+
+    public static void AddParticipant(object participant)
+    {
+        participants.Add(participant);
+        OnParticipantsChanged?.Invoke();
+    }
+
 }

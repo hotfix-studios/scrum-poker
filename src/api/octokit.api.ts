@@ -18,6 +18,7 @@ const Utility = new (await import("../utility/index.js")).default(_context);
  * Octokit Responsibilities:
  * - Get GH User info ✔
  * - - Get User data by projections ✔
+ * - - Get User data by projections ✔
  * - Get Repos ✔
  * - - Get Backlogs ✔
  * - - Get associated users (repo)
