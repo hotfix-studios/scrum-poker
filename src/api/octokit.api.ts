@@ -3,7 +3,10 @@ import { installationController, userController, repositoryController, issuesCon
 
 /* Types */
 import { Request, Response, NextFunction } from "express";
-import { App as AppType, Octokit } from "octokit";
+// import { App as AppType, Octokit } from "octokit";
+
+import { OAuthApp } from "@octokit/oauth-app";
+// import { OAuthApp as AppType } from "@octokit/oauth-app";
 import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
@@ -30,7 +33,7 @@ class OctokitApi {
   /**
    * @description Base-level-authenticated Octokit instance (exposes Octokit API/REST)
    */
-  public readonly _appContext: AppType;
+  public readonly _appContext: OAuthApp;
 
   /**
    * @description All DB (Models) controllers (Unit of Work)
@@ -43,7 +46,7 @@ class OctokitApi {
   /**
    * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
    */
-  private _authenticatedOctokit: Octokit;
+  private _authenticatedOctokit: OAuthApp;
   private _installationId: number;
 
   constructor(context: ContextTypes.Context) {
@@ -62,51 +65,62 @@ class OctokitApi {
   // #region /////// Installations /////////
   //////////////////////////////////////////
 
+  /**
+   * @deprecated
+   */
+  // postAuth = async (req: Request, res: Response, next: NextFunction) => {
+  //   const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
+  //   this._installationId = id;
+  //   console.log("installation ID inside getAuth == ", id);
+
+  //   /* The following will be if OAuth Token/session validation is needed... */
+  //   // #region Auth Session
+  //   // const token = await this._appContext.oauth.createToken({ code }); // replace with this._authenticatedOctokit ?
+  //   // const authObj = this._appContext.oauth.getUserOctokit({ code });
+
+  //   /* get installation document from DB? */
+  //   // installation.token = token;
+  //   // installation.save();
+  //   // new up auth octokit (OAuth/Auth/App)
+  //   // #endregion
+
+  //   /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
+  //   // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
+  //   const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+
+  //   // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
+
+  //   /* option 1 */
+  //   // this._appContext.octokit.rest.repos.listCollaborators();
+  //   // write collaborators (_ids) to Users table in DB
+  //   // write users._ids to Installation.collaborators
+  //   // this should give collaborator/users access to specific repo
+
+  //   /* option 2 */
+  //   // this._appContext.octokit.rest.repos.listCollaborators();
+  //   // write these collaborators to Installation.collaborators in DB
+  //   // generate UUID/key (user distributes)
+
+  //   try {
+
+  //     this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
+
+  //     console.log("Successfully Authenticated and Upgraded Octokit...")
+  //     res.status(200);
+  //     next();
+  //   } catch (error) {
+
+  //     console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
+  //     res.sendStatus(500);
+  //   }
+  // };
+
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
-    const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
-    this._installationId = id;
-    console.log("installation ID inside getAuth == ", id);
+    const code: string = req.body.code;
 
-    /* The following will be if OAuth Token/session validation is needed... */
-    // #region Auth Session
-    // const token = await this._appContext.oauth.createToken({ code }); // replace with this._authenticatedOctokit ?
-    // const authObj = this._appContext.oauth.getUserOctokit({ code });
+    const token = await this._appContext.createToken({ code });
+    /* TODO: determine where to pass this token to persist app auth permissions for reqs, (after commit stash apply for todo) */
 
-    /* get installation document from DB? */
-    // installation.token = token;
-    // installation.save();
-    // new up auth octokit (OAuth/Auth/App)
-    // #endregion
-
-    /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
-    // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
-    const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
-
-    // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
-
-    /* option 1 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write collaborators (_ids) to Users table in DB
-    // write users._ids to Installation.collaborators
-    // this should give collaborator/users access to specific repo
-
-    /* option 2 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write these collaborators to Installation.collaborators in DB
-    // generate UUID/key (user distributes)
-
-    try {
-
-      this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
-
-      console.log("Successfully Authenticated and Upgraded Octokit...")
-      res.status(200);
-      next();
-    } catch (error) {
-
-      console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
-      res.sendStatus(500);
-    }
   };
 
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
