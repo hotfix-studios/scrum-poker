@@ -27,6 +27,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@octokit/oauth-app": "^7.1.1",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^20.11.20",
     "@types/ws": "^8.5.10",
