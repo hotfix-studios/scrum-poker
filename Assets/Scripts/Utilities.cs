@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
-using UnityEditor.PackageManager;
 
 public class Utilities : MonoBehaviour
 {
@@ -145,48 +144,6 @@ public class Utilities : MonoBehaviour
     }
 
     // GET
-
-    public static async Task<string> GetClientId(string endpoint)
-    {
-        var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}";
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            var asyncOperation = www.SendWebRequest();
-            while (!asyncOperation.isDone)
-            {
-                await Task.Yield();
-            }
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error: " + www.error);
-                return null;
-            }
-            else
-            {
-                string responseData = www.downloadHandler.text;
-                Debug.Log(responseData);
-
-                return HandleResponseClientId(responseData);
-            }
-        }
-    }
-
-    public static string HandleResponseClientId(string responseData)
-    {
-        var data = JObject.Parse(responseData);
-        var clientId = data["env"].ToString();
-
-        if (string.IsNullOrEmpty(clientId))
-        {
-            Debug.LogError("Error parsing CLIENT_ID");
-            return null;
-        }
-
-        return clientId;
-    }
-
     public static async Task<string> GetAuthToken(string endpoint)
     {
         var baseURL = GetBaseURL();

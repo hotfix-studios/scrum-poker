@@ -12,7 +12,7 @@ public class Store : MonoBehaviour
     private static Store instance;
 
     // GLOBAL STATE VARIABLES
-    public static string clientId;
+    public static string clientId = "bc388b03d7ee8a62013c";
     public static string code;
     public static string token;
     public static int? installationId;
