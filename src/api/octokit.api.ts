@@ -117,12 +117,40 @@ class OctokitApi {
   // };
 
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
-    const code: string = req.body.code;
+    // const code: string = req.body.code;
+    const code = "bee088009844b2ff2944";
 
     const token = await this._appContext.createToken({ code });
     /* TODO: determine where to pass this token to persist app auth permissions for reqs, (after commit stash apply for todo) */
+    /* TODO: add error handling and whatnot.. */
 
+    res.send(token);
   };
+
+  /////////////////////////////////////////////////////
+  //////////// WRITING ////////////////////////////////
+  /////////////////////////////////////////////////////
+
+  findOrCreateUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { data } = await this._appContext.octokit.request("GET /user");
+    console.log(`GET USER DATA OAUTH APP -- ${data}`);
+  };
+
+  // app.on("token", async ({ token, octokit, expiresAt }) => {
+  //   const { data } = await octokit.request("GET /user");
+  //   console.log(`Token retrieved for ${data.login}`);
+  // }); // this event might need to be "token.created"
+
+
+
+
+
+
+
+
+
+
+
 
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
   /**
