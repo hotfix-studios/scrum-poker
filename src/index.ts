@@ -30,12 +30,19 @@ const localWebhookUrl = `http://${host}:${port}`;
 /////////////////////////////////////////////////////////
 // #region ////////////// server setup //////////////////
 const _express = express();
+const test_express = express();
 
-configureServer(_express);
+// configureServer(_express);
+configureServer(test_express);
 
 /* returns http server to setup sockets on */
-const server = _express.listen(port, () => {
-  console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
+// const server = _express.listen(port, () => {
+//   console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
+//   console.log("Press Ctrl + C to quit.");
+// });
+
+const test_server = _express.listen(3333, () => {
+  console.log("\x1b[34m", `TEST SERVER RUNNING: 3333`);
   console.log("Press Ctrl + C to quit.");
 });
 
