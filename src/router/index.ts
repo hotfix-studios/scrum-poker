@@ -92,7 +92,7 @@ export const configureServer = (server: Application) => {
 
 // TODO: check out if this is good:
 // app.webhooks.verify
-
+const blcok = "ass";
 ///////////////////////
 /// GLOBAL HANDLERS ///
 ///////////////////////
