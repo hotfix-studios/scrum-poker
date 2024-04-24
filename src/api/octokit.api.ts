@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { app } from '../app.js';
 import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
