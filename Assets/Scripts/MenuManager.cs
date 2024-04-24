@@ -102,15 +102,10 @@ public class MenuManager : VisualElement
             m_JoinContainer.style.visibility = Visibility.Visible;
         });
 
-        m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(async e =>
+        m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(e =>
         {
-            // TODO: Write a function to GET the CLIENT_ID from the server (if it cannot be accessed via GetEnvironmentVariable in Unity)
-            string clientId = System.Environment.GetEnvironmentVariable("CLIENT_ID");
-            Debug.Log("CLIENT_ID: " + clientId);
-
-            var CLIENT_ID = "bc388b03d7ee8a62013c";
-            string authURL = $"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}";
-
+            // When navigating to login, authorize with GitHub and reload application
+            string authURL = $"https://github.com/login/oauth/authorize?client_id={Store.clientId}";
             Application.OpenURL(authURL);
         });
 

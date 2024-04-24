@@ -78,8 +78,7 @@ public class Utilities : MonoBehaviour
 
             if (paramName == "code")
             {
-                Debug.Log("Code: " + paramValue);
-                return paramName;
+                return paramValue;
             }
         }
        return null;
@@ -145,7 +144,6 @@ public class Utilities : MonoBehaviour
     }
 
     // GET
-
     public static async Task<string> GetAuthToken(string endpoint)
     {
         var baseURL = GetBaseURL();
