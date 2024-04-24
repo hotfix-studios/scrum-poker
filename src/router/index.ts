@@ -35,7 +35,7 @@ api.use("/users", usersRouter);
 export const configureServer = (server: Application) => {
     /* Global Middleware */
     server
-        .use(middleware)
+        // .use(middleware)
         .use(cors())
         .use(json())
         .use(urlencoded({ extended: true }));
