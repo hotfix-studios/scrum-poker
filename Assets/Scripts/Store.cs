@@ -12,7 +12,8 @@ public class Store : MonoBehaviour
     private static Store instance;
 
     // GLOBAL STATE VARIABLES
-    public static string? code;
+    public static string clientId;
+    public static string code;
     public static string token;
     public static int? installationId;
     public static string repoName;
@@ -36,6 +37,7 @@ public class Store : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         code = Utilities.GetCode();
+        Debug.Log("CODE: " + code);
 
         // POST code to the server
         if (code != null)
