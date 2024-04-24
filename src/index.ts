@@ -11,7 +11,7 @@ import { WebSocketServer } from "ws";
 import { app } from "./app.js";
 
 /* API */
-import { configureServer, registerEventListeners } from "./router/index.js";
+import { configureServer, /* registerEventListeners */ } from "./router/index.js";
 
 /////////////////////////////////////////////////////////
 // #region ///////////////// ENV VARS ///////////////////
@@ -51,7 +51,9 @@ const test_server = _express.listen(3333, () => {
 //   console.log("WSS started");
 // });
 
-registerEventListeners(app);
+//////////////////////////////////
+// TODO: UN-COMMENT THIS!! //////
+// registerEventListeners(app);
 
 // Define a cron job that runs every day at midnight
 const job = new cron.CronJob("0 0 * * *", () => {
