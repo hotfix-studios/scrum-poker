@@ -35,7 +35,7 @@ api.use("/users", usersRouter);
 export const configureServer = (server: Application) => {
     /* Global Middleware */
     server
-        // .use(middleware)
+        .use(middleware)
         .use(cors())
         .use(json())
         .use(urlencoded({ extended: true }));
@@ -66,6 +66,7 @@ export const configureServer = (server: Application) => {
 // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
 
 /**
+ * @deprecated
  * @summary This sets up the event listeners (like webhook).
  * @description e.g. when the app receives a webhook event (POST?) from GitHub with a `X-GitHub-Event` header value of `pull_request`
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
