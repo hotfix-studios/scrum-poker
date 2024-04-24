@@ -104,10 +104,12 @@ public class MenuManager : VisualElement
 
         m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(async e =>
         {
-            // TODO: Write a function to GET the CLIENT_ID from the server (if it cannot be accessed via GetEnvironmentVariable in Unity)
-            string clientId = System.Environment.GetEnvironmentVariable("CLIENT_ID");
-            Debug.Log("CLIENT_ID: " + clientId);
+            // TODO: Tell Colin about http request to GET the CLIENT_ID from the server
+            var endpoint = "api/env/";
+            Store.clientId = await Utilities.GetClientId(endpoint);
+            Debug.Log("CLIENT_ID: " + Store.clientId);
 
+            // TODO: Once HTTP request logic is added on backend, replace the hardcoded clientId
             var CLIENT_ID = "bc388b03d7ee8a62013c";
             string authURL = $"https://github.com/login/oauth/authorize?client_id={CLIENT_ID}";
 
