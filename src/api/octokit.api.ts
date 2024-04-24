@@ -431,7 +431,7 @@ class OctokitApi {
       try {
 
           // const { data: restIssues } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
-          const { data: restIssues } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+          const { data: restIssues } = await this._authenticatedOctokit.octokit.request("GET /repos/{owner}/{repo}/issues", {
             owner: params.owner,
             repo: params.repo,
             headers: {
