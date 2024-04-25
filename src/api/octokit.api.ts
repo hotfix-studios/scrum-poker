@@ -46,10 +46,11 @@ class OctokitApi {
   public readonly _issuesController: ContextTypes.IssuesController;
 
   /**
-   * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
+   * @description Upgraded-level-authenticated Octokit instance from OAuth Token
    */
-  private _authenticatedOctokit: OAuthApp;
-  private _installationId: number;
+  public _authenticatedContext: OAuthApp;
+  private _authenticatedToken: string;
+  public _installationId: number;
 
   constructor(context: ContextTypes.Context) {
     const { app, installationController, userController, repositoryController, issuesController } = context;
@@ -68,7 +69,7 @@ class OctokitApi {
   //////////////////////////////////////////
 
   /**
-   * @deprecated
+   *
    */
   // postAuth = async (req: Request, res: Response, next: NextFunction) => {
   //   const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
@@ -118,14 +119,34 @@ class OctokitApi {
   // };
 
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
-    // const code: string = req.body.code;
-    const code = "bee088009844b2ff2944";
+    try {
+      const code: string = req.body.code;
 
-    const token = await this._appContext.createToken({ code });
-    /* TODO: determine where to pass this token to persist app auth permissions for reqs, (after commit stash apply for todo) */
-    /* TODO: add error handling and whatnot.. */
+      /* { authentication } obj contains lots of client data */
+      const { authentication } = await this._appContext
+        .createToken({
+          code,
+          scopes: [ "project", "read:user", "repo" ],
+        });
 
-    res.send(token);
+      /* TODO: rm */
+      for (const key in authentication) {
+        console.log(`AUTH KEY: ${key}`);
+        console.log(`AUTH VAL: ${authentication[key]}`);
+      }
+
+      const { token }: { token: string } = authentication;
+      console.log(`TOKEN :: ${token}`);
+
+      res.locals.authorization = token;
+
+    } catch (error) {
+
+      console.error(`this is req.body.code: ${req.body.code} inside postAuth...`);
+      console.error("Failed to upgrade with _appContext.createToken: ", error);
+    }
+
+    next();
   };
 
   /////////////////////////////////////////////////////
@@ -133,20 +154,25 @@ class OctokitApi {
   /////////////////////////////////////////////////////
 
   findOrCreateUser = async (req: Request, res: Response, next: NextFunction) => {
-    const { data } = await this._appContext.octokit.request("GET /user");
-    console.log(`GET USER DATA OAUTH APP -- ${data}`);
+    const { authorization: token} = res.locals;
+    console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
+
+    try {
+        const { data } = await this._authenticatedContext.request("GET /user");
+        console.log(`GET USER DATA OAUTH APP --`, data);
+
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+    }
+
+    next();
   };
 
-  // app.on("token", async ({ token, octokit, expiresAt }) => {
-  //   const { data } = await octokit.request("GET /user");
-  //   console.log(`Token retrieved for ${data.login}`);
-  // }); // this event might need to be "token.created"
 
 
-
-
-
-
+  /////////////////////////////////////////////////////
+  //////// END WRITING ////////////////////////////////
+  /////////////////////////////////////////////////////
 
 
 
@@ -574,6 +600,13 @@ class OctokitApi {
   /////////////////////////////////////////////////////////////////////////////
   // #region /////////////////////// Event Handlers ///////////////////////////
 
+  handleAuthTokenUpgrade = async ({ token, octokit }): Promise<void> => {
+    // @ts-ignore
+    this._authenticatedToken = token;
+    // @ts-ignore
+    this._authenticatedContext = octokit;
+  };
+
   handleInstallationCreate = async ({ octokit, payload }): Promise<void> => {
     console.log(`Entering octokit.api handleInstallationCreate() for - ${payload.installation.account.login}`);
 
@@ -722,5 +755,16 @@ class OctokitApi {
   // #endregion /////////////////////// Event Handlers ////////////////////////
 
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//// TEMP EVENT REGISTRATION ////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// this._appContext.on("token.created", async ({ token, octokit }) => {
+//   this._authenticatedToken = token;
+//   this._authenticatedContext = octokit;
+//   const { data } = octokit.request("GET /user");
+//   console.log("DATA FUCKER: ", data);
+// });
 
 export default new OctokitApi(_context);
