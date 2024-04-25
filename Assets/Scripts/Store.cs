@@ -13,6 +13,7 @@ public class Store : MonoBehaviour
 
     // GLOBAL STATE VARIABLES
     public static string clientId = "bc388b03d7ee8a62013c";
+    public static string scopes = "repo project read:user";
     public static string code;
     public static string token;
     public static int? installationId;
@@ -51,7 +52,7 @@ public class Store : MonoBehaviour
         }
 
         // installationId = Utilities.GetInstallationID();
-        
+
         // POST installationId to the server
         // StartCoroutine(Utilities.PostInstallationId(installationId));
 
