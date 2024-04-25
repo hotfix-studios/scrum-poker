@@ -168,7 +168,8 @@ class OctokitApi {
     next();
   };
 
-
+  // TODO: Write user data to DB -->> then use some user data to go get associated repos? -->> write those to user?
+  // TODO: Move to respective regions of API class
 
   /////////////////////////////////////////////////////
   //////// END WRITING ////////////////////////////////
