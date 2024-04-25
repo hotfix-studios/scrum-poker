@@ -61,8 +61,6 @@ export const configureServer = (server: Application) => {
 
 };
 
-// TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
-// // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
 // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
 
 /**
@@ -90,9 +88,17 @@ export const configureServer = (server: Application) => {
 //   octokitClient.webhooks.onError(octokitApi.wildCardErrorHandler);
 // };
 
+/* TODO: rm */
+const blcok = "ass";
+
+export const registerEventListeners = (octokitClient: OAuthApp) => {
+  /* UPGRADE OAUTH APP WITH TOKEN */
+  octokitClient.on("token.created", octokitApi.handleAuthTokenUpgrade);
+};
+
 // TODO: check out if this is good:
 // app.webhooks.verify
-const blcok = "ass";
+
 ///////////////////////
 /// GLOBAL HANDLERS ///
 ///////////////////////
