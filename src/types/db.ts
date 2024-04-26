@@ -46,11 +46,7 @@ export interface Repository {
     url: string;
     collaborators_url: string;
     teams_url: string;
-    hooks_url: string;
-    issue_events_url: string;
-    events_url: string;
     assignees_url: string;
-    languages_url: string;
     contributors_url: string;
     comments_url: string;
     issue_comment_url: string;
@@ -58,6 +54,7 @@ export interface Repository {
     issues_url: string;
     labels_url: string;
     clone_url: string;
+    language: string;
     has_issues: boolean;
     has_projects: boolean;
     open_issues_count: number;
