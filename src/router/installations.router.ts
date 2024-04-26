@@ -18,7 +18,7 @@ installationsRouter
   .route("/auth/:code")
   .post([
     octokitApi.postAuth,
-    octokitApi.findOrCreateUser,
+    octokitApi.getOrPostUser,
     octokitApi.sendData
   ])
 
