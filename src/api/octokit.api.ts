@@ -118,6 +118,10 @@ class OctokitApi {
   //   }
   // };
 
+  /////////////////////////////////////////////////////
+  //////////// WRITING ////////////////////////////////
+  /////////////////////////////////////////////////////
+
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const code: string = req.body.code;
@@ -128,12 +132,6 @@ class OctokitApi {
           code,
           scopes: [ "project", "read:user", "repo" ],
         });
-
-      /* TODO: rm */
-      for (const key in authentication) {
-        console.log(`AUTH KEY: ${key}`);
-        console.log(`AUTH VAL: ${authentication[key]}`);
-      }
 
       const { token }: { token: string } = authentication;
       console.log(`TOKEN :: ${token}`);
@@ -149,20 +147,49 @@ class OctokitApi {
     next();
   };
 
-  /////////////////////////////////////////////////////
-  //////////// WRITING ////////////////////////////////
-  /////////////////////////////////////////////////////
-
-  findOrCreateUser = async (req: Request, res: Response, next: NextFunction) => {
+  getOrPostUser = async (req: Request, res: Response, next: NextFunction) => {
     const { authorization: token} = res.locals;
     console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
 
     try {
-        const { data } = await this._authenticatedContext.request("GET /user");
-        console.log(`GET USER DATA OAUTH APP --`, data);
+        const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
+        console.log(`GET USER DATA OAUTH APP --`, user);
+        // TODO: User.findOrCreate(user)
+
+        // res.locals.user_data.repos_url = user.repos_url;
+        const userDTO: DTO.User = await this._userContext.findOrCreate(user);
+        res.locals.user_data = userDTO;
 
       } catch (error) {
+
         console.error("Error fetching user data:", error);
+        res.locals.user_data = null;
+    }
+
+    next();
+  };
+
+  getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
+    /* TODO: needs pagination for users with LOTS of repos.. */
+    console.log("--- --- --- ---");
+    // console.log(res.locals.user_data);
+    const user = res.locals.user_data;
+    const { repos_url } = res.locals.user_data;
+    console.log(`REPOS URL INSIDE getUserRepos: ${repos_url}`);
+
+    try {
+
+      const { data: repos } = await this._authenticatedContext.request("GET /user/repos");
+      repos.forEach(repo => {
+        console.log(repo);
+      });
+      // for (const key in repos) {
+      //   console.log(`KEY: ${key}`);
+      //   console.log(`VAL: ${repos[key]}`);
+      // }
+      // console.log(`REPOS REPOS REPOS -->> ${repos}`);
+    } catch (error) {
+      console.error("Failed to GET /repositories REST ", error);
     }
 
     next();
