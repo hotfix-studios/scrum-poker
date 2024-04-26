@@ -2,6 +2,15 @@
 //// Data Transfer Objects ////
 ///////////////////////////////
 
+export interface User {
+  id: number;
+  name: string; // name, not login
+  avatar_url: string;
+  repos_url: string;
+  type: string;
+  repos: number[];
+};
+
 export interface Repository {
   id: number;
   name: string;
