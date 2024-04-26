@@ -20,7 +20,7 @@ public class WebSocketConnection : MonoBehaviour
     public class Params
     {
         public string roomId;
-        public int? id;
+        public int id;
         public string userName;
         public string avatar;
     }

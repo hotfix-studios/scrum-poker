@@ -330,21 +330,21 @@ public class Utilities : MonoBehaviour
 
         if (userData != null)
         {
-            if (userData.ContainsKey("id") && userData["id"] is int)
+            if (userData.ContainsKey("id") && userData["id"] is int id)
             {
-                Store.id = (int)userData["id"];
-                Debug.Log(Store.id);
+                Store.id = id;
+                Debug.Log(id);
             }
 
-            if (userData.ContainsKey("name") && userData["name"] is string)
+            if (userData.ContainsKey("name") && userData["name"] is string fullName)
             {
-                Store.fullName = (string)userData["name"];
+                Store.fullName = fullName;
                 Debug.Log(Store.fullName);
             }
 
-            if (userData.ContainsKey("avatar_url") && userData["avatar_url"] is string)
+            if (userData.ContainsKey("avatar_url") && userData["avatar_url"] is string avatar)
             {
-                Store.avatar = (string)userData["avatar_url"];
+                Store.avatar = avatar;
                 Debug.Log(Store.avatar);
             }
         }
