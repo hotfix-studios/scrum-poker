@@ -20,7 +20,7 @@ public class WebSocketConnection : MonoBehaviour
     public class Params
     {
         public string roomId;
-        public int? installationId;
+        public int? id;
         public string userName;
         public string avatar;
     }
@@ -127,7 +127,7 @@ public class WebSocketConnection : MonoBehaviour
                 Params = new Params
                 {
                     roomId = Store.roomId,
-                    installationId = Store.installationId,
+                    id = Store.id,
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -146,7 +146,7 @@ public class WebSocketConnection : MonoBehaviour
                 Params = new Params
                 {
                     roomId = Store.roomId,
-                    installationId = Store.installationId
+                    id = Store.id
                 }
             };
             string json = JsonConvert.SerializeObject(data);
