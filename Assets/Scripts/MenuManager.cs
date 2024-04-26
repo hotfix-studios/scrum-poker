@@ -94,7 +94,7 @@ public class MenuManager : VisualElement
                 Store.userName = userData["name"];
             }
             Debug.Log("AVATAR_URL: " + Store.avatar);
-            Debug.Log("USERNAME: " + Store.userName);*/
+            Debug.Log("USERNAME: " + Store.name);*/
         });
 
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e =>
@@ -105,7 +105,7 @@ public class MenuManager : VisualElement
         m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(e =>
         {
             // When navigating to login, authorize with GitHub and reload application
-            string authURL = $"https://github.com/login/oauth/authorize?client_id={Store.clientId}";
+            string authURL = $"https://github.com/login/oauth/authorize?client_id={Store.clientId}&scope={Store.scopes}";
             Application.OpenURL(authURL);
         });
 
