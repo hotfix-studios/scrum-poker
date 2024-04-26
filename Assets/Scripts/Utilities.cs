@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 public class Utilities : MonoBehaviour
 {
@@ -137,14 +138,13 @@ public class Utilities : MonoBehaviour
             else
             {
                 Debug.Log($"Success: POST code to {endpoint}");
-                Store.token = HandleResponseAuthToken(www.downloadHandler.text);
-                Debug.Log($"Authorization Token: {Store.token}");
+                HandleResponseUserData(www.downloadHandler.text);
             }
         }
     }
 
     // GET
-    public static async Task<string> GetAuthToken(string endpoint)
+/*    public static async Task<string> GetAuthToken(string endpoint)
     {
         var baseURL = GetBaseURL();
         string url = $"{baseURL}{endpoint}";
@@ -169,9 +169,9 @@ public class Utilities : MonoBehaviour
                 return HandleResponseAuthToken(responseData);
             }
         }
-    }
+    }*/
 
-    public static string HandleResponseAuthToken(string responseData)
+/*    public static string HandleResponseAuthToken(string responseData)
     {
         var data = JObject.Parse(responseData);
         var token = data["authorization"].ToString();
@@ -183,7 +183,7 @@ public class Utilities : MonoBehaviour
         }
 
         return token;
-    }
+    }*/
 
     public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
@@ -251,7 +251,7 @@ public class Utilities : MonoBehaviour
     {
         /* TODO: handle projections? */
         var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{Store.repoName}";
+        string url = $"{baseURL}{endpoint}{Store.id}/{Store.repoName}";
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
@@ -290,7 +290,7 @@ public class Utilities : MonoBehaviour
         return issues;
     }
 
-    public static async Task<Dictionary<string, string>> GetUserData(string endpoint, string[] projections)
+/*    public static async Task<Dictionary<string, string>> GetUserData(string endpoint, string[] projections)
     {
         var baseURL = GetBaseURL();
         string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{string.Join(',', projections)}";
@@ -318,14 +318,36 @@ public class Utilities : MonoBehaviour
                 return HandleResponseUserData(responseData);
             }
         }
-    }
+    }*/
 
-    public static Dictionary<string, string> HandleResponseUserData(string responseData)
+    public static Dictionary<string, object> HandleResponseUserData(string responseData)
     {
+        
         var data = JObject.Parse(responseData);
         Debug.Log(data);
 
-        Dictionary<string, string> userData = data["user_data"].ToObject<Dictionary<string, string>>();
+        Dictionary<string, object> userData = data["user_data"].ToObject<Dictionary<string, object>>();
+
+        if (userData != null)
+        {
+            if (userData.ContainsKey("id") && userData["id"] is int)
+            {
+                Store.id = (int)userData["id"];
+                Debug.Log(Store.id);
+            }
+
+            if (userData.ContainsKey("name") && userData["name"] is string)
+            {
+                Store.fullName = (string)userData["name"];
+                Debug.Log(Store.fullName);
+            }
+
+            if (userData.ContainsKey("avatar_url") && userData["avatar_url"] is string)
+            {
+                Store.avatar = (string)userData["avatar_url"];
+                Debug.Log(Store.avatar);
+            }
+        }
         return userData;
     }
 
