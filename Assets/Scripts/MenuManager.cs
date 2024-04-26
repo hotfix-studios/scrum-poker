@@ -154,8 +154,8 @@ public class MenuManager : VisualElement
                 // TODO: Add userId to those user objects
                 var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
                 var newLabel = new Label();
-                newLabel.name = Store.installationId.ToString();
-                newLabel.text = Store.installationId.ToString();
+                newLabel.name = Store.id.ToString();
+                newLabel.text = Store.fullName.ToString();
                 participants.Add(newLabel);
             }
             // ELSE: Have the user re-enter invite code
@@ -177,8 +177,8 @@ public class MenuManager : VisualElement
     {
         var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
         var newLabel = new Label();
-        newLabel.name = Store.installationId.ToString();
-        newLabel.text = Store.installationId.ToString();
+        newLabel.name = Store.id.ToString();
+        newLabel.text = Store.fullName.ToString();
         participants.Add(newLabel);
     }
 

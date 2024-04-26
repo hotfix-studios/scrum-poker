@@ -144,7 +144,7 @@ public class Utilities : MonoBehaviour
     }
 
     // GET
-    public static async Task<string> GetAuthToken(string endpoint)
+/*    public static async Task<string> GetAuthToken(string endpoint)
     {
         var baseURL = GetBaseURL();
         string url = $"{baseURL}{endpoint}";
@@ -169,9 +169,9 @@ public class Utilities : MonoBehaviour
                 return HandleResponseAuthToken(responseData);
             }
         }
-    }
+    }*/
 
-    public static string HandleResponseAuthToken(string responseData)
+/*    public static string HandleResponseAuthToken(string responseData)
     {
         var data = JObject.Parse(responseData);
         var token = data["authorization"].ToString();
@@ -183,7 +183,7 @@ public class Utilities : MonoBehaviour
         }
 
         return token;
-    }
+    }*/
 
     public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
