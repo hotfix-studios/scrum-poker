@@ -45,6 +45,7 @@ public class Store : MonoBehaviour
         if (code != null)
         {
             StartCoroutine(Utilities.PostCode(code));
+            Debug.Log(id);
         }
 
     }
