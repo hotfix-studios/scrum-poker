@@ -7,8 +7,19 @@ const installationsRouter = Router();
 /**
  * @implements route /api/installations
  */
+// installationsRouter
+//   .route("/auth/:id")
+//   .post([
+//     octokitApi.postAuth,
+//     octokitApi.sendData
+//   ]);
+
 installationsRouter
-  .route("/auth/:id")
-  .post(octokitApi.postAuth);
+  .route("/auth/:code")
+  .post([
+    octokitApi.postAuth,
+    octokitApi.getOrPostUser,
+    octokitApi.sendData
+  ])
 
 export default installationsRouter;

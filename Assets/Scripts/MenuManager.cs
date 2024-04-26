@@ -50,8 +50,8 @@ public class MenuManager : VisualElement
     public new class UxmlFactory : UxmlFactory<MenuManager, UxmlTraits> { }
     public new class UxmlTraits : VisualElement.UxmlTraits { }
 
-    public MenuManager() 
-    { 
+    public MenuManager()
+    {
         // sceneController = SceneController.FindObjectOfType<SceneController>();
         this.RegisterCallback<GeometryChangedEvent>(OnGeometryChange);
     }
@@ -130,7 +130,7 @@ public class MenuManager : VisualElement
             lobbyText.text = Store.roomId;
             Debug.Log(lobbyText.text);
 
-            // Set "start game" button's visibility to visible 
+            // Set "start game" button's visibility to visible
             var startGame = m_Lobby?.Q("StartGameButton");
             startGame.style.visibility = Visibility.Visible;
         });

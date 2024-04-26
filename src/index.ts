@@ -7,10 +7,8 @@ import express from "express";
 import dotenv from "dotenv";
 import "./db/index.js";
 
-import { WebSocketServer } from "ws";
 import { app } from "./app.js";
 
-/* API */
 import { configureServer, registerEventListeners } from "./router/index.js";
 
 /////////////////////////////////////////////////////////
@@ -33,16 +31,10 @@ const _express = express();
 
 configureServer(_express);
 
-/* returns http server to setup sockets on */
 const server = _express.listen(port, () => {
   console.log("\x1b[34m", `Server is listening for events at: ${localWebhookUrl}`);
   console.log("Press Ctrl + C to quit.");
 });
-
-/* creating a websocket to run on our server */
-// const wss = new WebSocketServer({ server }, () => {
-//   console.log("WSS started");
-// });
 
 registerEventListeners(app);
 
@@ -60,13 +52,16 @@ const job = new cron.CronJob("0 0 * * *", () => {
   });
 });
 
-// Start the cron job
 job.start();
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
 
 /////////////////////////////////////////////////////////
-///// #region top-level node critical-failure catch /////
+/////////////////////////////////////////////////////////
+
+/* TODO: top 2 of these error listeners need testing */
+/////////////////////////////////////////////////////////
+// #region //// main node critical-failure catch ////////
 process.on('uncaughtExceptionMonitor', (err, origin) => {
   console.error(`Critical failure, propagated to top-level from ${origin}, error: `, err);
   /* TODO: create custom monitor class here that will handle application recover or restart from unhandled critical failure... */
@@ -97,8 +92,9 @@ process.on('uncaughtException', (err, origin) => {
   }
   console.error("goodbye.");
 });
+/*
+ * [node critical failure handling process.on docs]
+ * (https://nodejs.org/api/process.html#process_event_uncaughtexception)
+*/
 /////////////////////////////////////////////////////////
 // #endregion ///////////////////////////////////////////
-
-/* TODO: all 3 of these need testing */
-/* [node critical failure handling process.on docs](https://nodejs.org/api/process.html#process_event_uncaughtexception) */

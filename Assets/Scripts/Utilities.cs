@@ -322,7 +322,7 @@ public class Utilities : MonoBehaviour
 
     public static Dictionary<string, object> HandleResponseUserData(string responseData)
     {
-        
+
         var data = JObject.Parse(responseData);
         Debug.Log(data);
 

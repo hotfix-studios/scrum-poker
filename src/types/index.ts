@@ -15,3 +15,9 @@ export * as OctokitTypes from "./octokit.js";
  * @implements These are exported in their own "DTO" module (like a namespace) to avoid naming collision from REST.
  */
 export * as DTO from "./DTO.js";
+
+/**
+ * @summary These Types represent the Documents fields' datatypes and will Hydrate to include extended Mongoose prototype stuff.
+ * @implements DocumentTypes module.
+ */
+export * as DocumentTypes from "./db.js";

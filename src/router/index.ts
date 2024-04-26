@@ -19,7 +19,8 @@ import usersRouter from "./users.router.js";
 ////// TYPES //////
 ///////////////////
 
-import { App as AppType } from "octokit";
+// import { App as AppType } from "octokit";
+import { OAuthApp } from "@octokit/oauth-app";
 import { octokitApi } from "../api/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -60,32 +61,39 @@ export const configureServer = (server: Application) => {
 
 };
 
-// TODO: Host webGl build on site "Homepage" in GH GUI (on static homepage button redirects to GH Marketplace Install trigger auth flow)
-// // --> URL might be http://127.0.0.1:3000 instead? (hits .get("/"))
 // TODO: should have error handling: [example](https://github.com/covalence-io/ws-simple/blob/main/routers/index.ts)
 
 /**
+ * @deprecated
  * @summary This sets up the event listeners (like webhook).
  * @description e.g. when the app receives a webhook event (POST?) from GitHub with a `X-GitHub-Event` header value of `pull_request`
  * and an `action` payload value of `opened`, it calls the `pullRequestOpenedHandler`
  */
-export const registerEventListeners = (octokitClient: AppType) => {
-  console.log("\x1b[36m%s\x1b[0m", "Event Listeners registering...");
-  // TODO: Wss On Connection?
-  /* INSTALLATION */
-  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationCreate);
-  octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindOrCreate);
-  octokitClient.webhooks.on("installation.created", octokitApi.handleOwnerUserCreate);
-  /* REPOS */
-  octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
-  /* ISSUES */
-  octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
-  // TODO: label.added? event - grab and move Issue from Backlog to In Progress lane (GH SCRUM POKER v2.0)
-  // octokitClient.webhooks.on("issues.labeled", octokitApi.something);
-  /* PRs */
-  octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
-  /* ERRORS */
-  octokitClient.webhooks.onError(octokitApi.wildCardErrorHandler);
+// export const registerEventListeners = (octokitClient: OAuthApp) => {
+//   console.log("\x1b[36m%s\x1b[0m", "Event Listeners registering...");
+//   // TODO: Wss On Connection?
+//   /* INSTALLATION */
+//   octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationCreate);
+//   octokitClient.webhooks.on("installation.created", octokitApi.handleInstallationReposFindOrCreate);
+//   octokitClient.webhooks.on("installation.created", octokitApi.handleOwnerUserCreate);
+//   /* REPOS */
+//   octokitClient.webhooks.on("repository.created", octokitApi.handleRepoCreate); // event not working
+//   /* ISSUES */
+//   octokitClient.webhooks.on("issues.opened", octokitApi.issueOpenedHandler);
+//   // TODO: label.added? event - grab and move Issue from Backlog to In Progress lane (GH SCRUM POKER v2.0)
+//   // octokitClient.webhooks.on("issues.labeled", octokitApi.something);
+//   /* PRs */
+//   octokitClient.webhooks.on("pull_request.opened", octokitApi.pullRequestOpenedHandler);
+//   /* ERRORS */
+//   octokitClient.webhooks.onError(octokitApi.wildCardErrorHandler);
+// };
+
+/* TODO: rm */
+const blcok = "ass";
+
+export const registerEventListeners = (octokitClient: OAuthApp) => {
+  /* UPGRADE OAUTH APP WITH TOKEN */
+  octokitClient.on("token.created", octokitApi.handleAuthTokenUpgrade);
 };
 
 // TODO: check out if this is good:

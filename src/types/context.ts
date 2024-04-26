@@ -1,9 +1,8 @@
 import { InstallationController, UserController, RepositoryController, IssuesController } from "../db/controllers/index.js";
-
-import { App as AppType } from "octokit";
+import { OAuthApp } from "@octokit/oauth-app";
 
 export interface Context {
-  app: AppType;
+  app: OAuthApp;
   installationController: InstallationController;
   userController: UserController;
   repositoryController: RepositoryController;

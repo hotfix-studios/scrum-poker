@@ -1,9 +1,13 @@
+// @ts-nocheck
 import { app } from '../app.js';
 import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
 /* Types */
 import { Request, Response, NextFunction } from "express";
-import { App as AppType, Octokit } from "octokit";
+// import { App as AppType, Octokit } from "octokit";
+
+import { OAuthApp } from "@octokit/oauth-app";
+// import { OAuthApp as AppType } from "@octokit/oauth-app";
 import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
@@ -14,6 +18,7 @@ const Utility = new (await import("../utility/index.js")).default(_context);
 /**
  * Octokit Responsibilities:
  * - Get GH User info ✔
+ * - - Get User data by projections ✔
  * - - Get User data by projections ✔
  * - Get Repos ✔
  * - - Get Backlogs ✔
@@ -30,7 +35,7 @@ class OctokitApi {
   /**
    * @description Base-level-authenticated Octokit instance (exposes Octokit API/REST)
    */
-  public readonly _appContext: AppType;
+  public readonly _appContext: OAuthApp;
 
   /**
    * @description All DB (Models) controllers (Unit of Work)
@@ -41,10 +46,11 @@ class OctokitApi {
   public readonly _issuesController: ContextTypes.IssuesController;
 
   /**
-   * @description Upgraded-level-authenticated Octokit instance from installation ID (GH App)
+   * @description Upgraded-level-authenticated Octokit instance from OAuth Token
    */
-  private _authenticatedOctokit: Octokit;
-  private _installationId: number;
+  public _authenticatedContext: OAuthApp;
+  private _authenticatedToken: string;
+  public _installationId: number;
 
   constructor(context: ContextTypes.Context) {
     const { app, installationController, userController, repositoryController, issuesController } = context;
@@ -62,51 +68,144 @@ class OctokitApi {
   // #region /////// Installations /////////
   //////////////////////////////////////////
 
+  /**
+   *
+   */
+  // postAuth = async (req: Request, res: Response, next: NextFunction) => {
+  //   const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
+  //   this._installationId = id;
+  //   console.log("installation ID inside getAuth == ", id);
+
+  //   /* The following will be if OAuth Token/session validation is needed... */
+  //   // #region Auth Session
+  //   // const token = await this._appContext.oauth.createToken({ code }); // replace with this._authenticatedOctokit ?
+  //   // const authObj = this._appContext.oauth.getUserOctokit({ code });
+
+  //   /* get installation document from DB? */
+  //   // installation.token = token;
+  //   // installation.save();
+  //   // new up auth octokit (OAuth/Auth/App)
+  //   // #endregion
+
+  //   /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
+  //   // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
+  //   const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+
+  //   // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
+
+  //   /* option 1 */
+  //   // this._appContext.octokit.rest.repos.listCollaborators();
+  //   // write collaborators (_ids) to Users table in DB
+  //   // write users._ids to Installation.collaborators
+  //   // this should give collaborator/users access to specific repo
+
+  //   /* option 2 */
+  //   // this._appContext.octokit.rest.repos.listCollaborators();
+  //   // write these collaborators to Installation.collaborators in DB
+  //   // generate UUID/key (user distributes)
+
+  //   try {
+
+  //     this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
+
+  //     console.log("Successfully Authenticated and Upgraded Octokit...")
+  //     res.status(200);
+  //     next();
+  //   } catch (error) {
+
+  //     console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
+  //     res.sendStatus(500);
+  //   }
+  // };
+
+  /////////////////////////////////////////////////////
+  //////////// WRITING ////////////////////////////////
+  /////////////////////////////////////////////////////
+
   postAuth = async (req: Request, res: Response, next: NextFunction) => {
-    const id: number = req.params.id ? Number(req.params.id) : req.body.installationId;
-    this._installationId = id;
-    console.log("installation ID inside getAuth == ", id);
+    try {
+      const code: string = req.body.code;
 
-    /* The following will be if OAuth Token/session validation is needed... */
-    // #region Auth Session
-    // const token = await this._appContext.oauth.createToken({ code }); // replace with this._authenticatedOctokit ?
-    // const authObj = this._appContext.oauth.getUserOctokit({ code });
+      /* { authentication } obj contains lots of client data */
+      const { authentication } = await this._appContext
+        .createToken({
+          code,
+          scopes: [ "project", "read:user", "repo" ],
+        });
 
-    /* get installation document from DB? */
-    // installation.token = token;
-    // installation.save();
-    // new up auth octokit (OAuth/Auth/App)
-    // #endregion
+      const { token }: { token: string } = authentication;
+      console.log(`TOKEN :: ${token}`);
 
-    /* Upgrade this._appContext octokit Instance to Authenticated Installation Instance */
-    // TODO: GRAB REQUIRED DATA FROM AUTH TO LOOKUP USER.UUID? USERNAME? NAME FIRST/LAST? AVATAR URL?
-    const { data: slug } = await this._appContext.octokit.rest.apps.getAuthenticated();
+      res.locals.authorization = token;
 
-    // ********** // this._authenticatedOctokit.rest.repos.listForUser(); // ***********
+    } catch (error) {
 
-    /* option 1 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write collaborators (_ids) to Users table in DB
-    // write users._ids to Installation.collaborators
-    // this should give collaborator/users access to specific repo
+      console.error(`this is req.body.code: ${req.body.code} inside postAuth...`);
+      console.error("Failed to upgrade with _appContext.createToken: ", error);
+    }
 
-    /* option 2 */
-    // this._appContext.octokit.rest.repos.listCollaborators();
-    // write these collaborators to Installation.collaborators in DB
-    // generate UUID/key (user distributes)
+    next();
+  };
+
+  getOrPostUser = async (req: Request, res: Response, next: NextFunction) => {
+    const { authorization: token} = res.locals;
+    console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
+
+    try {
+        const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
+        console.log(`GET USER DATA OAUTH APP --`, user);
+        // TODO: User.findOrCreate(user)
+
+        // res.locals.user_data.repos_url = user.repos_url;
+        const userDTO: DTO.User = await this._userContext.findOrCreate(user);
+        res.locals.user_data = userDTO;
+
+      } catch (error) {
+
+        console.error("Error fetching user data:", error);
+        res.locals.user_data = null;
+    }
+
+    next();
+  };
+
+  getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
+    /* TODO: needs pagination for users with LOTS of repos.. */
+    console.log("--- --- --- ---");
+    // console.log(res.locals.user_data);
+    const user = res.locals.user_data;
+    const { repos_url } = res.locals.user_data;
+    console.log(`REPOS URL INSIDE getUserRepos: ${repos_url}`);
 
     try {
 
-      this._authenticatedOctokit = await this._appContext.getInstallationOctokit(id);
-
-      console.log("Successfully Authenticated and Upgraded Octokit...")
-      res.sendStatus(200);
+      const { data: repos } = await this._authenticatedContext.request("GET /user/repos");
+      repos.forEach(repo => {
+        console.log(repo);
+      });
+      // for (const key in repos) {
+      //   console.log(`KEY: ${key}`);
+      //   console.log(`VAL: ${repos[key]}`);
+      // }
+      // console.log(`REPOS REPOS REPOS -->> ${repos}`);
     } catch (error) {
-
-      console.error("\x1b[31m%s\x1b[0m", "failed to authenticate and upgrade octokit: ", error);
-      res.sendStatus(500);
+      console.error("Failed to GET /repositories REST ", error);
     }
+
+    next();
   };
+
+  // TODO: Write user data to DB -->> then use some user data to go get associated repos? -->> write those to user?
+  // TODO: Move to respective regions of API class
+
+  /////////////////////////////////////////////////////
+  //////// END WRITING ////////////////////////////////
+  /////////////////////////////////////////////////////
+
+
+
+
+
 
   /* TODO: this can be made into a wildcard fn for all controllers (controller string as arg to specify) */
   /**
@@ -299,20 +398,91 @@ class OctokitApi {
     const id: number = req.params.id
       ? Number(req.params.id)
       : Number(req.params.owner);
-
+    console.log(`user id on req: ${id}`);
     const data = await this._userContext
       .findDocumentProjectionById(id, [ "name", "type" ]);
 
     res.locals.user_data = data;
+
+    next();
+  };
+
+  getRepoNameByUserIdOrParam = async (req: Request, res: Response, next: NextFunction) => {
+    const id: number = req.params.id
+      ? Number(req.params.id)
+      : req.params.owner
+        ? Number(req.params.owner)
+        : Number(res.locals.user_data._id);
 
     /* get repo name from req if exists, else get it from repository_data from prev middleware assignment, else get it from next() */
     res.locals.repository_data.name = req.params.repo
       ? req.params.repo
       : res.locals.repository_data.name
         ? res.locals.repository_data.name
-        : null;
+        : await this._repositoryContext.findRepoNameByOwnerId(id); // TODO: this could be a problem if owner has multiple repos...
 
     next();
+  };
+
+  getOrganizationMembers = async (req: Request, res: Response, next: NextFunction) => {
+    const { owner } = Utility.processParamsForRestUsers(res.locals);
+
+    /* option 1 */
+    // write collaborators (_ids) to Users table in DB
+    // write users._ids to Installation.collaborators
+    // this should give collaborator/users access to specific repo
+
+    /* option 2 */
+    // write these collaborators to Installation.collaborators in DB
+    // generate UUID/key (user distributes)
+
+    // const { data } = await this._authenticatedOctokit.rest.users.list();
+    // const { data } = await this._authenticatedOctokit.rest.orgs.get();
+
+    ///////////////////////////////////////////////
+    // auth upgrade installation id === 49816043 //
+    // TODO: undo hardcode auth upgrade ///////////
+    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(49816043);
+
+    try {
+
+      const { data } = await this._authenticatedOctokit.rest.orgs.listMembers({ org: owner });
+
+      res.locals.user_data = data;
+    } catch (error) {
+
+      console.error(`ORGANIZATION MEMBERS -- Failure listMembers REST request to GH -- ${owner}`);
+    }
+
+    next();
+  };
+
+  getRepoContributors = async (req: Request, res: Response, next: NextFunction) => {
+    const { repo, owner } = Utility.processParamsForRestUsers(res.locals);
+
+    ///////////////////////////////////////////////
+    // auth upgrade installation id === 49816043 //
+    // TODO: undo hardcode auth upgrade ///////////
+    this._authenticatedOctokit = await this._appContext.getInstallationOctokit(49816043);
+
+    try {
+
+      const { data } = await this._authenticatedOctokit.rest.repos.listCollaborators({ owner, repo });
+
+      res.locals.user_data = data;
+    } catch (error) {
+
+      console.error(`REPOSITORY COLLABORATORS -- Failure listCollaborators REST request to GH -- ${owner} + ${repo}`);
+    }
+
+    next();
+  };
+
+  /**
+   * @description write COLLABORATORS and MEMBERS to DB? TWO distinct POSTS? hook into GET routes???
+   */
+  postAssociatedUsers = async (req: Request, res: Response, next: NextFunction) => {
+    throw new Error("Not Implemented");
   };
 
   //////////////////////////////////////////
@@ -327,7 +497,7 @@ class OctokitApi {
    * @requires owner: owner_name, repo: repo_name, owner_type: typeForPath to GET issues
    */
   getIssues = async (req: Request, res: Response, next: NextFunction) => {
-    const params = Utility.processParamsForRestIssues(res.locals);
+    const params = Utility.processParamsForRestUsers(res.locals);
     console.log("PARAMS:", params);
 
     /* TODO: *important* If a repo has a backlog, an indicator needs to be cached! this will prevent lookup */
@@ -344,7 +514,7 @@ class OctokitApi {
       try {
 
           // const { data: restIssues } = await this._authenticatedOctokit.rest.issues.listForRepo(params);
-          const { data: restIssues } = await this._authenticatedOctokit.request("GET /repos/{owner}/{repo}/issues", {
+          const { data: restIssues } = await this._authenticatedOctokit.octokit.request("GET /repos/{owner}/{repo}/issues", {
             owner: params.owner,
             repo: params.repo,
             headers: {
@@ -389,7 +559,7 @@ class OctokitApi {
    */
   getProjectsData = async (req: Request, res: Response, next: NextFunction) => {
     /* TODO: HOW TO DETERMINE WHICH REPO USES PROJECTS/ISSUES? */
-    const params = Utility.processParamsForRestIssues(res.locals);
+    const params = Utility.processParamsForRestUsers(res.locals);
     let projectsData: Partial<OctokitTypes.OrgProject | OctokitTypes.UserProject>;
 
     try {
@@ -457,6 +627,13 @@ class OctokitApi {
 
   /////////////////////////////////////////////////////////////////////////////
   // #region /////////////////////// Event Handlers ///////////////////////////
+
+  handleAuthTokenUpgrade = async ({ token, octokit }): Promise<void> => {
+    // @ts-ignore
+    this._authenticatedToken = token;
+    // @ts-ignore
+    this._authenticatedContext = octokit;
+  };
 
   handleInstallationCreate = async ({ octokit, payload }): Promise<void> => {
     console.log(`Entering octokit.api handleInstallationCreate() for - ${payload.installation.account.login}`);
@@ -606,5 +783,16 @@ class OctokitApi {
   // #endregion /////////////////////// Event Handlers ////////////////////////
 
 }
+
+/////////////////////////////////////////////////////////////////////////////
+//// TEMP EVENT REGISTRATION ////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+
+// this._appContext.on("token.created", async ({ token, octokit }) => {
+//   this._authenticatedToken = token;
+//   this._authenticatedContext = octokit;
+//   const { data } = octokit.request("GET /user");
+//   console.log("DATA FUCKER: ", data);
+// });
 
 export default new OctokitApi(_context);

@@ -46,5 +46,26 @@ usersRouter
     octokitApi.sendData
   ]);
 
+/* needs user id */
+usersRouter
+  .route("/org/:id/members")
+  .get([
+    // octokitApi.postAuth, // this will first NEED to happen in separate request
+    octokitApi.getUserNameAndTypeById,
+    octokitApi.getOrganizationMembers,
+    octokitApi.sendData
+  ]);
+
+/* needs user ID (or name if extended to use that) and repo name */
+usersRouter
+.route("/:id/repo/:repo/contributors")
+.get([
+  // octokitApi.postAuth, // this will first NEED to happen in separate request
+  octokitApi.getUserNameAndTypeById,
+  octokitApi.getRepoNameByUserIdOrParam,
+  octokitApi.getRepoContributors,
+  octokitApi.sendData
+]);
+
 
 export default usersRouter;

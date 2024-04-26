@@ -146,9 +146,17 @@ export default class Utils {
         : null;
   };
 
-  processParamsForRestIssues = (resLocals: any): DTO.ReqProjectsParams => {
-    const { name, owner_type } = resLocals.user_data;
-    const repo_name = resLocals.repository_data.name;
+  processParamsForRestUsers = (resLocals: any): DTO.ReqProjectsParams => {
+    const { name }: { name: string } = resLocals.user_data;
+    let owner_type: string;
+
+    owner_type = resLocals.user_data.owner_type
+      ? resLocals.user_data.owner_type
+      : resLocals.user_data.type
+        ? resLocals.user_data.type
+        : null;
+
+    const repo_name = resLocals.repository_data.name || null;
     const typeForPath = owner_type === "Organization" ? "orgs" : "users";
     const params: DTO.ReqProjectsParams = { owner: name, repo: repo_name, owner_type: typeForPath };
     return params;
