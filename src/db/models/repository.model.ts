@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
+import { DocumentTypes } from '../../types/index.js';
 
-const repositorySchema = new Schema({
+const repositorySchema = new Schema<DocumentTypes.Repository>({
   _id: { type: Schema.Types.Number, required: true },                // uses .id from GH payloads
   name: { type: Schema.Types.String, required: true },
   full_name: { type: Schema.Types.String, required: true },
@@ -29,4 +30,4 @@ const repositorySchema = new Schema({
   has_pointed: { type: Schema.Types.Boolean, default: false }
 });
 
-export default model("Repository", repositorySchema);
+export default model<DocumentTypes.Repository>("Repository", repositorySchema);

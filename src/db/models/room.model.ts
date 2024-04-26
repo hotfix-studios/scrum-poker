@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
+import { DocumentTypes } from '../../types/index.js';
 
-const roomSchema = new Schema({
+const roomSchema = new Schema<DocumentTypes.Room>({
   _id: { type: Schema.Types.String, required: true },             // crypto randomBytes(4).toString("base64").slice(0, 5);
   host: { type: Schema.Types.Number, ref: "User", unique: true }, // uses users[0] (user._id)
   users: [ { type: Schema.Types.Number, ref: "User" } ]           // use user._id (lookup User by _id for name)
@@ -31,4 +32,4 @@ roomSchema.pre("save", function(next) {
  * @summary const rooms = await Room.find().lean();
  * Use lean() to get plain JS objects instead of Mongoose documents
  */
-export default model("Room", roomSchema);
+export default model<DocumentTypes.Room>("Room", roomSchema);

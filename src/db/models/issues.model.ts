@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
+import { DocumentTypes } from '../../types/index.js';
 
-const issuesSchema = new Schema({                       // ** REST OBJ. **
+const issuesSchema = new Schema<DocumentTypes.Issue>({                       // ** REST OBJ. **
   _id: { type: Schema.Types.Number, required: true },               // .id
   url: { type: Schema.Types.String },
   repository_name: { type: Schema.Types.String },                   // from repository.name
@@ -41,4 +42,4 @@ export const Backlog = model("Backlog", issuesSchema);
  * @abstract Issues post-pointing
  * @implements issuesSchema
  */
-export const Pointed = model("Pointed", issuesSchema);
+export const Pointed = model<DocumentTypes.Issue>("Pointed", issuesSchema);
