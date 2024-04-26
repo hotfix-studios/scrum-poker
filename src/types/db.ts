@@ -31,8 +31,6 @@ export interface User {
     name: string;
     avatar_url: string;
     repos_url: string;
-    game_host: boolean;
-    app_owner: boolean;
     repos: number[];
 };
 

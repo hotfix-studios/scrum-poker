@@ -48,8 +48,6 @@ export class UserController extends ARepository {
 
   createUser = async (
     { id, type, name, avatar_url, repos_url, repos }: DTO.User,
-    isHost: boolean = false,
-    isOwner: boolean = false
     ): Promise<typeof this._model> => {
 
     try {
@@ -59,8 +57,6 @@ export class UserController extends ARepository {
         name,
         avatar_url,
         repos_url,
-        game_host: isHost,
-        app_owner: isOwner,
         repos
        });
 
