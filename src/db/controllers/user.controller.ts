@@ -1,7 +1,7 @@
 import { ARepository } from "./base/ARepository.js";
-import { Schema, Model, FilterQuery } from "mongoose";
+import { Schema, Model, FilterQuery, HydratedDocument } from "mongoose";
 // import * as OctokitTypes from "../../types/octokit.js";
-import { DTO, OctokitTypes } from "../../types/index.js";
+import { DTO, OctokitTypes, DocumentTypes } from "../../types/index.js";
 
 
 ///////////////////// /////////////////////
@@ -21,12 +21,12 @@ export class UserController extends ARepository {
     super(model);
   }
 
-  findOrCreate = async (user: OctokitTypes.OAuthUser) => {
+  findOrCreate = async (user: OctokitTypes.OAuthUser): Promise<DocumentTypes.User | DTO.User> => {
     const { id }: { id: number } = user;
 
     try {
 
-      const userDoc = await this.findOne({ _id: id });
+      const userDoc: DocumentTypes.User = await this.findOne({ _id: id });
 
       if (userDoc !== null) {
 
@@ -48,10 +48,10 @@ export class UserController extends ARepository {
 
   createUser = async (
     { id, type, name, avatar_url, repos_url, repos }: DTO.User,
-    ): Promise<typeof this._model> => {
+    ): Promise<DocumentTypes.User> => {
 
     try {
-      const user = await this._model.create({
+      const user: DocumentTypes.User = await this._model.create({
         _id: id,
         type,
         name,
@@ -70,8 +70,9 @@ export class UserController extends ARepository {
 
   userIsOwner = async (id: number): Promise<boolean> => await this._model.findById(id, "app_owner");
 
-  mapUserDTO = (restUser: OctokitTypes.OAuthUser): DTO.User => {
-    const { id, name, avatar_url, repos_url, type } = restUser;
+  mapUserDTO = <T extends OctokitTypes.OAuthUser | DTO.User | DocumentTypes.User>(restUser: T): DTO.User => {
+    const id = "id" in restUser ? restUser.id : restUser._id;
+    const { name, avatar_url, repos_url, type } = restUser;
     const repos = [];
     return { id, name, avatar_url, repos_url, type, repos };
   };
