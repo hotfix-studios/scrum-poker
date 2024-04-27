@@ -298,7 +298,7 @@ public class Utilities : MonoBehaviour
 
         var userData = data["user_data"];
 
-        Store.id = (int)userData["_id"];
+        Store.id = (int)userData["id"];
         Debug.Log(Store.id);
 
         Store.fullName = (string)userData["name"];
