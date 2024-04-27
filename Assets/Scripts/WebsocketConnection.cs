@@ -179,7 +179,7 @@ public class WebSocketConnection : MonoBehaviour
                 Params = new Params
                 {
                     roomId = Store.roomId,
-                    installationId = Store.installationId,
+                    id = Store.id,
                     betAmount = betAmount
                 }
             };

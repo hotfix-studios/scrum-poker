@@ -290,65 +290,22 @@ public class Utilities : MonoBehaviour
         return issues;
     }
 
-/*    public static async Task<Dictionary<string, string>> GetUserData(string endpoint, string[] projections)
-    {
-        var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/{string.Join(',', projections)}";
-        // string url = $"{baseURL}{endpoint}{Store.repoOwnerId}/";
-
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            var asyncOperation = www.SendWebRequest();
-            while (!asyncOperation.isDone)
-            {
-                await Task.Yield();
-            }
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error: " + www.error);
-                return null;
-            }
-            else
-            {
-                string responseData = www.downloadHandler.text;
-                Debug.Log("Response DESERIALIZING STEP: [USER DATA]");
-                Debug.Log(responseData);
-
-                return HandleResponseUserData(responseData);
-            }
-        }
-    }*/
-
-    public static Dictionary<string, object> HandleResponseUserData(string responseData)
+    public static void HandleResponseUserData(string responseData)
     {
 
         var data = JObject.Parse(responseData);
         Debug.Log(data);
 
-        Dictionary<string, object> userData = data["user_data"].ToObject<Dictionary<string, object>>();
+        var userData = data["user_data"];
 
-        if (userData != null)
-        {
-            if (userData.ContainsKey("id") && userData["id"] is int id)
-            {
-                Store.id = id;
-                Debug.Log(id);
-            }
+        Store.id = (int)userData["_id"];
+        Debug.Log(Store.id);
 
-            if (userData.ContainsKey("name") && userData["name"] is string fullName)
-            {
-                Store.fullName = fullName;
-                Debug.Log(Store.fullName);
-            }
+        Store.fullName = (string)userData["name"];
+        Debug.Log(Store.fullName);
 
-            if (userData.ContainsKey("avatar_url") && userData["avatar_url"] is string avatar)
-            {
-                Store.avatar = avatar;
-                Debug.Log(Store.avatar);
-            }
-        }
-        return userData;
+        Store.avatar = (string)userData["avatar_url"];
+        Debug.Log(Store.avatar);
     }
 
     #endregion HTTP_REQUESTS
