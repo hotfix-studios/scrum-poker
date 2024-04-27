@@ -8,7 +8,7 @@ import { Request, Response, NextFunction } from "express";
 
 import { OAuthApp } from "@octokit/oauth-app";
 // import { OAuthApp as AppType } from "@octokit/oauth-app";
-import { OctokitTypes, ContextTypes, DTO } from '../types/index.js';
+import { OctokitTypes, ContextTypes, DTO, DocumentTypes } from '../types/index.js';
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
 
@@ -157,8 +157,8 @@ class OctokitApi {
         // TODO: User.findOrCreate(user)
 
         // res.locals.user_data.repos_url = user.repos_url;
-        const userDTO: DTO.User = await this._userContext.findOrCreate(user);
-        res.locals.user_data = userDTO;
+        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(user);
+        res.locals.user_data = userDoc;
 
       } catch (error) {
 
