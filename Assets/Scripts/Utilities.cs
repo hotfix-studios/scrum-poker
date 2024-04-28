@@ -1,14 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 public class Utilities : MonoBehaviour
 {
@@ -16,45 +12,10 @@ public class Utilities : MonoBehaviour
     {
         string fullURL = Application.absoluteURL;
 
-        int queryStringIndex = fullURL.IndexOf('?');
-
-        return fullURL.Substring(0, queryStringIndex);
-    }
-
-    public static int? GetInstallationID()
-    {
-        var baseURL = GetBaseURL();
-
-        string fullURL = Application.absoluteURL;
-
-        int queryStringIndex = fullURL.IndexOf('?');
-
-        string queryString = fullURL.Substring(queryStringIndex + 1);
-
-        string[] queryParams = queryString.Split('&');
-
-        foreach (string param in queryParams)
+        if (fullURL.Contains("?"))
         {
-            string[] keyValue = param.Split('=');
-            string paramName = keyValue[0];
-            string paramValue = keyValue[1];
-
-            if (paramName == "installation_id")
-            {
-                Debug.Log("Installation ID: " + paramValue);
-
-                if (int.TryParse(paramValue, out int installationId))
-                {
-
-                    return installationId;
-                }
-                else
-                {
-
-                    Debug.LogError("--Installation ID from URL param tryParse Fail--");
-                    return null;
-                }
-            }
+            int queryStringIndex = fullURL.IndexOf('?');
+            return fullURL.Substring(0, queryStringIndex);
         }
         return null;
     }
@@ -88,32 +49,6 @@ public class Utilities : MonoBehaviour
     #region HTTP_REQUESTS
 
     // POST
-    public static IEnumerator PostInstallationId(int? installationId)
-    {
-        var baseURL = GetBaseURL();
-        var endpoint = $"api/installations/auth/{installationId}";
-
-        WWWForm form = new WWWForm();
-        form.AddField("installationId", installationId.ToString());
-
-        using (UnityWebRequest www = UnityWebRequest.Post(baseURL + endpoint, form))
-        {
-            var asyncOperation = www.SendWebRequest();
-            while (!asyncOperation.isDone)
-            {
-                yield return null;
-            }
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error: " + www.error);
-            }
-            else
-            {
-                Debug.Log($"Success: POST installationId to {endpoint}");
-            }
-        }
-    }
 
     public static IEnumerator PostCode(string code)
     {
@@ -142,48 +77,6 @@ public class Utilities : MonoBehaviour
             }
         }
     }
-
-    // GET
-/*    public static async Task<string> GetAuthToken(string endpoint)
-    {
-        var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}";
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            var asyncOperation = www.SendWebRequest();
-            while (!asyncOperation.isDone)
-            {
-                await Task.Yield();
-            }
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("Error: " + www.error);
-                return null;
-            }
-            else
-            {
-                string responseData = www.downloadHandler.text;
-                Debug.Log(responseData);
-
-                return HandleResponseAuthToken(responseData);
-            }
-        }
-    }*/
-
-/*    public static string HandleResponseAuthToken(string responseData)
-    {
-        var data = JObject.Parse(responseData);
-        var token = data["authorization"].ToString();
-
-        if (string.IsNullOrEmpty(token))
-        {
-            Debug.LogError("Error parsing authorization token");
-            return null;
-        }
-
-        return token;
-    }*/
 
     public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
     {
@@ -292,20 +185,19 @@ public class Utilities : MonoBehaviour
 
     public static void HandleResponseUserData(string responseData)
     {
-
         var data = JObject.Parse(responseData);
         Debug.Log(data);
 
         var userData = data["user_data"];
 
-        Store.id = (int)userData["id"];
-        Debug.Log(Store.id);
+        Store.id = (int)userData["_id"];
+        Debug.Log("ID: " + Store.id);
 
         Store.fullName = (string)userData["name"];
-        Debug.Log(Store.fullName);
+        Debug.Log("FULLNAME: " + Store.fullName);
 
         Store.avatar = (string)userData["avatar_url"];
-        Debug.Log(Store.avatar);
+        Debug.Log("AVATAR: " + Store.avatar);
     }
 
     #endregion HTTP_REQUESTS
