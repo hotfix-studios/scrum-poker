@@ -18,10 +18,19 @@ rooms: {
 }
 */
 
+const broadcastToRoom = (roomId, message) => {
+  if (rooms.has(roomId)) {
+    const room = rooms.get(roomId);
+    room.users.forEach(user => {
+      user.ws.send(JSON.stringify(message));
+    });
+  }
+};
+
+
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws) => {
-
   ws.on('error', console.error);
 
   ws.on('message', async data => {
@@ -60,8 +69,15 @@ wss.on('connection', (ws) => {
   };
 
   const create = params => {
+    const { id, fullName, avatar } = params;
+    const obj = {
+      id,
+      fullName,
+      avatar
+    }
+
     if (!rooms.has(params.roomId)) {
-      rooms.set(params.roomId, { users: [params.installationId] });
+      rooms.set(params.roomId, { users: [{ ...obj, ws }] });
       console.log(`Host created room ${params.roomId}: `, rooms.get(params.roomId));
     } else {
       console.error(`**ERROR** create: room with id ${params.roomId} already exists`);
@@ -69,29 +85,31 @@ wss.on('connection', (ws) => {
   };
 
   const join = params => {
-    // TODO: Replace test data
+    const { id, fullName, avatar } = params;
     const obj = {
       type: 'join',
       params: {
-        userName: "arealplant",
-        avatar: "https://ibb.co/n3jTQLB",
-        roomId: params.roomId,
+        id,
+        fullName,
+        avatar
       }
   }
 
   if (rooms.has(params.roomId)) {
-    rooms.get(params.roomId).users.push(params.installationId);
+    rooms.get(params.roomId).users.push({ ...obj.params, ws });
     console.log(`User joined room ${params.roomId}: `, rooms.get(params.roomId));
-    ws.send(JSON.stringify(obj));
+    broadcastToRoom(params.roomId, obj);
     } else {
       console.error(`**ERROR** join: room with id ${params.roomId} does not exist`);
     }
   };
 
   const leave = params => {
+    // TODO: Broadcast leave event to other participants
+    // TODO: Close room if host leaves
     if (rooms.has(params.roomId)) {
       const roomObj = rooms.get(params.roomId);
-      roomObj.users = roomObj.users.filter(user => user !== params.installationId);
+      roomObj.users = roomObj.users.filter(user => user.id !== params.id);
 
       console.log(`User left room ${params.roomId}: `, rooms.get(params.roomId));
     } else {
