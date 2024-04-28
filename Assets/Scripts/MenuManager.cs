@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Net;
 using UnityEngine;
-using UnityEngine.Networking;
-// using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public class MenuManager : VisualElement
@@ -12,8 +8,6 @@ public class MenuManager : VisualElement
     // The menu manager allows us to have one scene with multiple views
     // we can switch between easily by showing / hiding different UI containers
     // and querying those containers to get access to individual elements
-
-    // public Store store;
 
     #region Screens
 
@@ -52,8 +46,8 @@ public class MenuManager : VisualElement
 
     public MenuManager()
     {
-        // sceneController = SceneController.FindObjectOfType<SceneController>();
         this.RegisterCallback<GeometryChangedEvent>(OnGeometryChange);
+        Store.OnParticipantsChanged += AddParticipantToLobby;
     }
 
     private void OnGeometryChange(GeometryChangedEvent e)
@@ -83,18 +77,6 @@ public class MenuManager : VisualElement
             var dropdown = m_HostContainer?.Q<DropdownField>("ProjectDropdownField");
             dropdown.choices.Clear();
             dropdown.choices = repoNames;
-
-            // GET user data (userName, avatar)
-/*            endpoint = "api/users/";
-            Dictionary<string, string> userData = await Utilities.GetUserData(endpoint, new string[] { "name", "avatar_url" });
-
-            if (userData != null)
-            {
-                Store.avatar = userData["avatar_url"];
-                Store.userName = userData["name"];
-            }
-            Debug.Log("AVATAR_URL: " + Store.avatar);
-            Debug.Log("USERNAME: " + Store.name);*/
         });
 
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e =>
@@ -149,14 +131,6 @@ public class MenuManager : VisualElement
             {
                 Store.roomId = inviteCode;
                 WebSocketConnection.JoinRoom();
-                // TODO: Add player name and avatar to room in view via socket event
-                // TODO: Add user objects to data["params"]["users"] array
-                // TODO: Add userId to those user objects
-                var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
-                var newLabel = new Label();
-                newLabel.name = Store.id.ToString();
-                newLabel.text = Store.fullName.ToString();
-                participants.Add(newLabel);
             }
             // ELSE: Have the user re-enter invite code
         });
@@ -173,13 +147,22 @@ public class MenuManager : VisualElement
         });
     }
 
-    private void AddParticipantToLobby()
+    public void AddParticipantToLobby()
     {
         var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
-        var newLabel = new Label();
-        newLabel.name = Store.id.ToString();
-        newLabel.text = Store.fullName.ToString();
-        participants.Add(newLabel);
-    }
 
+        foreach (var participant in Store.participants)
+        {
+            var id = participant.id.ToString();
+            Label label = participants.Q<Label>($"{id}");
+
+            if (label == null)
+            {
+                var newLabel = new Label();
+                newLabel.name = id;
+                newLabel.text = participant.fullName;
+                participants.Add(newLabel);
+            }
+        }
+    }
 }
