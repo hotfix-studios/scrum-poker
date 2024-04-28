@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { app } from '../app.js';
+import { app } from "../app.js";
 import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
 /* Types */
@@ -152,13 +152,19 @@ class OctokitApi {
     console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
 
     try {
+      /* full OAuth User from REST (extensive use from this obj if needed) */
         const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
         console.log(`GET USER DATA OAUTH APP --`, user);
-        // TODO: User.findOrCreate(user)
 
         // res.locals.user_data.repos_url = user.repos_url;
-        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(user);
-        res.locals.user_data = userDoc;
+
+        Utility.performanceLog(async () => {
+
+          const userDTO: DTO.User = this._userContext.mapUserDTO(user);
+          const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
+
+          res.locals.user_data = userDoc;
+        });
 
       } catch (error) {
 

@@ -21,22 +21,16 @@ export class UserController extends ARepository {
     super(model);
   }
 
-  findOrCreate = async (user: OctokitTypes.OAuthUser): Promise<DocumentTypes.User | DTO.User> => {
+  findOrCreate = async<T extends DTO.User>(user: T): Promise<DocumentTypes.User> => {
     const { id }: { id: number } = user;
 
     try {
 
       const userDoc: DocumentTypes.User = await this.findOne({ _id: id });
 
-      if (userDoc !== null) {
-
-        return userDoc;
-
-      } else { /* user needs to be created.. */
-
-        const userDTO: DTO.User = this.mapUserDTO(user);
-        return await this.createUser(userDTO);
-      }
+      return userDoc !== null
+        ? userDoc
+        : await this.createUser(user);
 
     } catch (error) {
 
@@ -46,8 +40,8 @@ export class UserController extends ARepository {
     }
   };
 
-  createUser = async (
-    { id, type, name, avatar_url, repos_url, repos }: DTO.User,
+  createUser = async<T extends DTO.User>(
+    { id, type, name, avatar_url, repos_url, repos }: T,
     ): Promise<DocumentTypes.User> => {
 
     try {
