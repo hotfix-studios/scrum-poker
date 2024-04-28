@@ -1,8 +1,6 @@
 using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 
 public class WebSocketConnection : MonoBehaviour
 {
@@ -21,7 +19,7 @@ public class WebSocketConnection : MonoBehaviour
     {
         public string roomId;
         public int id;
-        public string userName;
+        public string fullName;
         public string avatar;
     }
 
@@ -46,8 +44,6 @@ public class WebSocketConnection : MonoBehaviour
                 Type = "init",
             };
             string json = JsonConvert.SerializeObject(data);
-            Debug.Log("Serialized object to send:");
-            Debug.Log(json);
             ws.SendText(json);
         };
 
@@ -67,8 +63,6 @@ public class WebSocketConnection : MonoBehaviour
             Data json = JsonConvert.DeserializeObject<Data>(message);
             string type = json.Type;
             Params Params = json.Params;
-            Debug.Log("WebsocketConnection inside we.OnMessage, Params:");
-            Debug.Log(Params);
 
             switch (type)
             {
@@ -146,7 +140,9 @@ public class WebSocketConnection : MonoBehaviour
                 Params = new Params
                 {
                     roomId = Store.roomId,
-                    id = Store.id
+                    id = Store.id,
+                    fullName = Store.fullName,
+                    avatar = Store.avatar,
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -157,15 +153,14 @@ public class WebSocketConnection : MonoBehaviour
 
     public void OnJoin(Params Params)
     {
-        Store.AddParticipant(Params);
+        Store.User user = new Store.User 
+        { 
+            id = Params.id,
+            fullName = Params.fullName,
+            avatar = Params.avatar
+        };
 
-        // Store.participants = Store.participants.Concat(new object[] { Params }).ToArray();
-        // Debug.Log("ONJOIN: " + Store.participants[0]);
-
-        // Loop through Store.participants
-        // If user being received in join event does not exist
-        // add it to Store.participants
-        // create UI elements: Label.name = Store.userName, Label.text = Store.userName, Image.src = Store.avatar
+        Store.AddParticipant(user);
     }
 
     /*
