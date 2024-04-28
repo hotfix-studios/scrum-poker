@@ -25,7 +25,6 @@ export interface Repository {
   contributors_url?: string;
   comments_url?: string;
   issue_comment_url?: string;
-  contents_url?: string;
   issues_url?: string;
   labels_url?: string;
   clone_url?: string;
@@ -33,6 +32,8 @@ export interface Repository {
   has_issues?: boolean;
   has_projects?: boolean;
   open_issues_count?: number;
+  has_backlog?: boolean;
+  has_pointed?: boolean;
 };
 
 /**

@@ -48,7 +48,6 @@ export interface Repository {
     contributors_url: string;
     comments_url: string;
     issue_comment_url: string;
-    contents_url: string;
     issues_url: string;
     labels_url: string;
     clone_url: string;
