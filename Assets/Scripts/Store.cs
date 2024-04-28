@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json.Linq;
-using Unity.VisualScripting;
-// using static Store;
 
 public class Store : MonoBehaviour
 {
@@ -26,7 +23,14 @@ public class Store : MonoBehaviour
     public static int repoOwnerId;
     public static string roomId;
     public static object[] issues;
-    public static List<object> participants;
+
+    public class User
+    {
+        public int id;
+        public string fullName;
+        public string avatar;
+    }
+    public static List<User> participants;
 
     void Awake()
     {
@@ -45,7 +49,6 @@ public class Store : MonoBehaviour
         if (code != null)
         {
             StartCoroutine(Utilities.PostCode(code));
-            Debug.Log(id);
         }
 
     }
@@ -54,7 +57,7 @@ public class Store : MonoBehaviour
     public delegate void ParticipantsChanged();
     public static event ParticipantsChanged OnParticipantsChanged;
 
-    public static void AddParticipant(object participant)
+    public static void AddParticipant(User participant)
     {
         participants.Add(participant);
         OnParticipantsChanged?.Invoke();
