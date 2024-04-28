@@ -198,11 +198,11 @@ export default class Utils {
    * @constant `TIME.BAD` (red) operation complete +576ms
    *
    * @example Utility.performanceLog(async () => {
-
-          const userDTO: DTO.User = this._userContext.mapUserDTO(user);
-          const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
-
-        });
+   *
+   *   const userDTO: DTO.User = this._userContext.mapUserDTO(user);
+   *   const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
+   *
+   * });
    */
   performanceLog = async (operation: () => Promise<void>): Promise<void> => {
     /* constants */

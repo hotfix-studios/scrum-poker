@@ -9,6 +9,7 @@ import { Request, Response, NextFunction } from "express";
 import { OAuthApp } from "@octokit/oauth-app";
 // import { OAuthApp as AppType } from "@octokit/oauth-app";
 import { OctokitTypes, ContextTypes, DTO, DocumentTypes } from '../types/index.js';
+import { MongooseError } from "mongoose";
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
 
@@ -134,8 +135,6 @@ class OctokitApi {
         });
 
       const { token }: { token: string } = authentication;
-      console.log(`TOKEN :: ${token}`);
-
       res.locals.authorization = token;
 
     } catch (error) {
@@ -149,27 +148,33 @@ class OctokitApi {
 
   getOrPostUser = async (req: Request, res: Response, next: NextFunction) => {
     const { authorization: token} = res.locals;
-    console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
+
+    if (token === null || token === undefined) {
+      const log = "OAuth token is null or undefined, please authenticate user...";
+      console.error(log);
+      res.status(403).send(log);
+    }
 
     try {
       /* full OAuth User from REST (extensive use from this obj if needed) */
         const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
         console.log(`GET USER DATA OAUTH APP --`, user);
 
-        // res.locals.user_data.repos_url = user.repos_url;
+        const userDTO: DTO.User = this._userContext.mapUserDTO(user);
+        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
 
-        Utility.performanceLog(async () => {
-
-          const userDTO: DTO.User = this._userContext.mapUserDTO(user);
-          const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
-
-          res.locals.user_data = userDoc;
-        });
+        res.locals.user_data = userDoc;
 
       } catch (error) {
 
-        console.error("Error fetching user data:", error);
+        if (error instanceof MongooseError) {
+          console.error("Error performing database operation: ", error);
+        } else {
+          console.error("Error fetching user data from REST: ", error);
+        }
+
         res.locals.user_data = null;
+        res.status(500);
     }
 
     next();
