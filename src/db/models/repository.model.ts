@@ -5,7 +5,7 @@ const repositorySchema = new Schema<DocumentTypes.Repository>({
   _id: { type: Schema.Types.Number, required: true },                // uses .id from GH payloads
   name: { type: Schema.Types.String, required: true },
   full_name: { type: Schema.Types.String, required: true },
-  private: { type: Schema.Types.Boolean, required: true },
+  is_private: { type: Schema.Types.Boolean, required: true },
   owner_id: { type: Schema.Types.Number, required: true, ref: "User", default: 0 }, // use user._id (not available on installation payload)
   description: { type: Schema.Types.String, default: "" },
   url: { type: Schema.Types.String, default: "" },
