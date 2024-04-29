@@ -181,24 +181,20 @@ class OctokitApi {
   };
 
   getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
-    /* TODO: needs pagination for users with LOTS of repos.. */
-    console.log("--- --- --- ---");
-    // console.log(res.locals.user_data);
-    const user = res.locals.user_data;
-    const { repos_url } = res.locals.user_data;
-    console.log(`REPOS URL INSIDE getUserRepos: ${repos_url}`);
+    /* TODO: needs pagination for users with LOTS of repos.. this might need to be a POST to send pagination var from front end? */
+    /* TODO: needs to handle projections or have specific function for repo names? */
+    /* TODO: Trying to "install" as hotfix but gaining access to colinwilliams91 repos... */
 
     try {
 
-      const { data: repos } = await this._authenticatedContext.request("GET /user/repos");
-      repos.forEach(repo => {
+      const { data: repos }: { data: OctokitTypes.Repository[] } = await this._authenticatedContext.request("GET /user/repos", { per_page: 10 });
+
+      const repoDTOArray: DTO.Repository[] = this._repositoryContext.mapRepoDTOArray(repos);
+
+      repoDTOArray.forEach(repo => {
         console.log(repo);
       });
-      // for (const key in repos) {
-      //   console.log(`KEY: ${key}`);
-      //   console.log(`VAL: ${repos[key]}`);
-      // }
-      // console.log(`REPOS REPOS REPOS -->> ${repos}`);
+
     } catch (error) {
       console.error("Failed to GET /repositories REST ", error);
     }
