@@ -10,8 +10,11 @@
     "build": "tsc -p .",
     "predisabled": "xcopy \".\\src\\webgl\" \".\\dist\\webgl\" /s /e /i /y",
     "server": "node ./dist/index.js",
+    "socket": "node ./dist/wss.js",
     "wss": "tsc-watch -p tsconfig.json --onSuccess \"node ./dist/wss.js\"",
-    "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\""
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"npm run server\"",
+    "//": "production",
+    "start-prod": "npm run build && npm run server && npm run socket"
   },
   "keywords": [
     "agile",
