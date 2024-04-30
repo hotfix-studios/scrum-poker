@@ -51,6 +51,7 @@ class OctokitApi {
    */
   public _authenticatedContext: OAuthApp;
   private _authenticatedToken: string;
+  private _authenticatedUserId: number;
   public _installationId: number;
 
   constructor(context: ContextTypes.Context) {
@@ -158,6 +159,7 @@ class OctokitApi {
     try {
       /* full OAuth User from REST (extensive use from this obj if needed) */
         const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
+        this._authenticatedUserId = user.id;
         console.log(`GET USER DATA OAUTH APP --`, user);
 
         const userDTO: DTO.User = this._userContext.mapUserDTO(user);
@@ -181,15 +183,17 @@ class OctokitApi {
   };
 
   getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
-    /* TODO: needs pagination for users with LOTS of repos.. this might need to be a POST to send pagination var from front end? */
-    /* TODO: needs to handle projections or have specific function for repo names? */
     /* TODO: Trying to "install" as hotfix but gaining access to colinwilliams91 repos... */
 
     try {
 
+      /* TODO: GET ALL repos for USER */
+      /* TODO: look for octokit options for selecting what parts of REST data to get */
       const { data: repos }: { data: OctokitTypes.Repository[] } = await this._authenticatedContext.request("GET /user/repos", { per_page: 10 });
 
+      /* NO REPO TO DB Write At THIS TIME */
       const repoDTOArray: DTO.Repository[] = this._repositoryContext.mapRepoDTOArray(repos);
+      /* FE wants REPO.ID and REPO.NAME */
 
       repoDTOArray.forEach(repo => {
         console.log(repo);
