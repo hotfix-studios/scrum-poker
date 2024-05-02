@@ -215,7 +215,7 @@ class OctokitApi {
     next();
   };
 
-  // TODO: Write user data to DB -->> then use some user data to go get associated repos? -->> write those to user?
+  // TODO: receive selected repo.full_name -->> parse string to query for individual repo on REST -->> write that repo (and DOC cols) to user?
   // TODO: Move to respective regions of API class
 
   /////////////////////////////////////////////////////
