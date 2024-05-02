@@ -5,6 +5,7 @@ using UnityEngine.Networking;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using System;
 
 public class Utilities : MonoBehaviour
 {
@@ -78,10 +79,10 @@ public class Utilities : MonoBehaviour
         }
     }
 
-    public static async Task<List<string>> GetRepoNamesAndSetOwnerId(string endpoint, string[] projections)
+    public static async Task<List<string>> GetRepos(string endpoint)
     {
         var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}{string.Join(',', projections)}";
+        string url = $"{baseURL}{endpoint}";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             var asyncOperation = www.SendWebRequest();
@@ -101,40 +102,36 @@ public class Utilities : MonoBehaviour
                 Debug.Log("Response DESERIALIZING STEP:");
                 Debug.Log(responseData);
 
-                return HandleResponseRepoNamesAndSetOwnerId(responseData);
+                return HandleResponseRepos(responseData);
             }
         }
     }
 
-    public static List<string> HandleResponseRepoNamesAndSetOwnerId(string responseData)
+    public static List<string> HandleResponseRepos(string responseData)
     {
+        Store.Repo repository = new Store.Repo();
+
         List<string> repoNames = new List<string>();
-        List<int> repoOwnerIds = new List<int>();
+        List<Store.Repo> repos = new List<Store.Repo>();
 
         var data = JObject.Parse(responseData);
         var repoData = data["repository_data"];
 
         foreach (var repo in repoData)
         {
+            if (repo["name"] != null && repo["id"] != null)
+            {
+                repository.name = (string)repo["name"];
+                repository.id = (int)repo["id"];
+                repos.Add(repository);
+            }
             if (repo["name"] != null)
             {
                 repoNames.Add(repo["name"].ToString());
             }
-
-            if (repo["owner_id"] != null && repo["owner_id"].Type == JTokenType.Integer)
-            {
-                repoOwnerIds.Add(repo["owner_id"].Value<int>());
-            }
-        }
-
-        if (repoOwnerIds.Count > 0)
-        {
-            Store.repoOwnerId = repoOwnerIds[0];
         }
 
         Debug.Log("REPO_NAMES: " + repoNames);
-        Debug.Log("REPO_OWNER_IDS: " + repoOwnerIds);
-        Debug.Log("OWNER_ID: " + Store.repoOwnerId);
 
         return repoNames;
 
