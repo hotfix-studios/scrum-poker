@@ -147,8 +147,22 @@ export class RepositoryController extends ARepository {
      } as DocumentTypes.Repository;
   };
 
-  mapRepoDTOArray = <T extends OctokitTypes.Repository | DocumentTypes.Repository>(restRepos: T[]): DocumentTypes.Repository[] => {
-    return restRepos.map(this.mapRepoDocument);
+  mapRepoDTO = <T extends OctokitTypes.Repository | DocumentTypes.Repository>(repo: T): DTO.Repository => {
+    const id = "id" in repo ? repo.id : repo._id;
+    const owner_id = "owner" in repo ? repo.owner.id : repo.owner_id;
+    return {
+      _id: id,
+      name: repo.name,
+      full_name: repo.full_name,
+      owner_id: owner_id,
+      description: repo.description,
+      language: repo.language,
+      open_issues_count: repo.open_issues_count
+    } as DTO.Repository;
+  };
+
+  mapRepoArray = <T extends OctokitTypes.Repository | DocumentTypes.Repository | DTO.Repository>(restRepos: T[], mapFn: () => T): T[] => {
+    return restRepos.map(mapFn);
   };
 
   ///////////////////////////
