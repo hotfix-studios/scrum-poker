@@ -22,24 +22,8 @@ public class MenuManager : VisualElement
     VisualElement m_JoinContainer;
     VisualElement m_Lobby;
     VisualElement m_LobbyIdContainer;
-
+    VisualElement m_LobbyHostContainer;
     #endregion Screens
-
-    #region Buttons
-
-    // NAVBAR
-    /*    Button b_HostButton;
-        Button b_JoinButton;
-        Button b_SettingsButton;
-        Button b_AboutButton;
-        Button b_FAQButton;*/
-
-    // LOBBY
-/*    Button b_HostLobbyButton;
-    Button b_JoinLobbyButton;
-    Button b_StartGameButton;*/
-
-    #endregion Buttons
 
     public new class UxmlFactory : UxmlFactory<MenuManager, UxmlTraits> { }
     public new class UxmlTraits : VisualElement.UxmlTraits { }
@@ -47,7 +31,8 @@ public class MenuManager : VisualElement
     public MenuManager()
     {
         this.RegisterCallback<GeometryChangedEvent>(OnGeometryChange);
-        Store.OnParticipantsChanged += AddParticipantToLobby;
+        Store.OnParticipantsAdded += AddParticipantToLobby;
+        Store.OnParticipantsRemoved += RemoveParticipantFromLobby;
     }
 
     private void OnGeometryChange(GeometryChangedEvent e)
@@ -63,25 +48,50 @@ public class MenuManager : VisualElement
         m_JoinContainer = this.Q("JoinContainer");
         m_Lobby = this.Q("Lobby");
         m_LobbyIdContainer = this.Q("LobbyIdContainer");
+        m_LobbyHostContainer = this.Q("LobbyHostContainer");
+
+        if (Store.code != null)
+        {
+            var host = m_NavBar?.Q("HostButton");
+            host.style.display = DisplayStyle.Flex;
+            var join = m_NavBar?.Q("JoinButton");
+            join.style.display = DisplayStyle.Flex;
+        }
 
         // CLICK EVENTS
-        m_NavBar?.Q("HostButton")?.RegisterCallback<ClickEvent>(async e => {
+        m_NavBar?.Q("HostButton")?.RegisterCallback<ClickEvent>(async e =>
+        {
             // Set the visibility of the host container to visible
-            m_HostContainer.style.visibility = Visibility.Visible;
+            // m_HostContainer.style.visibility = Visibility.Visible;
 
-            // Make the HTTP Request to the backend for repo names and owner id
-            var endpoint = "api/repos/names/";
-            List<string> repoNames = await Utilities.GetRepoNamesAndSetOwnerId(endpoint, new string[] { "name", "owner_id" });
+            if (m_JoinContainer.style.display != DisplayStyle.None)
+            {
+                m_JoinContainer.style.display = DisplayStyle.None;
+            }
+            m_HostContainer.style.display = DisplayStyle.Flex;
+
+            if (Store.repoNames == null)
+            {
+                // Make the HTTP Request to the backend for repo names and owner id
+                var endpoint = "api/repos/names/";
+                Store.repoNames = await Utilities.GetRepos(endpoint);
+            }
 
             // Populate dropdown menu with repo names
             var dropdown = m_HostContainer?.Q<DropdownField>("ProjectDropdownField");
             dropdown.choices.Clear();
-            dropdown.choices = repoNames;
+            dropdown.choices = Store.repoNames;
         });
 
         m_NavBar?.Q("JoinButton")?.RegisterCallback<ClickEvent>(e =>
         {
-            m_JoinContainer.style.visibility = Visibility.Visible;
+            // m_JoinContainer.style.visibility = Visibility.Visible;
+
+            if (m_HostContainer.style.display != DisplayStyle.None)
+            {
+                m_HostContainer.style.display = DisplayStyle.None;
+            }
+            m_JoinContainer.style.display = DisplayStyle.Flex;
         });
 
         m_NavBar?.Q("LoginButton")?.RegisterCallback<ClickEvent>(e =>
@@ -92,6 +102,8 @@ public class MenuManager : VisualElement
         });
 
         m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(async e => {
+            Store.isHost = true;
+
             // Create room via GUID
             var guid = Guid.NewGuid().ToString().Substring(0, 5);
             Store.roomId = guid;
@@ -106,15 +118,22 @@ public class MenuManager : VisualElement
             Store.issues = backlog;
             Debug.Log("ISSUES: " + Store.issues);
 
+            var hostText = m_LobbyHostContainer?.Q<Label>("HostText");
+            var hostName = Store.fullName;
+            hostText.text = $"{hostName}'s Lobby";
+            m_LobbyHostContainer.style.display = DisplayStyle.Flex;
+
             // Add lobby id and button to copy lobby id to lobby
-            m_LobbyIdContainer.style.visibility = Visibility.Visible;
+            // m_LobbyIdContainer.style.visibility = Visibility.Visible;
+            m_LobbyIdContainer.style.display = DisplayStyle.Flex;
             var lobbyText = m_LobbyIdContainer?.Q<Label>("LobbyId");
             lobbyText.text = Store.roomId;
             Debug.Log(lobbyText.text);
 
             // Set "start game" button's visibility to visible
             var startGame = m_Lobby?.Q("StartGameButton");
-            startGame.style.visibility = Visibility.Visible;
+            // startGame.style.visibility = Visibility.Visible;
+            startGame.style.display = DisplayStyle.Flex;
         });
 
         // Add Lobby Id to user's clipboard onClick
@@ -147,11 +166,11 @@ public class MenuManager : VisualElement
         });
     }
 
-    public void AddParticipantToLobby()
+    public void AddParticipantToLobby(Store.User participant)
     {
         var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
 
-        foreach (var participant in Store.participants)
+/*        foreach (var participant in Store.participants)
         {
             var id = participant.id.ToString();
             Label label = participants.Q<Label>($"{id}");
@@ -163,6 +182,34 @@ public class MenuManager : VisualElement
                 newLabel.text = participant.fullName;
                 participants.Add(newLabel);
             }
+        }*/
+
+        var newLabel = new Label();
+        newLabel.name = participant.id.ToString();
+        newLabel.text = participant.fullName;
+        participants.Add(newLabel);
+    }
+
+    public void RemoveParticipantFromLobby(Store.User participant)
+    {
+        var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
+        var content = participants.Children();
+        var id = participant.id.ToString();
+
+        foreach (Label label in content)
+        {
+            if (id == label.name)
+            {
+                participants.Remove(label);
+            }
         }
+    }
+
+    public void AddLobbyNameToLobby()
+    {
+        var hostText = m_LobbyHostContainer.Q<Label>("HostText");
+        var hostName = "Hardcoded";
+        hostText.text = $"{hostName}'s Lobby";
+        m_LobbyHostContainer.style.display = DisplayStyle.Flex;
     }
 }
