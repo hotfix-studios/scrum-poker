@@ -69,56 +69,75 @@ wss.on('connection', (ws) => {
   };
 
   const create = params => {
-    const { id, fullName, avatar } = params;
-    const obj = {
+    const { roomId, isHost, id, fullName, avatar } = params;
+    const message = {
+      isHost,
       id,
       fullName,
       avatar
     }
 
-    if (!rooms.has(params.roomId)) {
-      rooms.set(params.roomId, { users: [{ ...obj, ws }] });
-      console.log(`Host created room ${params.roomId}: `, rooms.get(params.roomId));
+    if (!rooms.has(roomId)) {
+      rooms.set(roomId, { users: [{ ...message, ws }] });
+      console.log(`Host created room ${roomId}: `, rooms.get(roomId));
     } else {
-      console.error(`**ERROR** create: room with id ${params.roomId} already exists`);
+      console.error(`**ERROR** create: room with id ${roomId} already exists`);
     }
   };
 
   const join = params => {
-    const { id, fullName, avatar } = params;
-    const obj = {
+    const { roomId, isHost, id, fullName, avatar } = params;
+    const message = {
       type: 'join',
       params: {
+        isHost,
         id,
         fullName,
         avatar
       }
   }
 
-  if (rooms.has(params.roomId)) {
-    rooms.get(params.roomId).users.push({ ...obj.params, ws });
-    console.log(`User joined room ${params.roomId}: `, rooms.get(params.roomId));
-    broadcastToRoom(params.roomId, obj);
+  if (rooms.has(roomId)) {
+    rooms.get(roomId).users.push({ ...message.params, ws });
+    console.log(`User joined room ${roomId}: `, rooms.get(roomId));
+    broadcastToRoom(roomId, message);
     } else {
-      console.error(`**ERROR** join: room with id ${params.roomId} does not exist`);
+      console.error(`**ERROR** join: room with id ${roomId} does not exist`);
     }
   };
 
   const leave = params => {
+    const { roomId, isHost, id, fullName, avatar } = params;
+    const message = {
+      type: 'leave',
+      params: {
+        isHost,
+        id,
+        fullName,
+        avatar
+      }
+    }
     // TODO: Broadcast leave event to other participants
     // TODO: Close room if host leaves
-    if (rooms.has(params.roomId)) {
-      const roomObj = rooms.get(params.roomId);
-      roomObj.users = roomObj.users.filter(user => user.id !== params.id);
+    if (rooms.has(roomId)) {
+      const roomObj = rooms.get(roomId);
+      if (isHost === true) {
+        roomObj.users = roomObj.users.filter(user => user.id !== id);
 
-      console.log(`User left room ${params.roomId}: `, rooms.get(params.roomId));
+        console.log(`Host left room ${roomId}: `, rooms.get(roomId));
+        broadcastToRoom(roomId, message);
+      }
+      roomObj.users = roomObj.users.filter(user => user.id !== id);
+
+      console.log(`User left room ${roomId}: `, rooms.get(roomId));
+      broadcastToRoom(roomId, message);
     } else {
-      console.error(`**ERROR** leave: room with id ${params.roomId} does not exist`);
+      console.error(`**ERROR** leave: room with id ${roomId} does not exist`);
     }
   };
 
   ws.on('close', function close() {
-    console.log('disconnected');
+    console.log('User disconnected from WSS');
   });
 });
 
