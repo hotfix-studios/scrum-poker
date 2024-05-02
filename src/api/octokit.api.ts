@@ -187,19 +187,28 @@ class OctokitApi {
 
     try {
 
-      /* TODO: GET ALL repos for USER */
       /* TODO: look for octokit options for selecting what parts of REST data to get */
-      const { data: repos }: { data: OctokitTypes.Repository[] } = await this._authenticatedContext.request("GET /user/repos", { per_page: 10 });
 
-      /* NO REPO TO DB Write At THIS TIME */
-      const repoDTOArray: DTO.Repository[] = this._repositoryContext.mapRepoDTOArray(repos);
-      /* FE wants REPO.ID and REPO.NAME */
+      const repos: DTO.Repository[] = await this.requestAll("GET /user/repos", 100, this._repositoryContext.mapRepoDTO);
 
-      repoDTOArray.forEach(repo => {
+      // /* option to perform all mapping after request... */
+      // const repoDTOArray: DTO.Repository[] = this._repositoryContext.mapRepoArray(repos, this._repositoryContext.mapRepoDocument);
+
+      // /* NO REPO TO DB Write At THIS TIME */
+      // /* FE wants REPO.ID and REPO.NAME */
+
+      repos.forEach(repo => {
         console.log(repo);
       });
 
+      const [ owner, repo ] = repos[10].full_name.split("/");
+
+      const { data: test } = await this._authenticatedContext.request("GET /repos/{owner}/{repo}", { owner, repo });
+
+      console.log(test);
+      console.log(repos.length);
     } catch (error) {
+
       console.error("Failed to GET /repositories REST ", error);
     }
 
@@ -627,6 +636,41 @@ class OctokitApi {
       console.warn("res.locals is null | undefined | falsy, sending empty response body.");
       res.status(200).send();
     }
+  };
+
+  requestAll = async (restEndPoint: string, paginateBy: number = 100, mapFn?: () => unknown[]): Promise<DTO[]> => {
+    const [ method, url ] = restEndPoint.split(" ");
+    const data = [];
+
+    try {
+
+      let response = await this._authenticatedContext.request(`${method} ${url}`, { per_page: paginateBy });
+
+      data.push(...mapFn ? response.data.map(mapFn) : response.data);
+
+      let hasNextPage = response.headers.link && response.headers.link.includes(`rel="next"`);
+
+      try {
+
+        console.log(`headers link has next page: ${hasNextPage}, link: ${response.headers.link}`);
+
+        while (hasNextPage) {
+          const nextPageUrl = Utility.getNextPageUrl(response.headers.link);
+          console.log(`NEXT URL ->> ${nextPageUrl}`);
+          response = await this._authenticatedContext.request(`${method} ${nextPageUrl}`);
+          data.push(...mapFn ? response.data.map(mapFn) : response.data);
+          hasNextPage = response.headers.link && response.headers.link.includes(`rel="next"`);
+        }
+      } catch (error) {
+
+        console.error(`Failed to paginate: `, error);
+      }
+    } catch (error) {
+
+      console.error(`Failed to initialize requestAll GET first request... `, error);
+    }
+
+    return data;
   };
 
   //////////////////////////////////////////
