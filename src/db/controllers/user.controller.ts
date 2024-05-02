@@ -22,11 +22,11 @@ export class UserController extends ARepository {
   }
 
   findOrCreate = async<T extends DTO.User>(user: T): Promise<DocumentTypes.User> => {
-    const { id }: { id: number } = user;
+    const { _id }: { _id: number } = user;
 
     try {
 
-      const userDoc: DocumentTypes.User = await this.findOne({ _id: id });
+      const userDoc: DocumentTypes.User = await this.findOne({ _id });
 
       return userDoc !== null
         ? userDoc
@@ -34,19 +34,19 @@ export class UserController extends ARepository {
 
     } catch (error) {
 
-      console.error(`Controller ${this._model.modelName} findOne call failed for id: ${id}`);
+      console.error(`Controller ${this._model.modelName} findOne call failed for id: ${_id}`);
       console.error(error);
       throw error;
     }
   };
 
   createUser = async<T extends DTO.User>(
-    { id, type, name, avatar_url, repos_url, repos }: T,
+    { _id, type, name, avatar_url, repos_url, repos }: T,
     ): Promise<DocumentTypes.User> => {
 
     try {
       const user: DocumentTypes.User = await this._model.create({
-        _id: id,
+        _id,
         type,
         name,
         avatar_url,
@@ -65,10 +65,10 @@ export class UserController extends ARepository {
   userIsOwner = async (id: number): Promise<boolean> => await this._model.findById(id, "app_owner");
 
   mapUserDTO = <T extends OctokitTypes.OAuthUser | DTO.User | DocumentTypes.User>(restUser: T): DTO.User => {
-    const id = "id" in restUser ? restUser.id : restUser._id;
+    const _id = "id" in restUser ? restUser.id : restUser._id;
     const { name, avatar_url, repos_url, type } = restUser;
     const repos = [];
-    return { id, name, avatar_url, repos_url, type, repos };
+    return { _id, name, avatar_url, repos_url, type, repos };
   };
 
 };

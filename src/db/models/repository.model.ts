@@ -4,9 +4,9 @@ import { DocumentTypes } from '../../types/index.js';
 const repositorySchema = new Schema<DocumentTypes.Repository>({
   _id: { type: Schema.Types.Number, required: true },                // uses .id from GH payloads
   name: { type: Schema.Types.String, required: true },
-  full_name: { type: Schema.Types.String, required: true },
+  full_name: { type: Schema.Types.String, required: true },             // split("/") and use to GET REST repo data
   is_private: { type: Schema.Types.Boolean, required: true },
-  owner_id: { type: Schema.Types.Number, required: true, ref: "User", default: 0 }, // use user._id (not available on installation payload)
+  owner_id: { type: Schema.Types.Number, required: true, ref: "User" }, // use user._id (not available on installation payload)
   description: { type: Schema.Types.String, default: "" },
   url: { type: Schema.Types.String, default: "" },
   collaborators_url: { type: Schema.Types.String, default: "" },
@@ -21,7 +21,7 @@ const repositorySchema = new Schema<DocumentTypes.Repository>({
   language: { type: Schema.Types.String, default: "" },
   has_issues: { type: Schema.Types.Boolean, default: false },
   has_projects: { type: Schema.Types.Boolean, default: false },
-  open_issues_count: { type: Schema.Types.Number, default: 0 },
+  open_issues_count: { type: Schema.Types.Number, required: true },
   has_backlog: { type: Schema.Types.Boolean, default: false },
   has_pointed: { type: Schema.Types.Boolean, default: false }
 });
