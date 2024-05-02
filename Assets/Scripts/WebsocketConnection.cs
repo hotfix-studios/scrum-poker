@@ -1,6 +1,7 @@
 using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
+using System;
 
 public class WebSocketConnection : MonoBehaviour
 {
@@ -17,10 +18,12 @@ public class WebSocketConnection : MonoBehaviour
     }
     public class Params
     {
+        public bool isHost;
         public string roomId;
         public int id;
         public string fullName;
         public string avatar;
+        public Store.User[] participants;
     }
 
     async void Awake()
@@ -74,6 +77,7 @@ public class WebSocketConnection : MonoBehaviour
                     OnJoin(Params);
                     break;
                 case "leave":
+                    OnLeave(Params);
                     break;
                 default:
                     Debug.Log($"Type: ${type} unknown");
@@ -106,9 +110,10 @@ public class WebSocketConnection : MonoBehaviour
         }
     }
 
-    private async void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
-        await ws.Close();
+        LeaveRoom();
+        ws.Close();
     }
 
     public static async void CreateRoom()
@@ -120,8 +125,11 @@ public class WebSocketConnection : MonoBehaviour
                 Type = "create",
                 Params = new Params
                 {
+                    isHost = Store.isHost,
                     roomId = Store.roomId,
                     id = Store.id,
+                    fullName = Store.fullName,
+                    avatar = Store.avatar,
                 }
             };
             string json = JsonConvert.SerializeObject(data);
@@ -139,6 +147,7 @@ public class WebSocketConnection : MonoBehaviour
                 Type = "join",
                 Params = new Params
                 {
+                    isHost = Store.isHost,
                     roomId = Store.roomId,
                     id = Store.id,
                     fullName = Store.fullName,
@@ -151,16 +160,62 @@ public class WebSocketConnection : MonoBehaviour
         }
     }
 
+    public static async void LeaveRoom()
+    {
+        if (ws.State == WebSocketState.Open)
+        {
+            var data = new Data
+            {
+                Type = "leave",
+                Params = new Params
+                {
+                    isHost = Store.isHost,
+                    roomId = Store.roomId,
+                    id = Store.id,
+                    fullName = Store.fullName,
+                    avatar = Store.avatar,
+                }
+            };
+            string json = JsonConvert.SerializeObject(data);
+            Debug.Log("leave" + json);
+            await ws.SendText(json);
+        }
+    }
+
     public void OnJoin(Params Params)
     {
+        Store.Host host = new Store.Host
+        {
+
+        };
+
         Store.User user = new Store.User 
-        { 
+        {   
+            isHost = Params.isHost,
             id = Params.id,
             fullName = Params.fullName,
             avatar = Params.avatar
         };
 
         Store.AddParticipant(user);
+    }
+
+    public void OnLeave(Params Params)
+    {
+        Store.User user = new Store.User
+        {
+            isHost = Params.isHost,
+            id = Params.id,
+            fullName = Params.fullName,
+            avatar = Params.avatar
+        };
+
+        if (user.isHost)
+        {
+            OnApplicationQuit();
+        }
+
+        Store.RemoveParticipant(user);
     }
 
     /*
