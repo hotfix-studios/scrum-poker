@@ -191,6 +191,21 @@ export default class Utils {
   };
 
   /**
+   * @summary function to extract URL for the next page from `link` res header
+   * @param linkHeader header containing pagination data from GH rest
+   * @returns URL for "next" paginated results
+   */
+  getNextPageUrl = (linkHeader: string): string => {
+    const links = linkHeader.split(",");
+    for (const link of links) {
+      const [ url, rel ] = link.split(";");
+      if (rel.includes(`rel="next"`)) {
+        return url.trim().slice(1, -1) // remove < and > chars
+      }
+    }
+  };
+
+  /**
    * @param operation an async callback. wrap all business logic to test inside an anonymous arrow function.
    * @constant `TIME.GOOD` (green) operation complete 1ms - 275ms
    * @constant `TIME.OK` (yellow) operation complete 275ms - 350ms
