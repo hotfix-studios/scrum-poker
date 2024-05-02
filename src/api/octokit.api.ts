@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { app } from '../app.js';
+import { app } from "../app.js";
 import { installationController, userController, repositoryController, issuesController } from "../db/controllers/index.js";
 
 /* Types */
@@ -9,6 +9,7 @@ import { Request, Response, NextFunction } from "express";
 import { OAuthApp } from "@octokit/oauth-app";
 // import { OAuthApp as AppType } from "@octokit/oauth-app";
 import { OctokitTypes, ContextTypes, DTO, DocumentTypes } from '../types/index.js';
+import { MongooseError } from "mongoose";
 
 const _context: ContextTypes.Context = { app, installationController, userController, repositoryController, issuesController };
 
@@ -50,6 +51,7 @@ class OctokitApi {
    */
   public _authenticatedContext: OAuthApp;
   private _authenticatedToken: string;
+  private _authenticatedUserId: number;
   public _installationId: number;
 
   constructor(context: ContextTypes.Context) {
@@ -134,8 +136,6 @@ class OctokitApi {
         });
 
       const { token }: { token: string } = authentication;
-      console.log(`TOKEN :: ${token}`);
-
       res.locals.authorization = token;
 
     } catch (error) {
@@ -149,53 +149,73 @@ class OctokitApi {
 
   getOrPostUser = async (req: Request, res: Response, next: NextFunction) => {
     const { authorization: token} = res.locals;
-    console.log(`TOKEN IN FIND OR CREATE USER -- ${token}`);
+
+    if (token === null || token === undefined) {
+      const log = "OAuth token is null or undefined, please authenticate user...";
+      console.error(log);
+      res.status(403).send(log);
+    }
 
     try {
+      /* full OAuth User from REST (extensive use from this obj if needed) */
         const { data: user }: { user: OctokitTypes.OAuthUser } = await this._authenticatedContext.request("GET /user");
+        this._authenticatedUserId = user.id;
         console.log(`GET USER DATA OAUTH APP --`, user);
-        // TODO: User.findOrCreate(user)
 
-        // res.locals.user_data.repos_url = user.repos_url;
-        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(user);
+        const userDTO: DTO.User = this._userContext.mapUserDTO(user);
+        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
+
         res.locals.user_data = userDoc;
 
       } catch (error) {
 
-        console.error("Error fetching user data:", error);
+        if (error instanceof MongooseError) {
+          console.error("Error performing database operation: ", error);
+        } else {
+          console.error("Error fetching user data from REST: ", error);
+        }
+
         res.locals.user_data = null;
+        res.status(500);
     }
 
     next();
   };
 
   getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
-    /* TODO: needs pagination for users with LOTS of repos.. */
-    console.log("--- --- --- ---");
-    // console.log(res.locals.user_data);
-    const user = res.locals.user_data;
-    const { repos_url } = res.locals.user_data;
-    console.log(`REPOS URL INSIDE getUserRepos: ${repos_url}`);
+    /* TODO: Trying to "install" as hotfix but gaining access to colinwilliams91 repos... */
 
     try {
 
-      const { data: repos } = await this._authenticatedContext.request("GET /user/repos");
+      /* TODO: look for octokit options for selecting what parts of REST data to get */
+
+      const repos: DTO.Repository[] = await this.requestAll("GET /user/repos", 100, this._repositoryContext.mapRepoDTO);
+
+      // /* option to perform all mapping after request... */
+      // const repoDTOArray: DTO.Repository[] = this._repositoryContext.mapRepoArray(repos, this._repositoryContext.mapRepoDocument);
+
+      // /* NO REPO TO DB Write At THIS TIME */
+      // /* FE wants REPO.ID and REPO.NAME */
+
       repos.forEach(repo => {
         console.log(repo);
       });
-      // for (const key in repos) {
-      //   console.log(`KEY: ${key}`);
-      //   console.log(`VAL: ${repos[key]}`);
-      // }
-      // console.log(`REPOS REPOS REPOS -->> ${repos}`);
+
+      const [ owner, repo ] = repos[10].full_name.split("/");
+
+      const { data: test } = await this._authenticatedContext.request("GET /repos/{owner}/{repo}", { owner, repo });
+
+      console.log(test);
+      console.log(repos.length);
     } catch (error) {
+
       console.error("Failed to GET /repositories REST ", error);
     }
 
     next();
   };
 
-  // TODO: Write user data to DB -->> then use some user data to go get associated repos? -->> write those to user?
+  // TODO: receive selected repo.full_name -->> parse string to query for individual repo on REST -->> write that repo (and DOC cols) to user?
   // TODO: Move to respective regions of API class
 
   /////////////////////////////////////////////////////
@@ -616,6 +636,41 @@ class OctokitApi {
       console.warn("res.locals is null | undefined | falsy, sending empty response body.");
       res.status(200).send();
     }
+  };
+
+  requestAll = async (restEndPoint: string, paginateBy: number = 100, mapFn?: () => unknown[]): Promise<DTO[]> => {
+    const [ method, url ] = restEndPoint.split(" ");
+    const data = [];
+
+    try {
+
+      let response = await this._authenticatedContext.request(`${method} ${url}`, { per_page: paginateBy });
+
+      data.push(...mapFn ? response.data.map(mapFn) : response.data);
+
+      let hasNextPage = response.headers.link && response.headers.link.includes(`rel="next"`);
+
+      try {
+
+        console.log(`headers link has next page: ${hasNextPage}, link: ${response.headers.link}`);
+
+        while (hasNextPage) {
+          const nextPageUrl = Utility.getNextPageUrl(response.headers.link);
+          console.log(`NEXT URL ->> ${nextPageUrl}`);
+          response = await this._authenticatedContext.request(`${method} ${nextPageUrl}`);
+          data.push(...mapFn ? response.data.map(mapFn) : response.data);
+          hasNextPage = response.headers.link && response.headers.link.includes(`rel="next"`);
+        }
+      } catch (error) {
+
+        console.error(`Failed to paginate: `, error);
+      }
+    } catch (error) {
+
+      console.error(`Failed to initialize requestAll GET first request... `, error);
+    }
+
+    return data;
   };
 
   //////////////////////////////////////////

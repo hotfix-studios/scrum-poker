@@ -1,6 +1,8 @@
 import { Schema, model } from "mongoose";
 import { DocumentTypes } from '../../types/index.js';
 
+/* TODO: WHEN DO REPO IDS GET WRITTEN TO USER? */
+/* TODO: STORE BACKLOGGED REPO IDS? (how to populate "chosen repos" on revisit) */
 const userSchema = new Schema<DocumentTypes.User>({
   _id: { type: Schema.Types.Number, required: true }, // use .id from GH payloads
   type: { type: Schema.Types.String, required: true },

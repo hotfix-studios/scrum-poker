@@ -3,7 +3,7 @@
 ///////////////////////////////
 
 export interface User {
-  id: number;
+  _id: number;
   name: string; // name, not login
   avatar_url: string;
   repos_url: string;
@@ -12,26 +12,12 @@ export interface User {
 };
 
 export interface Repository {
-  id: number;
-  name: string;
+  _id: number;
+  name: string;                // ?
   full_name: string;
-  private?: boolean;
-  owner_id?: number;
-  description?: string | null;
-  url?: string;
-  collaborators_url?: string;
-  teams_url?: string;
-  assignees_url?: string;
-  contributors_url?: string;
-  comments_url?: string;
-  issue_comment_url?: string;
-  contents_url?: string;
-  issues_url?: string;
-  labels_url?: string;
-  clone_url?: string;
-  language?: string;
-  has_issues?: boolean;
-  has_projects?: boolean;
+  owner_id: number;            // ?
+  description?: string | null; // ?
+  language: string;
   open_issues_count?: number;
 };
 

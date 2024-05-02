@@ -38,7 +38,7 @@ export interface Repository {
     _id: number;
     name: string;
     full_name: string;
-    private: boolean;
+    is_private: boolean;
     owner_id: number;
     description: string;
     url: string;
@@ -48,7 +48,6 @@ export interface Repository {
     contributors_url: string;
     comments_url: string;
     issue_comment_url: string;
-    contents_url: string;
     issues_url: string;
     labels_url: string;
     clone_url: string;
