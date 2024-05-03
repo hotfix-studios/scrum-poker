@@ -19,7 +19,7 @@ installationsRouter
   .post([
     octokitApi.postAuth,
     octokitApi.getOrPostUser,
-    octokitApi.getUserRepos,
+    // octokitApi.getUserRepos,
     octokitApi.sendData
   ])
 

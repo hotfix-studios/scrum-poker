@@ -11,6 +11,7 @@ issuesRouter
   .route("/:id")
   .get();
 
+/* TODO: gets full_name */
 issuesRouter
   .route("/:owner/:repo")
   .get([

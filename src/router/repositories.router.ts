@@ -21,9 +21,25 @@ repositoriesRouter
     octokitApi.sendData
   ]);
 
+  /* TODO: GET / */
+repositoriesRouter
+  .route("/")
+  .get([
+    octokitApi.getUserRepos,
+    octokitApi.sendData
+  ]);
+
+repositoriesRouter
+  .route("/:owner/:repo")
+  .get([
+    octokitApi.getRepoByFullName,
+    octokitApi.sendData
+  ]);
+
 /**
  * @implements repository test route
  */
 repositoriesRouter.route("/test/:id").get([ octokitApi.getReposByInstallationId, octokitApi.sendData ]);
+
 
 export default repositoriesRouter;
