@@ -128,6 +128,7 @@ class OctokitApi {
     try {
       const code: string = req.body.code;
 
+      /* TODO: check to see if UUID info exists on Auth User obj under hood? */
       /* { authentication } obj contains lots of client data */
       const { authentication } = await this._appContext
         .createToken({
@@ -162,10 +163,11 @@ class OctokitApi {
         this._authenticatedUserId = user.id;
         console.log(`GET USER DATA OAUTH APP --`, user);
 
-        const userDTO: DTO.User = this._userContext.mapUserDTO(user);
-        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(userDTO);
+        // const userDoc: DocumentTypes.User = this._userContext.mapUserDocument(user);
+        const userDoc: DocumentTypes.User = await this._userContext.findOrCreate(user);
+        const userDTO: DTO.User = this._userContext.mapUserDTO(userDoc);
 
-        res.locals.user_data = userDoc;
+        res.locals.user_data = userDTO;
 
       } catch (error) {
 
@@ -184,6 +186,7 @@ class OctokitApi {
 
   getUserRepos = async (req: Request, res: Response, next: NextFunction) => {
     /* TODO: Trying to "install" as hotfix but gaining access to colinwilliams91 repos... */
+    /* TODO:  */
 
     try {
 
@@ -201,17 +204,28 @@ class OctokitApi {
         console.log(repo);
       });
 
-      const [ owner, repo ] = repos[10].full_name.split("/");
+      // const [ owner, repo ] = repos[10].full_name.split("/");
 
-      const { data: test } = await this._authenticatedContext.request("GET /repos/{owner}/{repo}", { owner, repo });
+      // const { data: test } = await this._authenticatedContext.request("GET /repos/{owner}/{repo}", { owner, repo });
 
-      console.log(test);
+      // console.log(test);
       console.log(repos.length);
+      res.locals.repository_data = repos;
     } catch (error) {
 
       console.error("Failed to GET /repositories REST ", error);
     }
 
+    next();
+  };
+
+  getRepoByFullName = async (req: Request, res: Response, next: NextFunction) => {
+    const { owner, repo }: { owner: string, repo: string } = req.params;
+
+    const { data: repoRest } = await this._authenticatedContext.request("GET /repos/{owner}/{repo}", { owner, repo });
+    const repoDTO = this._repositoryContext.mapRepoDTO(repoRest);
+
+    res.locals.repository_data = repoDTO;
     next();
   };
 
@@ -729,6 +743,9 @@ class OctokitApi {
     }
   };
 
+  /**
+   * @deprecated
+   */
   handleOwnerUserCreate = async ({ payload }): Promise<void> => {
     const { installation }: { installation: OctokitTypes.Installation, } = payload;
     const { account }: { account: OctokitTypes.User } = installation;

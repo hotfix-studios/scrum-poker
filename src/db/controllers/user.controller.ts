@@ -21,8 +21,8 @@ export class UserController extends ARepository {
     super(model);
   }
 
-  findOrCreate = async<T extends DTO.User>(user: T): Promise<DocumentTypes.User> => {
-    const { _id }: { _id: number } = user;
+  findOrCreate = async<T extends DocumentTypes.User | OctokitTypes.OAuthUser>(user: T): Promise<DocumentTypes.User> => {
+    const _id = "id" in user ? user.id : user._id;
 
     try {
 
@@ -40,19 +40,14 @@ export class UserController extends ARepository {
     }
   };
 
-  createUser = async<T extends DTO.User>(
-    { _id, type, name, avatar_url, repos_url, repos }: T,
+  createUser = async<T extends OctokitTypes.OAuthUser | DocumentTypes.User>(
+    user: T,
     ): Promise<DocumentTypes.User> => {
 
+    const userDoc = this.mapUserDocument(user);
+
     try {
-      const user: DocumentTypes.User = await this._model.create({
-        _id,
-        type,
-        name,
-        avatar_url,
-        repos_url,
-        repos
-       });
+      const user: DocumentTypes.User = await this._model.create(userDoc);
 
       return user;
     } catch (error) {
@@ -64,12 +59,14 @@ export class UserController extends ARepository {
 
   userIsOwner = async (id: number): Promise<boolean> => await this._model.findById(id, "app_owner");
 
-  mapUserDTO = <T extends OctokitTypes.OAuthUser | DTO.User | DocumentTypes.User>(restUser: T): DTO.User => {
+  mapUserDocument = <T extends OctokitTypes.OAuthUser | DocumentTypes.User>(restUser: T): DocumentTypes.User => {
     const _id = "id" in restUser ? restUser.id : restUser._id;
     const { name, avatar_url, repos_url, type } = restUser;
     const repos = [];
     return { _id, name, avatar_url, repos_url, type, repos };
   };
+
+  mapUserDTO = ({ id, name, avatar_url }: OctokitTypes.OAuthUser): DTO.User => ({ _id: id, name, avatar_url });
 
 };
 
