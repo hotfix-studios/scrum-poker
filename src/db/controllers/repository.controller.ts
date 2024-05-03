@@ -152,7 +152,6 @@ export class RepositoryController extends ARepository {
     const owner_id = "owner" in repo ? repo.owner.id : repo.owner_id;
     return {
       _id: id,
-      name: repo.name,
       full_name: repo.full_name,
       owner_id: owner_id,
       description: repo.description,
