@@ -28,7 +28,7 @@ export interface Installation {
 export interface User {
     _id: number;
     type: string;
-    name: string;
+    name: string | null;
     avatar_url: string;
     repos_url: string;
     repos: number[];

@@ -4,7 +4,7 @@
 
 export interface User {
   _id: number;
-  name: string; // name, not login
+  name: string | null; // name, not login
   avatar_url: string;
   repos_url: string;
   type: string;

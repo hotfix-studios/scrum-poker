@@ -52,7 +52,7 @@ export interface OAuthUser {
   received_events_url: string,
   type: string,
   site_admin: boolean,
-  name: string, // use this for user name
+  name: string | null, // use this for user name
   company: string,
   blog: string,
   location: string | null,
