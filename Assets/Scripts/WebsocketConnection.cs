@@ -2,6 +2,7 @@ using UnityEngine;
 using NativeWebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 
 public class WebSocketConnection : MonoBehaviour
 {
@@ -23,7 +24,8 @@ public class WebSocketConnection : MonoBehaviour
         public int id;
         public string fullName;
         public string avatar;
-        public Store.User[] participants;
+        public object[] participants;
+        public object ws;
     }
 
     async void Awake()
@@ -184,38 +186,43 @@ public class WebSocketConnection : MonoBehaviour
 
     public void OnJoin(Params Params)
     {
-        Store.Host host = new Store.Host
+        /*        Store.Host host = new Store.Host
+                {
+
+                };*/
+
+        // Store.participants = Params.participants.ToList();
+
+        Store.Participant participant = new Store.Participant
         {
-
-        };
-
-        Store.User user = new Store.User 
-        {   
             isHost = Params.isHost,
             id = Params.id,
+            roomId = Params.roomId,
             fullName = Params.fullName,
             avatar = Params.avatar
         };
 
-        Store.AddParticipant(user);
+
+        Store.AddParticipant(participant);
     }
 
     public void OnLeave(Params Params)
     {
-        Store.User user = new Store.User
+        Store.Participant participant = new Store.Participant
         {
             isHost = Params.isHost,
             id = Params.id,
+            roomId = Params.roomId,
             fullName = Params.fullName,
             avatar = Params.avatar
         };
 
-        if (user.isHost)
+        if (participant.isHost)
         {
             OnApplicationQuit();
         }
 
-        Store.RemoveParticipant(user);
+        Store.RemoveParticipant(participant);
     }
 
     /*

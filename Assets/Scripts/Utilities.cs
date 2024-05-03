@@ -109,25 +109,25 @@ public class Utilities : MonoBehaviour
 
     public static List<string> HandleResponseRepos(string responseData)
     {
-        Store.Repo repository = new Store.Repo();
+        Store.Repository repository = new Store.Repository();
 
         List<string> repoNames = new List<string>();
-        List<Store.Repo> repos = new List<Store.Repo>();
+        List<Store.Repository> repos = new List<Store.Repository>();
 
         var data = JObject.Parse(responseData);
         var repoData = data["repository_data"];
 
         foreach (var repo in repoData)
         {
-            if (repo["name"] != null && repo["id"] != null)
+            if (repo["full_name"] != null && repo["_id"] != null)
             {
-                repository.name = (string)repo["name"];
-                repository.id = (int)repo["id"];
+                repository.full_name = (string)repo["full_name"];
+                repository._id = (int)repo["_id"];
                 repos.Add(repository);
             }
-            if (repo["name"] != null)
+            if (repo["full_name"] != null)
             {
-                repoNames.Add(repo["name"].ToString());
+                repoNames.Add(repo["full_name"].ToString());
             }
         }
 
@@ -137,11 +137,10 @@ public class Utilities : MonoBehaviour
 
     }
 
-    public static async Task<object[]> GetRepoIssues(string endpoint, string[] projections)
+    public static async Task<object[]> GetRepoIssues(string endpoint)
     {
-        /* TODO: handle projections? */
         var baseURL = GetBaseURL();
-        string url = $"{baseURL}{endpoint}{Store.id}/{Store.repoName}";
+        string url = $"{baseURL}{endpoint}{Store.repoName}";
 
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {

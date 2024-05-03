@@ -73,7 +73,7 @@ public class MenuManager : VisualElement
             if (Store.repoNames == null)
             {
                 // Make the HTTP Request to the backend for repo names and owner id
-                var endpoint = "api/repos/names/";
+                var endpoint = "api/repos/";
                 Store.repoNames = await Utilities.GetRepos(endpoint);
             }
 
@@ -99,6 +99,12 @@ public class MenuManager : VisualElement
             // When navigating to login, authorize with GitHub and reload application
             string authURL = $"https://github.com/login/oauth/authorize?client_id={Store.clientId}&scope={Store.scopes}";
             Application.OpenURL(authURL);
+
+            if (Store.fullName == null)
+            {
+                // TODO: Navigate user to profile to enter first and last name
+                Debug.Log("User is missing value for fullName field");
+            }
         });
 
         m_HostContainer?.Q("HostLobbyButton")?.RegisterCallback<ClickEvent>(async e => {
@@ -114,7 +120,7 @@ public class MenuManager : VisualElement
 
             // Make the HTTP Request to the backend for issues backlog
             var endpoint = "api/issues/";
-            object[] backlog = await Utilities.GetRepoIssues(endpoint, new string[] { "name", "owner_id" });
+            object[] backlog = await Utilities.GetRepoIssues(endpoint);
             Store.issues = backlog;
             Debug.Log("ISSUES: " + Store.issues);
 
@@ -166,23 +172,23 @@ public class MenuManager : VisualElement
         });
     }
 
-    public void AddParticipantToLobby(Store.User participant)
+    public void AddParticipantToLobby(Store.Participant participant)
     {
         var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
 
-/*        foreach (var participant in Store.participants)
-        {
-            var id = participant.id.ToString();
-            Label label = participants.Q<Label>($"{id}");
+        /*        foreach (var participant in Store.participants)
+                {
+                    var id = participant.id.ToString();
+                    Label label = participants.Q<Label>($"{id}");
 
-            if (label == null)
-            {
-                var newLabel = new Label();
-                newLabel.name = id;
-                newLabel.text = participant.fullName;
-                participants.Add(newLabel);
-            }
-        }*/
+                    if (label == null)
+                    {
+                        var newLabel = new Label();
+                        newLabel.name = id;
+                        newLabel.text = participant.fullName;
+                        participants.Add(newLabel);
+                    }
+                }*/
 
         var newLabel = new Label();
         newLabel.name = participant.id.ToString();
@@ -190,7 +196,7 @@ public class MenuManager : VisualElement
         participants.Add(newLabel);
     }
 
-    public void RemoveParticipantFromLobby(Store.User participant)
+    public void RemoveParticipantFromLobby(Store.Participant participant)
     {
         var participants = m_Lobby?.Q<ScrollView>("ParticipantsScrollView");
         var content = participants.Children();

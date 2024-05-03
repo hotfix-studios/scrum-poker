@@ -26,24 +26,49 @@ public class Store : MonoBehaviour
     public static string roomId;
     public static object[] issues;
 
-    public class Host
-    {
-        public string hostName;
-    }
+    /*    public class Host
+        {
+            public string hostName;
+        }*/
 
-    public class User
+    public class Participant
     {
         public bool isHost;
         public int id;
+        public string roomId;
         public string fullName;
         public string avatar;
     }
-    public static List<User> participants;
 
-    public class Repo
+    public static List<Participant> participants;
+
+    // HTTP && DTOS
+
+    public class User
     {
-        public int id;
+        public int _id;
         public string name;
+        public string avatar_url;
+    }
+
+    public class Repository
+    {
+        public int _id;
+        public string full_name;
+        public int owner_id;
+        public string description;
+        public string language;
+        public int open_issues_count;
+    }
+
+    public class Issue
+    {
+        public int _id;
+        public string title;
+        public int number;
+        public string[] labels;
+        public string body;
+        public bool pointed;
     }
 
     void Awake()
@@ -68,21 +93,19 @@ public class Store : MonoBehaviour
     }
 
     // DELEGATES && EVENTS
-    public delegate void ParticipantsAdded(User participant);
+    public delegate void ParticipantsAdded(Store.Participant participant);
     public static event ParticipantsAdded OnParticipantsAdded;
 
-    public static void AddParticipant(User participant)
+    public static void AddParticipant(Store.Participant participant)
     {
-        participants.Add(participant);
         OnParticipantsAdded?.Invoke(participant);
     }
 
-    public delegate void ParticipantsRemoved(User participant);
+    public delegate void ParticipantsRemoved(Store.Participant participant);
     public static event ParticipantsRemoved OnParticipantsRemoved;
 
-    public static void RemoveParticipant(User participant)
+    public static void RemoveParticipant(Store.Participant participant)
     {
-        participants.Remove(participant);
         OnParticipantsRemoved?.Invoke(participant);
     }
 }
