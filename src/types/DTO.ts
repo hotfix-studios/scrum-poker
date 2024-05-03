@@ -4,21 +4,31 @@
 
 export interface User {
   _id: number;
-  name: string; // name, not login
+  name: string | null; // name, not login
   avatar_url: string;
-  repos_url: string;
-  type: string;
-  repos: number[];
+  // is_host?: boolean | null;
+  // repos_url: string;
+  // type: string;
+  // repos: number[];
 };
 
 export interface Repository {
   _id: number;
-  name: string;                // ?
+  // name: string;
   full_name: string;
-  owner_id: number;            // ?
-  description?: string | null; // ?
-  language: string;
+  owner_id: number;
+  description?: string | null;
+  language: string | null;
   open_issues_count?: number;
+};
+
+export interface Issue {
+  _id: number;
+  title: string;
+  number: number;
+  labels: string[];
+  body: string;
+  pointed: boolean;
 };
 
 /**
