@@ -1,0 +1,98 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "GH Scrum Poker",
+    "version": "1.0.0",
+    "description": "Node Webserver HTTP API"
+  },
+  "host": "http://localhost:3000",
+  "paths": {
+    "/api/installations/auth/{id}": {
+      "post": {
+        "description": "Sends Installation ID to DB Create, upgrades the App auth simultaneously",
+        "tags": [
+          "Installation",
+          "App",
+          "DB"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/installationID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok"
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "installationID": {
+      "name": "installationID",
+      "description": "Installation ID for associated contributors (convert to Number).",
+      "in": "formData",
+      "required": true,
+      "type": "string"
+    },
+    "userID": {
+      "name": "userID",
+      "description": "User ID for User or Organization (convert to Number).",
+      "in": "formData",
+      "required": true,
+      "type": "string"
+    },
+    "repositoryID": {
+      "name": "repositoryID",
+      "description": "Repository ID for Repository associated with User (convert to Number).",
+      "in": "formData",
+      "required": true,
+      "type": "string"
+    },
+    "issueID": {
+      "name": "issueID",
+      "description": "Issue ID for Issue associated with Repository (convert to Number).",
+      "in": "formData",
+      "required": true,
+      "type": "string"
+    },
+    "projections": {
+      "name": "projections",
+      "description": "CSV of desired column values to return from DB query",
+      "in": "formData",
+      "required": false,
+      "type": "string"
+    }
+  },
+  "components": {},
+  "tags": [
+    {
+      "name": "Installation",
+      "description": "Authenticates GH Scrum Poker App for associated Users. One-to-many Users."
+    },
+    {
+      "name": "User",
+      "description": "A GitHub Contributor or Organization. Many-to-one Installation."
+    },
+    {
+      "name": "Repository",
+      "description": "Joins Users to Issues. One-to-many Issues. Many-to-one Installation. Many-to-one User."
+    },
+    {
+      "name": "Issue",
+      "description": null
+    },
+    {
+      "name": "App",
+      "description": "Octokit client which consumes GitHub REST."
+    },
+    {
+      "name": "DB",
+      "description": "NoSQL cloud database that persists game data. CRUD."
+    }
+  ]
+}

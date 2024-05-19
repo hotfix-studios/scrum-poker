@@ -1,9 +1,12 @@
-import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
-import { middleware } from "../app.js";
-import { fileURLToPath } from "url";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
+
+import { fileURLToPath } from "url";
+import { swaggerOptions, writeSpecFile } from "./swagger/index.js";
+
+import { Application, Request, Response, Router, json, urlencoded, static as Static, NextFunction } from "express";
+import { middleware } from "../app.js";
 
 ///////////////////
 /// API ROUTERS ///
@@ -48,6 +51,13 @@ export const configureServer = (server: Application) => {
     server
         .use([httpLogger, setResponseLocals, setProjectionsContext])
         .use("/api", api); // TODO: figure out why /api/ url was working... this might need to go up near use middleware
+
+    server
+        .use("/api-docs", (req, res) => {
+          const openapiSpecification = writeSpecFile(swaggerOptions);
+          res.setHeader("Content-Type", "application/json");
+          res.send(openapiSpecification);
+        });
 
     server.get("/", (req, res) => {
         res.sendFile("/webgl/index.html", { root: "dist" });
